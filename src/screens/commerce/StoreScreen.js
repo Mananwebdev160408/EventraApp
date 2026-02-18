@@ -16,12 +16,12 @@ const StoreScreen = ({ navigation }) => {
 
   const renderItem = ({ item }) => (
     <View style={styles.productCard}>
-      <View style={styles.imageContainer}>
+      <TouchableOpacity style={styles.imageContainer} onPress={() => navigation.navigate('ProductDetails', { product: item })}>
         <Image source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
         <TouchableOpacity style={styles.favoriteButton}>
-          <Heart size={14} color={COLORS.white} />
+          <Heart size={14} color={COLORS.text} />
         </TouchableOpacity>
-      </View>
+      </TouchableOpacity>
       <View style={styles.productInfo}>
         <View style={{flex: 1}}>
           <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
@@ -36,7 +36,7 @@ const StoreScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
@@ -114,7 +114,7 @@ const StoreScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1220', // background-dark
+    backgroundColor: COLORS.background, // background-dark
   },
   safeArea: {
     flex: 1,
@@ -129,17 +129,17 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   iconButton: {
     padding: 8,
-    backgroundColor: 'rgba(159, 67, 234, 0.1)',
+    backgroundColor: COLORS.card,
     borderRadius: 20,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(159, 67, 234, 0.1)',
+    backgroundColor: COLORS.card,
     marginHorizontal: 16,
     borderRadius: 12,
     paddingHorizontal: 12,
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 14,
   },
   categoryList: {
@@ -163,13 +163,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 100,
-    backgroundColor: 'rgba(159, 67, 234, 0.1)',
+    backgroundColor: COLORS.card,
   },
   categoryChipActive: {
     backgroundColor: COLORS.brandPurple,
   },
   categoryText: {
-    color: COLORS.gray300,
+    color: COLORS.gray600,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     aspectRatio: 0.8,
-    backgroundColor: '#2d1b4d', // slate-800 equivalent
+    backgroundColor: COLORS.card, // slate-800 equivalent
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 12,
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     padding: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: COLORS.card,
     borderRadius: 20,
     backdropFilter: 'blur(4px)',
   },
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 4,
   },
   productPrice: {

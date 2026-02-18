@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(26, 18, 32, 0.4)',
+    backgroundColor: 'rgba(29, 53, 87, 0.4)',
   },
   closeButton: {
     position: 'absolute',
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#231a2b',
+    backgroundColor: COLORS.background,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
     paddingHorizontal: 24,
@@ -177,13 +177,13 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   badge: {
-    backgroundColor: 'rgba(123, 44, 191, 0.2)',
+    backgroundColor: 'rgba(230, 57, 70, 0.2)',
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: 'rgba(123, 44, 191, 0.3)',
+    borderColor: 'rgba(230, 57, 70, 0.3)',
     marginBottom: 8,
   },
   badgeText: {
@@ -195,12 +195,12 @@ const styles = StyleSheet.create({
   seatTitle: {
     fontSize: 28,
     fontWeight: '800',
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 4,
   },
   seatSubtitle: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     fontWeight: '500',
   },
   priceLabel: {
@@ -225,15 +225,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(123, 44, 191, 0.1)',
+    backgroundColor: 'rgba(230, 57, 70, 0.1)',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 100,
     borderWidth: 1,
-    borderColor: 'rgba(123, 44, 191, 0.2)',
+    borderColor: 'rgba(230, 57, 70, 0.2)',
   },
   tagText: {
-    color: COLORS.gray300,
+    color: COLORS.gray600,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -244,16 +244,16 @@ const styles = StyleSheet.create({
   },
   gridItem: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: COLORS.border,
   },
   gridLabel: {
     fontSize: 10,
     fontWeight: '700',
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     letterSpacing: 1,
     marginBottom: 8,
   },
@@ -290,11 +290,11 @@ const styles = StyleSheet.create({
   distValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   gateText: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     marginTop: 4,
   },
   perksSection: {
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
+    borderBottomColor: COLORS.border,
   },
   perkLeft: {
     flexDirection: 'row',
@@ -317,13 +317,13 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(123, 44, 191, 0.2)',
+    backgroundColor: 'rgba(230, 57, 70, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   perkText: {
     fontSize: 14,
-    color: COLORS.gray300,
+    color: COLORS.gray600,
     fontWeight: '600',
   },
   confirmButton: {

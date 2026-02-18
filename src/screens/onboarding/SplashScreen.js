@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, Animated, Image } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { COLORS, FONTS } from '../../constants/theme';
-
+import { COLORS } from '../../constants/theme';
+import * as SplashScreen from 'expo-splash-screen'; // we don't need this imported here if we pass from parent
 
 const { width, height } = Dimensions.get('window');
 
-const SplashScreen = ({ onFinish }) => {
+const CustomSplashScreen = ({ onFinish }) => {
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
 
@@ -24,17 +24,17 @@ const SplashScreen = ({ onFinish }) => {
       }),
     ]).start();
 
-    // Simulate loading assets/checks
+    // After animations are done, wait a bit then finish
     const timer = setTimeout(() => {
       onFinish();
-    }, 3000);
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       
       {/* Background Elements */}
       <View style={styles.circle1} />
@@ -61,7 +61,7 @@ const SplashScreen = ({ onFinish }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.brandDark,
+    backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
-    shadowColor: COLORS.brandPurple,
+    shadowColor: 'rgba(0,0,0,0.1)',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 20,
@@ -91,12 +91,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: '800',
-    color: COLORS.white,
+    color: COLORS.text,
     letterSpacing: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     marginTop: 8,
     fontWeight: '500',
   },
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: 'rgba(123, 44, 191, 0.1)',
+    backgroundColor: 'rgba(230, 57, 70, 0.1)',
   },
   circle2: {
     position: 'absolute',
@@ -116,16 +116,16 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(123, 44, 191, 0.05)',
+    backgroundColor: 'rgba(230, 57, 70, 0.05)',
   },
   footer: {
     position: 'absolute',
     bottom: 40,
   },
   version: {
-    color: COLORS.white10,
+    color: COLORS.gray400,
     fontSize: 12,
   },
 });
 
-export default SplashScreen;
+export default CustomSplashScreen;

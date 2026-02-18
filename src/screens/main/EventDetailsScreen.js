@@ -84,7 +84,7 @@ const EventDetailsScreen = ({ navigation }) => {
 
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <MapPin size={20} color="rgba(159, 67, 234, 0.8)" />
+              <MapPin size={20} color="rgba(230, 57, 70, 0.8)" />
               <Text style={styles.sectionTitle}>Stadium Info</Text>
             </View>
             <Text style={styles.description}>{event.description}</Text>
@@ -106,14 +106,14 @@ const EventDetailsScreen = ({ navigation }) => {
           <View style={styles.menuLinks}>
             <TouchableOpacity style={styles.menuItem}>
               <View style={styles.menuItemLeft}>
-                <Briefcase size={20} color="rgba(159, 67, 234, 0.8)" />
+                <Briefcase size={20} color="rgba(230, 57, 70, 0.8)" />
                 <Text style={styles.menuItemText}>Bag Policy</Text>
               </View>
               <ChevronRight size={20} color={COLORS.gray400} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem}>
               <View style={styles.menuItemLeft}>
-                <Utensils size={20} color="rgba(159, 67, 234, 0.8)" />
+                <Utensils size={20} color="rgba(230, 57, 70, 0.8)" />
                 <Text style={styles.menuItemText}>Food & Drinks</Text>
               </View>
               <ChevronRight size={20} color={COLORS.gray400} />
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f7f6f8', // Using light bg as per design, then dark content if needed, but HTML has .dark class on Html, and body bg-background-light dark:bg-background-dark.
     // Let's stick to dark theme consistent with other pages
-    backgroundColor: '#1a1121',
+    backgroundColor: COLORS.background,
   },
   scrollContent: {
     paddingBottom: 20,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 150,
-    backgroundColor: 'rgba(26, 17, 33, 0)', // Gradient handled by View styles if using LinearGradient, keeping simple here
+    backgroundColor: 'rgba(29, 53, 87, 0)', // Gradient handled by View styles if using LinearGradient, keeping simple here
   },
   headerControls: {
     position: 'absolute',
@@ -208,12 +208,12 @@ const styles = StyleSheet.create({
   },
   contentCard: {
     marginTop: -64,
-    backgroundColor: '#1a1121', // background-dark
+    backgroundColor: COLORS.background, // background-dark
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: COLORS.border,
   },
   tagsRow: {
     flexDirection: 'row',
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   tagDefault: {
-    backgroundColor: 'rgba(159, 67, 234, 0.2)',
+    backgroundColor: 'rgba(230, 57, 70, 0.2)',
   },
   tagSellingFast: {
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   tagTextDefault: {
-    color: '#9f43ea',
+    color: '#e63946',
   },
   tagTextSellingFast: {
     color: '#10b981',
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 24,
     lineHeight: 34,
   },
@@ -263,19 +263,19 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: 'rgba(159, 67, 234, 0.1)',
+    backgroundColor: 'rgba(230, 57, 70, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   infoLabel: {
     fontSize: 11,
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     fontWeight: '500',
     marginBottom: 2,
   },
   infoValue: {
     fontSize: 14,
-    color: COLORS.white,
+    color: COLORS.text,
     fontWeight: '600',
   },
   divider: {
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   description: {
     fontSize: 14,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: COLORS.border,
   },
   mapImage: {
     width: '100%',
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   directionsText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   menuLinks: {
     gap: 16,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.background,
     borderRadius: 12,
   },
   menuItemLeft: {
@@ -356,16 +356,16 @@ const styles = StyleSheet.create({
   menuItemText: {
     fontSize: 14,
     fontWeight: '500',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(26, 17, 33, 0.9)',
+    backgroundColor: COLORS.white,
     borderTopWidth: 1,
-    borderTopColor: COLORS.white10,
+    borderTopColor: COLORS.border,
     paddingHorizontal: 24,
     paddingTop: 16,
     paddingBottom: 32, // Safe area padding
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   },
   startFromText: {
     fontSize: 10,
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -390,22 +390,22 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#9f43ea',
+    color: '#e63946',
   },
   perPerson: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: COLORS.gray600,
   },
   selectSeatsButton: {
     flex: 1,
     height: 56,
-    backgroundColor: '#9f43ea',
+    backgroundColor: '#e63946',
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#9f43ea',
+    shadowColor: '#e63946',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   selectSeatsText: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
 });
 

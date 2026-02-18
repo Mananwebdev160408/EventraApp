@@ -29,7 +29,7 @@ const RoleCard = ({ title, description, icon, isSelected, onPress, isPro }) => {
           {isSelected ? (
             <CheckCircle size={20} color={COLORS.brandPurple} fill={COLORS.brandPurple} stroke={COLORS.brandDark} />
           ) : (
-            <Circle size={20} color={COLORS.white10} />
+            <Circle size={20} color={COLORS.border} />
           )}
         </View>
         <Text style={styles.cardDescription}>{description}</Text>
@@ -47,7 +47,7 @@ const RoleSelectionScreen = ({ navigation }) => {
       console.log('Admin role selected');
       navigation.reset({
         index: 0,
-        routes: [{ name: 'AdminDashboard' }],
+        routes: [{ name: 'AdminTabs' }],
       });
     } else {
       navigation.reset({
@@ -59,11 +59,11 @@ const RoleSelectionScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <ChevronLeft size={24} color={COLORS.white} />
+          <ChevronLeft size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.stepText}>STEP 1 OF 2</Text>
         <View style={{width: 40}} /> 
@@ -79,14 +79,14 @@ const RoleSelectionScreen = ({ navigation }) => {
           <RoleCard
             title="Fan"
             description="Discover events, book premium seats, and access your digital tickets."
-            icon={<User size={30} color={selectedRole === 'fan' ? COLORS.brandPurple : COLORS.white} />}
+            icon={<User size={30} color={selectedRole === 'fan' ? COLORS.brandPurple : COLORS.gray400} />}
             isSelected={selectedRole === 'fan'}
             onPress={() => setSelectedRole('fan')}
           />
           <RoleCard
             title="Stadium Admin"
             description="Manage venues, monitor ticket sales, and oversee event operations."
-            icon={<ShieldCheck size={30} color={selectedRole === 'admin' ? '#9d4edd' : COLORS.white} />}
+            icon={<ShieldCheck size={30} color={selectedRole === 'admin' ? '#9d4edd' : COLORS.gray400} />}
             isSelected={selectedRole === 'admin'}
             onPress={() => setSelectedRole('admin')}
             isPro
@@ -111,7 +111,7 @@ const RoleSelectionScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.brandDark,
+    backgroundColor: COLORS.background,
     padding: 24,
   },
   header: {
@@ -124,14 +124,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: COLORS.white05,
+    backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: COLORS.white10,
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepText: {
-    color: COLORS.gray500,
+    color: COLORS.gray600,
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 2,
@@ -147,13 +147,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30, // text-3xl
     fontWeight: '800',
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 12,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: COLORS.gray500,
+    color: COLORS.gray600,
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -161,9 +161,9 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: COLORS.white10,
+    borderColor: COLORS.border,
     borderRadius: 24,
     padding: 24,
     flexDirection: 'row',
@@ -178,9 +178,9 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: COLORS.white05,
+    backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: COLORS.white10,
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   proBadge: {
     paddingHorizontal: 8,
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: 14,
-    color: COLORS.gray500,
+    color: COLORS.gray600,
     lineHeight: 20,
   },
   footer: {
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     textAlign: 'center',
-    color: COLORS.gray500,
+    color: COLORS.gray600,
     fontSize: 14,
     fontWeight: '600',
   },

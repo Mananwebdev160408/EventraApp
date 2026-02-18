@@ -23,7 +23,7 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profile</Text>
@@ -92,7 +92,7 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.brandDark,
+    backgroundColor: COLORS.background,
   },
   safeArea: {
     flex: 1,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   content: {
     paddingHorizontal: 24,
@@ -116,12 +116,12 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.card,
     padding: 20,
     borderRadius: 20,
     marginBottom: 32,
     borderWidth: 1,
-    borderColor: COLORS.white10,
+    borderColor: COLORS.border,
   },
   avatar: {
     width: 70,
@@ -135,12 +135,12 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     marginBottom: 8,
   },
   roleBadge: {
@@ -164,12 +164,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     marginBottom: 16,
     marginLeft: 4,
   },
   menuGroup: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.white05,
+    borderColor: COLORS.border,
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -190,13 +190,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
   menuLabel: {
     fontSize: 16,
-    color: COLORS.white,
+    color: COLORS.text,
     fontWeight: '500',
   },
   logoutButton: {

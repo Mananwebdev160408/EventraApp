@@ -15,7 +15,7 @@ const TrackOrderScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -78,7 +78,7 @@ const TrackOrderScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1121',
+    backgroundColor: COLORS.background,
   },
   safeArea: {
     flex: 1,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -102,29 +102,29 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   content: {
     padding: 24,
   },
   mapPlaceholder: {
     height: 200,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.card,
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: COLORS.white10,
+    borderColor: COLORS.border,
     borderStyle: 'dashed',
   },
   mapText: {
     marginTop: 12,
-    color: COLORS.gray500,
+    color: COLORS.gray600,
     fontSize: 14,
   },
   statusCard: {
-    backgroundColor: '#2d1b4e',
+    backgroundColor: '#1d3557',
     padding: 20,
     borderRadius: 16,
     marginBottom: 32,
@@ -147,10 +147,10 @@ const styles = StyleSheet.create({
   driverName: {
      fontSize: 16,
      fontWeight: '700',
-     color: COLORS.white,
+     color: COLORS.text,
   },
   driverStatus: {
-     color: COLORS.gray400,
+     color: COLORS.gray600,
      fontSize: 14,
   },
   timeline: {
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
   timelineTime: {
-    color: COLORS.gray500,
+    color: COLORS.gray600,
     fontSize: 12,
   },
   timelineCenter: {
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#1a1121',
+    backgroundColor: COLORS.background,
     borderWidth: 2,
     borderColor: COLORS.gray600,
     alignItems: 'center',
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.brandPurple,
   },
   dotActive: {
-     backgroundColor: '#1a1121',
+     backgroundColor: COLORS.background,
      borderColor: COLORS.brandPurple,
   },
   timelineLine: {
@@ -198,14 +198,14 @@ const styles = StyleSheet.create({
     top: 24,
     bottom: -32,
     width: 2,
-    backgroundColor: COLORS.white10,
+    backgroundColor: COLORS.border,
   },
   timelineRight: {
      paddingLeft: 16,
      justifyContent: 'center',
   },
   timelineLabel: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: '600',
   },

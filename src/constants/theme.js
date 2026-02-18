@@ -1,15 +1,23 @@
-export const COLORS = {
-  brandDark: '#10002b',
-  brandPurple: '#7b2cbf',
-  brandPurpleHover: '#6a25a4',
-  inputBorder: '#2d1b4d',
+  export const COLORS = {
+  background: '#f1faee',
+  text: '#1d3557',
+  card: '#ffffff',
+  border: 'rgba(29, 53, 87, 0.1)',
+  success: '#10b981',
+  error: '#ef4444',
+  brandDark: '#1d3557', // Prussian Blue
+  brandPurple: '#e63946', // Imperial Red (Primary)
+  brandPurpleHover: '#c1303b', // Darker Red
+  inputBorder: '#457b9d', // Celadon Blue
+  secondary: '#a8dadc', // Powder Blue
+  surface: '#f1faee', // Honeydew
   white: '#ffffff',
-  gray300: '#d1d5db',
-  gray400: '#9ca3af',
-  gray500: '#6b7280',
-  gray600: '#4b5563',
-  white10: 'rgba(255, 255, 255, 0.1)',
-  white05: 'rgba(255, 255, 255, 0.05)',
+  gray300: '#9ca3af', // Darker for light mode visibility
+  gray400: '#6b7280', // Darker for light mode visibility
+  gray500: '#4b5563', // Darker for light mode visibility
+  gray600: '#374151',
+  white10: 'rgba(29, 53, 87, 0.1)', // Redirecting to dark alpha for light mode compatibility
+  white05: 'rgba(29, 53, 87, 0.05)',
   transparent: 'transparent',
 };
 

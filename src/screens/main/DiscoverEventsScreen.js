@@ -59,7 +59,7 @@ const DiscoverEventsScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       
       {/* Header */}
       <View style={styles.header}>
@@ -173,7 +173,7 @@ const QuickActionButton = ({ icon, label, onPress }) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.brandDark, // Using brandDark as background
+    backgroundColor: COLORS.background, // Using brandDark as background
   },
   header: {
     flexDirection: 'row',
@@ -192,10 +192,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(123, 44, 191, 0.2)',
+    backgroundColor: 'rgba(230, 57, 70, 0.2)',
     padding: 2,
     borderWidth: 1,
-    borderColor: 'rgba(123, 44, 191, 0.3)',
+    borderColor: COLORS.border,
   },
   avatar: {
     width: '100%',
@@ -204,23 +204,23 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 12,
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     fontWeight: '500',
   },
   userName: {
     fontSize: 18,
-    color: COLORS.white,
+    color: COLORS.text,
     fontWeight: '700',
   },
   notificationButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#1a1220', // card-dark
+    backgroundColor: COLORS.card, // card-dark
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(123, 44, 191, 0.2)',
+    borderColor: 'rgba(230, 57, 70, 0.2)',
   },
   scrollContent: {
     paddingBottom: 24,
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1220',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 56,
@@ -240,14 +240,14 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     marginLeft: 12,
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 14,
   },
   filterButton: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: 'rgba(123, 44, 191, 0.1)',
+    backgroundColor: 'rgba(230, 57, 70, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   seeAllText: {
     fontSize: 12,
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
     height: 220,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: '#1a1220',
+    backgroundColor: COLORS.card,
   },
   featuredImage: {
     width: '100%',
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   featuredTagText: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 10,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   featuredTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 8,
   },
   featuredMetaRow: {
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(26, 18, 32, 0.7)',
+    backgroundColor: 'rgba(29, 53, 87, 0.7)',
     borderWidth: 2,
     borderColor: COLORS.brandPurple,
     alignItems: 'center',
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     textTransform: 'uppercase',
   },
   viewToggle: {
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#1a1220',
+    backgroundColor: COLORS.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -383,11 +383,11 @@ const styles = StyleSheet.create({
     width: '47%', // roughly half minus gap
   },
   eventCard: {
-    backgroundColor: '#1a1220',
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: COLORS.border,
   },
   eventImageContainer: {
     width: '100%',
@@ -411,14 +411,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   priceText: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 10,
     fontWeight: '700',
   },
   eventTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 4,
   },
   eventMetaRow: {
@@ -429,12 +429,12 @@ const styles = StyleSheet.create({
   },
   eventMetaText: {
     fontSize: 11,
-    color: COLORS.gray400,
+    color: COLORS.gray600,
   },
   remindButton: {
     width: '100%',
     paddingVertical: 8,
-    backgroundColor: 'rgba(123, 44, 191, 0.1)',
+    backgroundColor: 'rgba(230, 57, 70, 0.1)',
     borderRadius: 8,
     alignItems: 'center',
   },

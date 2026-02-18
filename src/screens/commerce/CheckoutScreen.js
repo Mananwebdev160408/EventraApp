@@ -14,6 +14,14 @@ const CheckoutScreen = ({ navigation }) => {
     // Simulate payment processing
     setTimeout(() => {
       setSuccess(true);
+      navigation.navigate('OrderConfirmed', { 
+        order: {
+          id: '#123456',
+          total: '$89.50',
+          date: 'Oct 26, 2024',
+          paymentMethod: 'Visa **** 4242' 
+        }
+      });
     }, 1500);
   };
 
@@ -42,11 +50,11 @@ const CheckoutScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
-            <ChevronLeft size={20} color={COLORS.white} />
+            <ChevronLeft size={20} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Checkout</Text>
           <View style={{ width: 40 }} />
@@ -57,7 +65,7 @@ const CheckoutScreen = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Payment Method</Text>
             <View style={styles.cardSelector}>
               <View style={styles.cardOptionActive}>
-                 <CreditCard size={24} color={COLORS.white} />
+                 <CreditCard size={24} color={COLORS.brandPurple} />
                  <Text style={styles.cardText}>.... 4242</Text>
                  <View style={styles.radioSelected} />
               </View>
@@ -100,7 +108,7 @@ const CheckoutScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1220',
+    backgroundColor: COLORS.background,
   },
   safeArea: {
     flex: 1,
@@ -115,7 +123,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   iconButton: {
     width: 40,
@@ -132,7 +140,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.gray300,
+    color: COLORS.gray600,
     marginBottom: 16,
   },
   cardSelector: {
@@ -141,7 +149,7 @@ const styles = StyleSheet.create({
   cardOptionActive: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(123, 44, 191, 0.2)',
+    backgroundColor: COLORS.card,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
@@ -149,7 +157,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   cardText: {
-    color: COLORS.white,
+    color: COLORS.text,
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
@@ -160,7 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 6,
     borderColor: COLORS.brandPurple,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.card,
   },
   addCardButton: {
     marginTop: 12,
@@ -176,33 +184,33 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   summaryLabel: {
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     fontSize: 14,
   },
   summaryValue: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 14,
     fontWeight: '600',
   },
   divider: {
     height: 1,
-    backgroundColor: COLORS.white10,
+    backgroundColor: COLORS.border,
     marginVertical: 12,
   },
   totalLabel: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: '700',
   },
   totalValue: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 20,
     fontWeight: '700',
   },
   footer: {
     padding: 24,
     borderTopWidth: 1,
-    borderTopColor: COLORS.white10,
+    borderTopColor: COLORS.border,
     gap: 16,
   },
   secureBadge: {
@@ -212,7 +220,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   secureText: {
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     fontSize: 12,
   },
   successIcon: {
@@ -227,11 +235,11 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 12,
   },
   successText: {
-    color: COLORS.gray400,
+    color: COLORS.gray600,
     textAlign: 'center',
     marginBottom: 32,
     lineHeight: 22,

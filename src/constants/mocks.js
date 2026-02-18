@@ -78,6 +78,9 @@ export const STORE_ITEMS = [
     price: '$85.00',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA8kbFDsm8R4o0h2PoOKRBvya0r6Z9J4IPv1ah5PVOFJL22xhx58-4-Boe7mlAxWJ6LmxeD3r4OBLKsSwb8_JhqO6mBwSFrScWByK3GL5nXEbfNheis_U9cuVFARqcpHAJMSjJ7pFH65c3Zse-f9sCSLbbz6CeEpQLqWZDgN3zdbjFqMxyYUNZwunoMu8C7QdNYtN-oQWAbN-1wT_Z34aX_-M5LR-ABdm6kVzg8G_i5FSNS7Vfz3OtwUpuxP4QntUZuwMixYQ56DAo',
     category: 'Jerseys',
+    description: 'Official home jersey for the 2024 season. Made with breathable fabric.',
+    rating: 4.8,
+    reviews: 120,
   },
   {
     id: '102',
@@ -85,6 +88,9 @@ export const STORE_ITEMS = [
     price: '$32.00',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBb028acR5R_Q3T4O5kHVZC7gvdPTRUVmWpSLMmP5z93UBFQ-RdWY0DckeX3sJCMe1zUVRSIogPFdcKyFPQoyxuw0e5bJU7ik7qFhXZcv6Ntwznz5TgmDzaiBZkJbEpNvykBoRalXpiLWR3OLKpdsmIhCFI56uR3hshuq0H7Ba2ELc2UPO0peaVDyaZsYcWnPF0-AUVGg-lPsgDzmSnDssffRUFCVBE1jusKlKXHxijbNBsGwSjUbx_EqzX-T7WuWz6YGGKzOG5_mM',
     category: 'Caps',
+    description: 'Adjustable snapback cap with embroidered team logo.',
+    rating: 4.5,
+    reviews: 85,
   },
   {
     id: '103',
@@ -92,6 +98,9 @@ export const STORE_ITEMS = [
     price: '$25.00',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBdNIP4t1Q_-ywYqO-8WopGZFWSLjh3etGqTFOUb8jSO4NHa-YuLmvDTCmpUGv9RobUYtCjJwj1yfZp6pFpq27ncFiRMPA8hjRTX8HeRTJCLBHcIdXybQac1GZ_XbRrIzBvZE2ELspVddTt8VhLjGxeiK7rUnP-JOewnT3XMx_QKndjfZGKL5xhK9Ebcc_NAPdgHZvH0hTBXQg1_T-ITCcYpW04UBSx3uYDN0Re_iWroSVZ3jmpld5Z0TFuOrow20LCvG5HEnwBLbE',
     category: 'Accessories',
+    description: 'Keep warm while cheering for your team with this premium scarf.',
+    rating: 4.7,
+    reviews: 200,
   },
   {
     id: '104',
@@ -99,6 +108,9 @@ export const STORE_ITEMS = [
     price: '$110.00',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAbKAvmxDhgigwn600G6OkGJEHBCVK77mCd-V5bVaVeZuQN4wQKoL-P3Hp5FBWEXE6oIROOxkW6rSkwcRMwCLrNPytwwjBADBzTMm1eZ3BwyD-LmZdUdiS1blHIzbbeuxPGf_CmjwlGP1vFMjvjZZbe5Wbf6W5eYRC6_ka4O1H4lKF-S2JH5cDbp9Wc9rDpcQe1AGyYE2-QPkfIS-e28CE96T42wy31ousNBnTAgwMTs6AOZk_HGI_ck-nQYKh2dA_-2PJ-Vf-BsLI',
     category: 'Accessories',
+    description: 'Spacious duffel bag perfect for gym or travel. Durable and stylish.',
+    rating: 4.9,
+    reviews: 45,
   },
 ];
 
@@ -127,4 +139,68 @@ export const FOOD_VENDORS = [
     time: '5 min',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAhE-6T2nROWrQP3ItpEGxNXzvhrrukWvpViwJ4KIgKCRC6JE96eZ5L9WGGCFZa8bf81sWwZRcDvjgQzXosbCOFaeCFENDsQNfVw44_3Kggs-DwJETT0aqLQZOjtbmFNdeBgrf8n2rH27HsCrxBbEwuwhXYQtW7xfcdM642GmekXaiCGJ7P_aD2UaOaGJzataqd3CT7TpsEJFtnReeAPK0V4_LIUPCsZY3yywyAk1Aboc5Ef-4D13y8PEDptr-uarW5jlKYGtOy8V4',
   },
+];
+
+export const SEAT_MAP_DATA = {
+  sectors: [
+    { id: 'north', name: 'North Block', type: 'standard', price: 150, seats: generateSeats(5, 8, 'north') },
+    { id: 'south', name: 'South Terrace', type: 'standard', price: 150, seats: generateSeats(5, 8, 'south') },
+    { id: 'vip', name: 'VIP Box', type: 'vip', price: 300, seats: generateSeats(3, 4, 'vip') },
+  ]
+};
+
+function generateSeats(rows, cols, sector) {
+  let seats = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      seats.push({
+        id: `${sector}-${r}-${c}`,
+        row: r,
+        col: c,
+        status: Math.random() > 0.8 ? 'booked' : 'available', // 20% booked
+        type: sector === 'vip' ? 'vip' : 'standard',
+      });
+    }
+  }
+  return seats;
+}
+
+export const ADMIN_ANALYTICS_DATA = {
+  overview: [
+    { label: 'Total Revenue', value: '$2.5M', change: '+12%', type: 'up' },
+    { label: 'Tickets Sold', value: '45.2k', change: '+8%', type: 'up' },
+    { label: 'Event Occupancy', value: '88%', change: '-2%', type: 'down' },
+    { label: 'Active Users', value: '12k', change: '+5%', type: 'up' },
+  ],
+  revenueByMonth: [
+    { month: 'Jan', value: 120 },
+    { month: 'Feb', value: 150 },
+    { month: 'Mar', value: 180 },
+    { month: 'Apr', value: 220 },
+    { month: 'May', value: 250 },
+    { month: 'Jun', value: 300 },
+  ],
+  ticketSales: [
+    { category: 'VIP', count: 1200 },
+    { category: 'Standard', count: 3500 },
+    { category: 'Economy', count: 5000 },
+  ]
+};
+
+export const ADMIN_SCHEDULE_DATA = [
+  { id: '1', title: 'Champions League Final', date: '2024-10-24', time: '20:00', venue: 'Wembley Stadium', status: 'Scheduled' },
+  { id: '2', title: 'Local Derby', date: '2024-11-05', time: '18:00', venue: 'Wembley Stadium', status: 'Draft' },
+  { id: '3', title: 'Summer Concert', date: '2024-12-15', time: '19:30', venue: 'Wembley Stadium', status: 'Scheduled' },
+];
+
+export const ACTIVITY_HISTORY = [
+  { id: '1', type: 'ticket', title: 'Champions Cup 2024', date: 'Oct 24, 2024', amount: '$85.00' },
+  { id: '2', type: 'store', title: 'Stadium Store Order', date: 'Oct 24, 2024', amount: '$45.50' },
+  { id: '3', type: 'ticket', title: 'Neon Pulse Festival', date: 'Sep 15, 2024', amount: '$120.00' },
+  { id: '4', type: 'food', title: 'The Stadium Grill', date: 'Sep 10, 2024', amount: '$22.00' },
+];
+
+export const CART_ITEMS = [
+  { ...STORE_ITEMS[0], quantity: 1, size: 'M' },
+  { ...STORE_ITEMS[1], quantity: 2, size: 'One Size' },
 ];

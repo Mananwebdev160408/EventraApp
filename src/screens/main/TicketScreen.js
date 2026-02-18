@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { ChevronLeft, Share, Calendar, Clock, MapPin, MoreVertical, Download, Wallet } from 'lucide-react-native';
@@ -10,7 +11,7 @@ const TicketScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       
       {/* Header */}
       <View style={styles.header}>
@@ -123,7 +124,7 @@ const TicketScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1220',
+    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -137,16 +138,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: COLORS.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   scrollContent: {
     paddingHorizontal: 24,
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#1a1220', // Match background
+    backgroundColor: COLORS.background, // Match background
     position: 'absolute',
     left: -15,
   },
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#1a1220',
+    backgroundColor: COLORS.background,
     position: 'absolute',
     right: -15,
   },
@@ -309,16 +310,16 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 56,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.border,
   },
   primaryButton: {
     backgroundColor: COLORS.brandPurple,
     borderColor: COLORS.brandPurple,
   },
   actionText: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontWeight: '600',
   },
   primaryButtonText: {

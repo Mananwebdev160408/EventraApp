@@ -2,37 +2,37 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft, Calendar, Ticket, CreditCard } from 'lucide-react-native';
+import { ChevronLeft, Ticket, ShoppingBag, Utensils } from 'lucide-react-native';
 import { COLORS } from '../../constants/theme';
+import { ACTIVITY_HISTORY } from '../../constants/mocks';
 
 const ActivityHistoryScreen = ({ navigation }) => {
-  const activities = [
-    { type: 'ticket', title: 'Champions Cup 2024', date: 'Oct 24, 2024', amount: '$85.00' },
-    { type: 'purchase', title: 'Stadium Store Order', date: 'Oct 24, 2024', amount: '$45.50' },
-    { type: 'ticket', title: 'Neon Pulse Festival', date: 'Sep 15, 2024', amount: '$120.00' },
-  ];
+  const getIcon = (type) => {
+    switch(type) {
+      case 'ticket': return <Ticket size={24} color={COLORS.brandPurple} />;
+      case 'store': return <ShoppingBag size={24} color={COLORS.secondary} />; // secondary is teal-ish
+      case 'food': return <Utensils size={24} color="#fbbf24" />; // amber for food
+      default: return <Ticket size={24} color={COLORS.gray600} />;
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <ChevronLeft size={24} color={COLORS.white} />
+            <ChevronLeft size={20} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Activity History</Text>
           <View style={{width: 40}} /> 
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
-          {activities.map((item, index) => (
-             <TouchableOpacity key={index} style={styles.card}>
+          {ACTIVITY_HISTORY.map((item) => (
+             <TouchableOpacity key={item.id} style={styles.card}>
                 <View style={styles.iconBox}>
-                   {item.type === 'ticket' ? (
-                      <Ticket size={24} color={COLORS.brandPurple} />
-                   ) : (
-                      <CreditCard size={24} color="#10b981" />
-                   )}
+                   {getIcon(item.type)}
                 </View>
                 <View style={styles.cardInfo}>
                    <Text style={styles.cardTitle}>{item.title}</Text>
@@ -50,7 +50,7 @@ const ActivityHistoryScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1121',
+    backgroundColor: COLORS.background,
   },
   safeArea: {
     flex: 1,
@@ -65,16 +65,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.card,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   content: {
     padding: 24,
@@ -83,35 +83,38 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.card,
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.white10,
+    borderColor: COLORS.border,
   },
   iconBox: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: COLORS.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   cardInfo: {
     flex: 1,
   },
   cardTitle: {
-     color: COLORS.white,
+     color: COLORS.text,
      fontWeight: '600',
      marginBottom: 4,
+     fontSize: 14,
   },
   cardDate: {
-     color: COLORS.gray500,
+     color: COLORS.gray600,
      fontSize: 12,
   },
   cardAmount: {
-     color: COLORS.white,
+     color: COLORS.text,
      fontWeight: '700',
      fontSize: 16,
   },

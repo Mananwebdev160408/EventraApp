@@ -40,7 +40,7 @@ const FoodOrderingScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
@@ -136,7 +136,7 @@ const FoodOrderingScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#240046', // stadium-purple
+    backgroundColor: COLORS.background, // stadium-purple
   },
   safeArea: {
     flex: 1,
@@ -147,18 +147,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: 'rgba(36, 0, 70, 0.8)',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   iconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(159, 67, 234, 0.2)',
+    backgroundColor: COLORS.card,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -171,12 +171,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: COLORS.brandPurple,
     borderWidth: 2,
-    borderColor: '#240046',
+    borderColor: '#1d3557',
     alignItems: 'center',
     justifyContent: 'center',
   },
   cartBadgeText: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 10,
     fontWeight: '700',
   },
@@ -186,21 +186,21 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(159, 67, 234, 0.1)',
+    backgroundColor: COLORS.card,
     marginHorizontal: 24,
     marginTop: 16,
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 52,
     borderWidth: 1,
-    borderColor: 'rgba(159, 67, 234, 0.2)',
+    borderColor: COLORS.border,
   },
   searchIcon: {
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 14,
   },
   categoriesContainer: {
@@ -215,9 +215,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 100,
-    backgroundColor: 'rgba(159, 67, 234, 0.1)',
+    backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: 'rgba(159, 67, 234, 0.2)',
+    borderColor: COLORS.border,
   },
   categoryChipActive: {
     backgroundColor: COLORS.brandPurple,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   categoryText: {
-    color: '#e9d5ff', // primary-200
+    color: '#a8dadc', // primary-200
     fontSize: 14,
     fontWeight: '500',
   },
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   bannerOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'linear-gradient(to right, #9e4fde, transparent)', // Simplified for RN: just background color with opacity or gradient component required. Using semi-transparent fill for now.
-    backgroundColor: 'rgba(158, 79, 222, 0.6)', 
+    backgroundColor: 'rgba(230, 57, 70, 0.6)', 
   },
   bannerContent: {
     position: 'absolute',
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   bannerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
     lineHeight: 24,
   },
   sectionHeader: {
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
   },
   seeAllText: {
     color: COLORS.brandPurple,
@@ -297,11 +297,11 @@ const styles = StyleSheet.create({
     gap: 24,
   },
   vendorCard: {
-    backgroundColor: 'rgba(159, 67, 234, 0.05)',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(159, 67, 234, 0.1)',
+    borderColor: 'rgba(230, 57, 70, 0.1)',
   },
   imageContainer: {
     height: 192,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(158, 79, 222, 0.1)',
+    backgroundColor: COLORS.card,
     backdropFilter: 'blur(12px)', // Note: backdropFilter not supported in RN
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 30, 30, 0.6)',
   },
   badgeText: {
-    color: COLORS.white,
+    color: COLORS.text,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   vendorName: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.white,
+    color: COLORS.text,
     marginBottom: 2,
   },
   vendorDesc: {

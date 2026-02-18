@@ -3,45 +3,51 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { COLORS } from '../constants/theme';
-import { Home, Ticket, User, ShoppingBag } from 'lucide-react-native';
+import { Home, Ticket, User, ShoppingBag, Calendar, LayoutDashboard, Settings, Activity } from 'lucide-react-native';
+
+// Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
 import RoleSelectionScreen from '../screens/auth/RoleSelectionScreen';
+
+// User Screens
 import DiscoverEventsScreen from '../screens/main/DiscoverEventsScreen';
 import EventDetailsScreen from '../screens/main/EventDetailsScreen';
 import SelectSeatsScreen from '../screens/main/SelectSeatsScreen';
+import SeatBlockScreen from '../screens/main/SeatBlockScreen';
 import SeatInformationScreen from '../screens/main/SeatInformationScreen';
 import TicketScreen from '../screens/main/TicketScreen';
+import ProfileScreen from '../screens/main/ProfileScreen';
+import EmergencyScreen from '../screens/main/EmergencyScreen';
+import ActivityHistoryScreen from '../screens/main/ActivityHistoryScreen';
+
+// Commerce Screens
 import StoreScreen from '../screens/commerce/StoreScreen';
 import FoodOrderingScreen from '../screens/commerce/FoodOrderingScreen';
 import CartScreen from '../screens/commerce/CartScreen';
-
-import ProfileScreen from '../screens/main/ProfileScreen';
 import CheckoutScreen from '../screens/commerce/CheckoutScreen';
-import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
-import EmergencyScreen from '../screens/main/EmergencyScreen';
-import ActivityHistoryScreen from '../screens/main/ActivityHistoryScreen';
 import TrackOrderScreen from '../screens/commerce/TrackOrderScreen';
+import ProductDetailsScreen from '../screens/commerce/ProductDetailsScreen';
+import OrderConfirmedScreen from '../screens/commerce/OrderConfirmedScreen';
+
+// Admin Screens
+import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
 import AdminAnalyticsScreen from '../screens/admin/AdminAnalyticsScreen';
 import AdminEventScheduleScreen from '../screens/admin/AdminEventScheduleScreen';
+import AdminSettingsScreen from '../screens/admin/AdminSettingsScreen';
+import AddEventScreen from '../screens/admin/AddEventScreen';
+import ManageEventDetailsScreen from '../screens/admin/ManageEventDetailsScreen';
+import AdminLayoutScreen from '../screens/admin/AdminLayoutScreen';
+import AdminStoreScreen from '../screens/admin/AdminStoreScreen';
+import MyTicketsScreen from '../screens/main/MyTicketsScreen';
 
 // Placeholder screens
-const MyTicketsScreen = ({navigation}) => {
-  // Simple reuse/redirection to the Ticket data we have
-  return (
-    <View style={{flex:1, backgroundColor: COLORS.brandDark, alignItems: 'center', justifyContent: 'center'}}>
-       <TouchableOpacity onPress={() => navigation.navigate('Ticket')}>
-         <View style={{backgroundColor: COLORS.brandPurple, padding: 20, borderRadius: 12}}>
-            <Text style={{color: 'white', fontWeight: 'bold'}}>View My Ticket</Text>
-         </View>
-       </TouchableOpacity>
-    </View>
-  );
-};
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const AdminTab = createBottomTabNavigator();
 
 function MainTabs() {
   return (
@@ -49,11 +55,15 @@ function MainTabs() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: COLORS.brandDark,
-          borderTopColor: COLORS.white10,
+          backgroundColor: COLORS.card,
+          borderTopColor: COLORS.border,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
         tabBarActiveTintColor: COLORS.brandPurple,
         tabBarInactiveTintColor: COLORS.gray500,
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
       }}
     >
       <Tab.Screen 
@@ -88,24 +98,85 @@ function MainTabs() {
   );
 }
 
+function AdminTabs() {
+  return (
+    <AdminTab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: COLORS.card,
+          borderTopColor: COLORS.border,
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
+        tabBarActiveTintColor: COLORS.brandPurple,
+        tabBarInactiveTintColor: COLORS.gray500,
+        tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+      }}
+    >
+      <AdminTab.Screen 
+        name="Dashboard" 
+        component={AdminDashboardScreen}
+        options={{
+          tabBarIcon: ({color}) => <LayoutDashboard size={24} color={color} />
+        }}
+      />
+      <AdminTab.Screen 
+        name="Events" 
+        component={AdminEventScheduleScreen}
+        options={{
+          tabBarIcon: ({color}) => <Calendar size={24} color={color} />
+        }}
+      />
+      <AdminTab.Screen 
+        name="Layout" 
+        component={AdminLayoutScreen}
+        options={{
+          tabBarIcon: ({color}) => <Activity size={24} color={color} />
+        }}
+      />
+      <AdminTab.Screen 
+        name="Store" 
+        component={AdminStoreScreen}
+        options={{
+          tabBarIcon: ({color}) => <ShoppingBag size={24} color={color} />
+        }}
+      />
+      <AdminTab.Screen 
+        name="Analytics" 
+        component={AdminAnalyticsScreen}
+        options={{
+          tabBarIcon: ({color}) => <User size={24} color={color} />
+        }}
+      />
+    </AdminTab.Navigator>
+  );
+}
+
 export default function AppNavigator() {
   return (
     <SafeAreaProvider>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.brandDark } }}>
+        <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.background } }}>
           {/* Auth Flow */}
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
           
           {/* Admin Flow */}
-          <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
-          <Stack.Screen name="AdminAnalytics" component={AdminAnalyticsScreen} />
+          <Stack.Screen name="AdminTabs" component={AdminTabs} />
+          <Stack.Screen name="AddEvent" component={AddEventScreen} />
+          <Stack.Screen name="ManageEventDetails" component={ManageEventDetailsScreen} />
+          <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
           <Stack.Screen name="AdminEventSchedule" component={AdminEventScheduleScreen} />
+          <Stack.Screen name="AdminAnalytics" component={AdminAnalyticsScreen} />
+          <Stack.Screen name="AdminStore" component={AdminStoreScreen} />
 
-          {/* Main Flow */}
+          {/* User Main Flow */}
           <Stack.Screen name="MainTabs" component={MainTabs} />
           <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
           <Stack.Screen name="SelectSeats" component={SelectSeatsScreen} />
+          <Stack.Screen name="SeatBlock" component={SeatBlockScreen} />
           <Stack.Screen 
             name="SeatInformation" 
             component={SeatInformationScreen} 
@@ -120,8 +191,10 @@ export default function AppNavigator() {
           <Stack.Screen name="Cart" component={CartScreen} />
           <Stack.Screen name="Checkout" component={CheckoutScreen} />
           <Stack.Screen name="TrackOrder" component={TrackOrderScreen} />
+          <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+          <Stack.Screen name="OrderConfirmed" component={OrderConfirmedScreen} />
         </Stack.Navigator>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
       </NavigationContainer>
     </SafeAreaProvider>
   );
