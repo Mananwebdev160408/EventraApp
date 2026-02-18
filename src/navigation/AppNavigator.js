@@ -9,6 +9,7 @@ import { Home, Ticket, User, ShoppingBag, Calendar, LayoutDashboard, Settings, A
 
 // Auth Screens
 import LoginScreen from '../screens/auth/LoginScreen';
+import SignupScreen from '../screens/auth/SignupScreen';
 import RoleSelectionScreen from '../screens/auth/RoleSelectionScreen';
 
 // User Screens
@@ -161,6 +162,7 @@ export default function AppNavigator() {
         <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: COLORS.background } }}>
           {/* Auth Flow */}
           <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
           
           {/* Admin Flow */}

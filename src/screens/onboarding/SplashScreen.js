@@ -48,7 +48,7 @@ const CustomSplashScreen = ({ onFinish }) => {
             />
         </View>
         <Text style={styles.title}>EVENTRA</Text>
-        <Text style={styles.subtitle}>Experience the Extraordinary</Text>
+        <Text style={styles.subtitle}>Premium Event Management</Text>
       </Animated.View>
 
       <View style={styles.footer}>
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: '800',
-    color: COLORS.text,
+    color: '#1d3557', // navy-custom
     letterSpacing: 4,
   },
   subtitle: {
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: 'rgba(230, 57, 70, 0.1)',
+    backgroundColor: 'rgba(230, 57, 70, 0.08)', // primary red with low opacity
   },
   circle2: {
     position: 'absolute',
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(230, 57, 70, 0.05)',
+    backgroundColor: 'rgba(29, 53, 87, 0.05)', // navy with low opacity
   },
   footer: {
     position: 'absolute',

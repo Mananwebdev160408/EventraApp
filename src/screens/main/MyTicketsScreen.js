@@ -175,7 +175,7 @@ const ChevronRight = ({size, color}) => (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: '#f1faee',
   },
   safeArea: {
     flex: 1,
@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: COLORS.brandPurple,
+    borderBottomColor: '#1d3557', // Navy
   },
   tabText: {
     fontSize: 16,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     color: COLORS.gray500,
   },
   activeTabText: {
-    color: COLORS.brandPurple,
+    color: '#1d3557',
   },
   listContent: {
     padding: 24,
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   viewTicketBtn: {
-    backgroundColor: COLORS.brandPurple,
+    backgroundColor: '#1d3557', // Navy
     paddingVertical: 14,
     borderRadius: 12,
     flexDirection: 'row',
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: COLORS.background, // Match screen background
+    backgroundColor: '#f1faee', // Match screen background
     marginLeft: -10,
   },
   ripCircleRight: {

@@ -1,10 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, FlatList, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Bell, Search, SlidersHorizontal, MapPin, Calendar, Clock, Armchair, Eye, Utensils, ShoppingBag, LayoutGrid, List } from 'lucide-react-native';
-import { COLORS, FONTS, SIZES } from '../../constants/theme';
+import { Bell, Search, SlidersHorizontal, MapPin, Calendar, Clock, Armchair, Eye, Utensils, ShoppingBag, LayoutGrid, List, ChevronRight } from 'lucide-react-native';
+import { COLORS, SIZES } from '../../constants/theme';
 import { USERS, FEATURED_EVENTS, UPCOMING_EVENTS } from '../../constants/mocks';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
 
 const DiscoverEventsScreen = ({ navigation }) => {
   const renderFeaturedItem = ({ item }) => (
@@ -14,7 +17,10 @@ const DiscoverEventsScreen = ({ navigation }) => {
       onPress={() => navigation.navigate('EventDetails', { eventId: item.id })}
     >
       <Image source={{ uri: item.image }} style={styles.featuredImage} resizeMode="cover" />
-      <View style={styles.featuredOverlay} />
+      <LinearGradient 
+        colors={['transparent', 'rgba(29, 53, 87, 0.9)']} 
+        style={styles.featuredOverlay} 
+      />
       <View style={styles.featuredContent}>
         <View style={styles.featuredTagContainer}>
           <Text style={styles.featuredTagText}>{item.tag}</Text>
@@ -22,11 +28,11 @@ const DiscoverEventsScreen = ({ navigation }) => {
         <Text style={styles.featuredTitle}>{item.title}</Text>
         <View style={styles.featuredMetaRow}>
           <View style={styles.metaItem}>
-            <Calendar size={14} color={COLORS.gray400} />
+            <Calendar size={14} color="rgba(255,255,255,0.7)" />
             <Text style={styles.metaText}>{item.date}</Text>
           </View>
           <View style={styles.metaItem}>
-            <MapPin size={14} color={COLORS.gray400} />
+            <MapPin size={14} color="rgba(255,255,255,0.7)" />
             <Text style={styles.metaText}>{item.venue}</Text>
           </View>
         </View>
@@ -46,142 +52,149 @@ const DiscoverEventsScreen = ({ navigation }) => {
           <Text style={styles.priceText}>{item.price}</Text>
         </View>
       </View>
-      <Text style={styles.eventTitle} numberOfLines={1}>{item.title}</Text>
-      <View style={styles.eventMetaRow}>
-        <Clock size={12} color={COLORS.brandPurple} />
-        <Text style={styles.eventMetaText}>{item.time}</Text>
+      <View style={styles.eventInfo}>
+        <Text style={styles.eventTitle} numberOfLines={1}>{item.title}</Text>
+        <View style={styles.eventMetaRow}>
+            <View style={styles.metaSubRow}>
+                <Clock size={12} color="#457b9d" />
+                <Text style={styles.eventMetaText}>{item.time}</Text>
+            </View>
+        </View>
+        <TouchableOpacity style={styles.viewDetailsBtn}>
+            <Text style={styles.viewDetailsText}>Book Now</Text>
+            <ChevronRight size={14} color="#1d3557" />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.remindButton}>
-        <Text style={styles.remindButtonText}>Remind Me</Text>
-      </TouchableOpacity>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar style="dark" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.userInfo}>
-          <View style={styles.avatarContainer}>
-            <Image source={{ uri: USERS.currentUser.avatar }} style={styles.avatar} />
-          </View>
-          <View>
-            <Text style={styles.welcomeText}>Welcome back,</Text>
-            <Text style={styles.userName}>{USERS.currentUser.name}</Text>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.notificationButton}>
-          <Bell size={20} color={COLORS.brandPurple} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Search */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <Search size={20} color={COLORS.gray500} />
-            <TextInput 
-              placeholder="Search matches, concerts, teams..." 
-              placeholderTextColor={COLORS.gray500}
-              style={styles.searchInput}
-            />
-            <TouchableOpacity style={styles.filterButton}>
-              <SlidersHorizontal size={16} color={COLORS.brandPurple} />
+      <SafeAreaView style={styles.safeArea}>
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.userInfo}>
+            <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+                <View style={styles.avatarContainer}>
+                    <Image source={{ uri: USERS.currentUser.avatar }} style={styles.avatar} />
+                </View>
             </TouchableOpacity>
+            <View>
+              <Text style={styles.welcomeText}>GOOD MORNING,</Text>
+              <Text style={styles.userName}>{USERS.currentUser.name.split(' ')[0]}</Text>
+            </View>
           </View>
-        </View>
-
-        {/* Featured Events */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured Events</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAllText}>SEE ALL</Text>
+          <TouchableOpacity style={styles.notificationButton}>
+            <Bell size={20} color="#1d3557" />
+            <View style={styles.notifDot} />
           </TouchableOpacity>
         </View>
-        
-        <FlatList
-          horizontal
-          data={FEATURED_EVENTS}
-          renderItem={renderFeaturedItem}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.featuredList}
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={SIZES.width * 0.85 + 16}
-          decelerationRate="fast"
-        />
 
-        {/* Quick Actions */}
-        <View style={styles.quickActionsContainer}>
-          <QuickActionButton 
-            icon={<Armchair size={24} />} 
-            label="Book Seats" 
-            onPress={() => navigation.navigate('EventDetails', { eventId: '1' })} 
-          />
-          <QuickActionButton 
-            icon={<Eye size={24} />} 
-            label="Smart Seat" 
-            onPress={() => navigation.navigate('SelectSeats')} 
-          />
-          <QuickActionButton 
-            icon={<Utensils size={24} />} 
-            label="Food Order" 
-            onPress={() => navigation.navigate('FoodOrdering')} 
-          />
-          <QuickActionButton 
-            icon={<ShoppingBag size={24} />} 
-            label="Merch" 
-            onPress={() => navigation.navigate('Store')} 
-          />
-        </View>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Search */}
+          <View style={styles.searchContainer}>
+            <View style={styles.searchBar}>
+              <Search size={20} color="rgba(29, 53, 87, 0.4)" />
+              <TextInput 
+                placeholder="Find matches, concerts, teams..." 
+                placeholderTextColor="rgba(29, 53, 87, 0.4)"
+                style={styles.searchInput}
+              />
+              <TouchableOpacity style={styles.filterButton}>
+                <SlidersHorizontal size={18} color="#1d3557" />
+              </TouchableOpacity>
+            </View>
+          </View>
 
-        {/* Upcoming Events */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Events</Text>
-          <View style={styles.viewToggle}>
-            <TouchableOpacity style={styles.viewToggleButton}>
-              <LayoutGrid size={16} color={COLORS.gray400} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.viewToggleButton}>
-              <List size={16} color={COLORS.gray400} />
+          {/* Quick Actions */}
+          <View style={styles.quickActionsContainer}>
+            <QuickActionButton 
+              icon={<Armchair size={24} />} 
+              label="Seats" 
+              onPress={() => navigation.navigate('EventDetails', { eventId: '1' })} 
+            />
+            <QuickActionButton 
+              icon={<Utensils size={24} />} 
+              label="Food" 
+              onPress={() => navigation.navigate('FoodOrdering')} 
+            />
+            <QuickActionButton 
+              icon={<ShoppingBag size={24} />} 
+              label="Merch" 
+              onPress={() => navigation.navigate('Store')} 
+            />
+            <QuickActionButton 
+                icon={<Eye size={24} />} 
+                label="Explore" 
+                onPress={() => navigation.navigate('SelectSeats')} 
+            />
+          </View>
+
+          {/* Featured Events */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Featured Highlights</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>VIEW ALL</Text>
             </TouchableOpacity>
           </View>
-        </View>
+          
+          <FlatList
+            horizontal
+            data={FEATURED_EVENTS}
+            renderItem={renderFeaturedItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.featuredList}
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={320 + 16}
+            decelerationRate="fast"
+          />
 
-        <View style={styles.upcomingGrid}>
-          {UPCOMING_EVENTS.map(item => (
-            <View key={item.id} style={styles.gridItemWrapper}>
-              {renderUpcomingItem({ item })}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          {/* Upcoming Events */}
+          <View style={[styles.sectionHeader, { marginTop: 32 }]}>
+            <Text style={styles.sectionTitle}>Upcoming Near You</Text>
+            <TouchableOpacity>
+                <LayoutGrid size={20} color="#1d3557" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.upcomingGrid}>
+            {UPCOMING_EVENTS.map(item => (
+              <View key={item.id} style={styles.gridItemWrapper}>
+                {renderUpcomingItem({ item })}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const QuickActionButton = ({ icon, label, onPress }) => (
-  <View style={styles.actionItem}>
-    <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-      {React.cloneElement(icon, { color: COLORS.brandPurple })}
-    </TouchableOpacity>
+  <TouchableOpacity style={styles.actionItem} onPress={onPress} activeOpacity={0.8}>
+    <View style={styles.actionButton}>
+      {React.cloneElement(icon, { color: '#1d3557' })}
+    </View>
     <Text style={styles.actionLabel}>{label}</Text>
-  </View>
+  </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background, // Using brandDark as background
+    backgroundColor: '#f1faee',
+  },
+  safeArea: {
+      flex: 1,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 24,
+    paddingVertical: 16,
   },
   userInfo: {
     flexDirection: 'row',
@@ -189,84 +202,134 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(230, 57, 70, 0.2)',
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
     padding: 2,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: 'rgba(29, 53, 87, 0.1)',
   },
   avatar: {
     width: '100%',
     height: '100%',
-    borderRadius: 20,
+    borderRadius: 14,
   },
   welcomeText: {
-    fontSize: 12,
-    color: COLORS.gray600,
-    fontWeight: '500',
+    fontSize: 10,
+    color: '#457b9d',
+    fontWeight: '800',
+    letterSpacing: 1.5,
   },
   userName: {
-    fontSize: 18,
-    color: COLORS.text,
-    fontWeight: '700',
+    fontSize: 20,
+    color: '#1d3557',
+    fontWeight: '800',
   },
   notificationButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.card, // card-dark
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(230, 57, 70, 0.2)',
+    borderColor: 'rgba(29, 53, 87, 0.1)',
+    position: 'relative',
+  },
+  notifDot: {
+      position: 'absolute',
+      top: 14,
+      right: 14,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: COLORS.error,
+      borderWidth: 2,
+      borderColor: '#ffffff',
   },
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: 40,
   },
   searchContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 24,
+    marginBottom: 24,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.card,
-    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
     paddingHorizontal: 16,
-    height: 56,
+    height: 60,
+    shadowColor: '#1d3557',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 4,
   },
   searchInput: {
     flex: 1,
     marginLeft: 12,
-    color: COLORS.text,
-    fontSize: 14,
+    color: '#1d3557',
+    fontSize: 15,
+    fontWeight: '600',
   },
   filterButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: 'rgba(230, 57, 70, 0.1)',
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(29, 53, 87, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  quickActionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  actionItem: {
+    alignItems: 'center',
+    gap: 10,
+  },
+  actionButton: {
+    width: 68,
+    height: 68,
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1d3557',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(29, 53, 87, 0.05)',
+  },
+  actionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1d3557',
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
+    fontWeight: '800',
+    color: '#1d3557',
   },
   seeAllText: {
-    fontSize: 12,
-    color: COLORS.brandPurple,
-    fontWeight: '600',
+    fontSize: 11,
+    color: '#457b9d',
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   featuredList: {
     paddingHorizontal: 24,
@@ -275,9 +338,9 @@ const styles = StyleSheet.create({
   featuredDisplay: {
     width: 320,
     height: 220,
-    borderRadius: 16,
+    borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: COLORS.card,
+    backgroundColor: '#000',
   },
   featuredImage: {
     width: '100%',
@@ -285,34 +348,32 @@ const styles = StyleSheet.create({
   },
   featuredOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   featuredContent: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 20,
-    backgroundColor: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)', // React Native doesn't support this directly without LinearGradient, using solid background or View trick
+    padding: 24,
   },
   featuredTagContainer: {
     alignSelf: 'flex-start',
-    backgroundColor: COLORS.brandPurple,
-    paddingHorizontal: 12,
+    backgroundColor: COLORS.error,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 100,
-    marginBottom: 8,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   featuredTagText: {
-    color: COLORS.text,
+    color: '#ffffff',
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
     textTransform: 'uppercase',
   },
   featuredTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#ffffff',
     marginBottom: 8,
   },
   featuredMetaRow: {
@@ -322,56 +383,12 @@ const styles = StyleSheet.create({
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   metaText: {
     fontSize: 12,
-    color: COLORS.gray300,
-  },
-  quickActionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-  },
-  actionItem: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  actionButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(29, 53, 87, 0.7)',
-    borderWidth: 2,
-    borderColor: COLORS.brandPurple,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: COLORS.brandPurple,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  actionLabel: {
-    fontSize: 10,
+    color: 'rgba(255,255,255,0.7)',
     fontWeight: '600',
-    color: COLORS.gray600,
-    textTransform: 'uppercase',
-  },
-  viewToggle: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  viewToggleButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: COLORS.card,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#1e293b',
   },
   upcomingGrid: {
     flexDirection: 'row',
@@ -380,22 +397,24 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   gridItemWrapper: {
-    width: '47%', // roughly half minus gap
+    width: (width - 48 - 16) / 2,
   },
   eventCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 10,
+    shadowColor: '#1d3557',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 4,
   },
   eventImageContainer: {
     width: '100%',
-    aspectRatio: 4/3,
-    borderRadius: 12,
+    aspectRatio: 1,
+    borderRadius: 18,
     overflow: 'hidden',
     marginBottom: 12,
-    position: 'relative',
   },
   eventImage: {
     width: '100%',
@@ -403,46 +422,57 @@ const styles = StyleSheet.create({
   },
   priceBadge: {
     position: 'absolute',
-    top: 8,
+    bottom: 8,
     right: 8,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(29, 53, 87, 0.8)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: 8,
   },
   priceText: {
-    color: COLORS.text,
-    fontSize: 10,
-    fontWeight: '700',
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  eventInfo: {
+      paddingHorizontal: 4,
+      paddingBottom: 4,
   },
   eventTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#1d3557',
+    marginBottom: 6,
   },
   eventMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
+  metaSubRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+  },
   eventMetaText: {
-    fontSize: 11,
-    color: COLORS.gray600,
+    fontSize: 12,
+    color: 'rgba(29, 53, 87, 0.5)',
+    fontWeight: '600',
   },
-  remindButton: {
-    width: '100%',
-    paddingVertical: 8,
-    backgroundColor: 'rgba(230, 57, 70, 0.1)',
-    borderRadius: 8,
-    alignItems: 'center',
+  viewDetailsBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 8,
+      backgroundColor: 'rgba(29, 53, 87, 0.05)',
+      borderRadius: 12,
+      gap: 4,
   },
-  remindButtonText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.brandPurple,
-    textTransform: 'uppercase',
+  viewDetailsText: {
+      fontSize: 13,
+      fontWeight: '800',
+      color: '#1d3557',
   },
 });
 
