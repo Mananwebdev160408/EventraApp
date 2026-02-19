@@ -31,7 +31,7 @@ const FoodOrderingScreen = ({ navigation }) => {
           <Text style={styles.vendorName}>{item.name}</Text>
           <Text style={styles.vendorDesc}>{item.description}</Text>
         </View>
-        <TouchableOpacity style={styles.viewMenuButton}>
+        <TouchableOpacity style={styles.viewMenuButton} onPress={() => navigation.navigate('Menu')}>
           <Text style={styles.viewMenuText}>View Menu</Text>
         </TouchableOpacity>
       </View>
@@ -45,12 +45,12 @@ const FoodOrderingScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
-            <ChevronLeft size={20} color={COLORS.white} />
+            <ChevronLeft size={20} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Order Food & Drinks</Text>
           <View>
             <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
-              <ShoppingBag size={20} color={COLORS.white} />
+              <ShoppingBag size={20} color={COLORS.text} />
             </TouchableOpacity>
             <View style={styles.cartBadge}>
               <Text style={styles.cartBadgeText}>2</Text>
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(30, 30, 30, 0.6)',
   },
   badgeText: {
-    color: COLORS.text,
+    color: COLORS.white,
     fontSize: 12,
     fontWeight: '700',
   },

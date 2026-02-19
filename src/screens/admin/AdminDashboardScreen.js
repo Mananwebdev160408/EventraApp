@@ -109,7 +109,7 @@ const AdminDashboardScreen = ({ navigation }) => {
           {/* Recent Activity / Notifications */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Operational Log</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('SystemLogs')}>
                 <Text style={styles.viewAllText}>View All</Text>
             </TouchableOpacity>
           </View>

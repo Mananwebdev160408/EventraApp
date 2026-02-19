@@ -86,7 +86,7 @@ const DiscoverEventsScreen = ({ navigation }) => {
               <Text style={styles.userName}>{USERS.currentUser.name.split(' ')[0]}</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
+          <TouchableOpacity style={styles.notificationButton} onPress={() => navigation.navigate('Notifications')}>
             <Bell size={20} color="#1d3557" />
             <View style={styles.notifDot} />
           </TouchableOpacity>

@@ -19,7 +19,7 @@ const TrackOrderScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <ChevronLeft size={24} color={COLORS.white} />
+            <ChevronLeft size={24} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Track Order #4829</Text>
           <View style={{width: 40}} /> 

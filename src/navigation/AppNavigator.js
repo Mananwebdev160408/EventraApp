@@ -31,6 +31,7 @@ import CheckoutScreen from '../screens/commerce/CheckoutScreen';
 import TrackOrderScreen from '../screens/commerce/TrackOrderScreen';
 import ProductDetailsScreen from '../screens/commerce/ProductDetailsScreen';
 import OrderConfirmedScreen from '../screens/commerce/OrderConfirmedScreen';
+import MenuScreen from '../screens/commerce/MenuScreen';
 
 // Admin Screens
 import AdminDashboardScreen from '../screens/admin/AdminDashboardScreen';
@@ -42,6 +43,8 @@ import ManageEventDetailsScreen from '../screens/admin/ManageEventDetailsScreen'
 import AdminLayoutScreen from '../screens/admin/AdminLayoutScreen';
 import AdminStoreScreen from '../screens/admin/AdminStoreScreen';
 import MyTicketsScreen from '../screens/main/MyTicketsScreen';
+import SystemLogsScreen from '../screens/admin/SystemLogsScreen';
+import NotificationsScreen from '../screens/main/NotificationsScreen';
 
 // Placeholder screens
 
@@ -173,6 +176,8 @@ export default function AppNavigator() {
           <Stack.Screen name="AdminEventSchedule" component={AdminEventScheduleScreen} />
           <Stack.Screen name="AdminAnalytics" component={AdminAnalyticsScreen} />
           <Stack.Screen name="AdminStore" component={AdminStoreScreen} />
+          <Stack.Screen name="SystemLogs" component={SystemLogsScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
 
           {/* User Main Flow */}
           <Stack.Screen name="MainTabs" component={MainTabs} />
@@ -194,6 +199,7 @@ export default function AppNavigator() {
           <Stack.Screen name="Checkout" component={CheckoutScreen} />
           <Stack.Screen name="TrackOrder" component={TrackOrderScreen} />
           <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+          <Stack.Screen name="Menu" component={MenuScreen} />
           <Stack.Screen name="OrderConfirmed" component={OrderConfirmedScreen} />
         </Stack.Navigator>
         <StatusBar style="dark" />
