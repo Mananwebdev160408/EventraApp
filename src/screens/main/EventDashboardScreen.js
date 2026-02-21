@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -22,6 +23,8 @@ import {
   Send,
   MessageSquare,
   TriangleAlert,
+  Star,
+  Heart,
 } from "lucide-react-native";
 import { COLORS, SIZES } from "../../constants/theme";
 import { MY_REGISTRATIONS } from "../../constants/mocks";
@@ -30,6 +33,9 @@ import { LinearGradient } from "expo-linear-gradient";
 const { width } = Dimensions.get("window");
 
 const EventDashboardScreen = ({ navigation }) => {
+  const [stadiumRating, setStadiumRating] = React.useState(0);
+  const [eventRating, setEventRating] = React.useState(0);
+  const [eventComment, setEventComment] = React.useState("");
   const currentEvent = MY_REGISTRATIONS[0]; // Mocking the "active" event
 
   const ActionCard = ({ title, subtitle, icon, color, onPress }) => (
@@ -272,6 +278,94 @@ const EventDashboardScreen = ({ navigation }) => {
                 Home team scores! The crowd is going wild. Noise levels reaching
                 110dB.
               </Text>
+            </View>
+          </View>
+
+          {/* Feedback Section */}
+          <View style={styles.feedbackContainer}>
+            <Text style={styles.sectionTitle}>Help us improve</Text>
+
+            <View style={styles.feedbackCard}>
+              {/* Stadium Feedback */}
+              <View style={styles.feedbackTypeSection}>
+                <View style={styles.feedbackHeaderSmall}>
+                  <MapIcon size={18} color="#1d3557" />
+                  <Text style={styles.feedbackTypeTitle}>
+                    Stadium Experience
+                  </Text>
+                </View>
+                <Text style={styles.feedbackTypeSubtitle}>
+                  Facilities, crowd management, and safety.
+                </Text>
+                <View style={styles.ratingRow}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <TouchableOpacity
+                      key={star}
+                      onPress={() => setStadiumRating(star)}
+                      activeOpacity={0.7}
+                    >
+                      <Star
+                        size={28}
+                        color={
+                          star <= stadiumRating ? "#facc15" : "rgba(0,0,0,0.1)"
+                        }
+                        fill={star <= stadiumRating ? "#facc15" : "transparent"}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.feedbackDivider} />
+
+              {/* Event Feedback */}
+              <View style={styles.feedbackTypeSection}>
+                <View style={styles.feedbackHeaderSmall}>
+                  <Sparkles size={18} color="#1d3557" />
+                  <Text style={styles.feedbackTypeTitle}>The Event Itself</Text>
+                </View>
+                <Text style={styles.feedbackTypeSubtitle}>
+                  Performance, atmosphere, and overall vibe.
+                </Text>
+                <View style={styles.ratingRow}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <TouchableOpacity
+                      key={star}
+                      onPress={() => setEventRating(star)}
+                      activeOpacity={0.7}
+                    >
+                      <Star
+                        size={28}
+                        color={
+                          star <= eventRating ? "#facc15" : "rgba(0,0,0,0.1)"
+                        }
+                        fill={star <= eventRating ? "#facc15" : "transparent"}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <TextInput
+                  style={styles.feedbackInput}
+                  placeholder="Tell us what you loved or what we can fix..."
+                  placeholderTextColor={COLORS.gray400}
+                  multiline
+                  numberOfLines={3}
+                  value={eventComment}
+                  onChangeText={setEventComment}
+                />
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.submitFeedbackBtn,
+                  (stadiumRating === 0 || eventRating === 0) &&
+                    styles.submitFeedbackBtnDisabled,
+                ]}
+                disabled={stadiumRating === 0 || eventRating === 0}
+              >
+                <Text style={styles.submitFeedbackText}>Submit Review</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
@@ -720,6 +814,90 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+  },
+  feedbackContainer: {
+    paddingHorizontal: 24,
+    marginTop: 32,
+    marginBottom: 40,
+  },
+  feedbackCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 32,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.03)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 15,
+    elevation: 4,
+  },
+  feedbackHeaderSmall: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 6,
+  },
+  feedbackTypeSection: {
+    width: "100%",
+  },
+  feedbackTypeTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#1d3557",
+  },
+  feedbackTypeSubtitle: {
+    fontSize: 13,
+    color: COLORS.gray500,
+    fontWeight: "500",
+    marginBottom: 12,
+  },
+  feedbackDivider: {
+    height: 1,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    marginVertical: 24,
+    width: "100%",
+  },
+  ratingRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 4,
+  },
+  feedbackInput: {
+    backgroundColor: "rgba(241, 250, 238, 0.5)",
+    borderRadius: 16,
+    padding: 16,
+    color: "#1d3557",
+    fontSize: 14,
+    fontWeight: "500",
+    marginTop: 16,
+    minHeight: 80,
+    textAlignVertical: "top",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.03)",
+  },
+  submitFeedbackBtn: {
+    backgroundColor: "#1d3557",
+    paddingVertical: 16,
+    width: "100%",
+    alignItems: "center",
+    borderRadius: 18,
+    marginTop: 24,
+    shadowColor: "#1d3557",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+  },
+  submitFeedbackBtnDisabled: {
+    backgroundColor: COLORS.gray300,
+    shadowOpacity: 0,
+  },
+  submitFeedbackText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
 });
 
