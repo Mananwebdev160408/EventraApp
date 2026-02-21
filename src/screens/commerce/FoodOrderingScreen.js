@@ -1,19 +1,38 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft, ShoppingBag, Search, Star, Clock } from 'lucide-react-native';
-import { COLORS } from '../../constants/theme';
-import { FOOD_VENDORS } from '../../constants/mocks';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import {
+  ChevronLeft,
+  ShoppingBag,
+  Search,
+  Star,
+  Clock,
+} from "lucide-react-native";
+import { COLORS } from "../../constants/theme";
+import { FOOD_VENDORS } from "../../constants/mocks";
 
 const FoodOrderingScreen = ({ navigation }) => {
-  const [activeCategory, setActiveCategory] = useState('All Items');
-  const categories = ['All Items', 'Snacks', 'Drinks', 'Meals', 'Desserts'];
+  const [activeCategory, setActiveCategory] = useState("All Items");
+  const categories = ["All Items", "Snacks", "Drinks", "Meals", "Desserts"];
 
   const renderVendor = ({ item }) => (
     <View style={styles.vendorCard}>
       <View style={styles.imageContainer}>
-        <Image source={{ uri: item.image }} style={styles.vendorImage} resizeMode="cover" />
+        <Image
+          source={{ uri: item.image }}
+          style={styles.vendorImage}
+          resizeMode="cover"
+        />
         <View style={styles.overlay} />
         <View style={styles.badgesContainer}>
           <View style={styles.badge}>
@@ -27,11 +46,14 @@ const FoodOrderingScreen = ({ navigation }) => {
         </View>
       </View>
       <View style={styles.vendorInfo}>
-        <View style={{flex: 1}}>
+        <View style={{ flex: 1 }}>
           <Text style={styles.vendorName}>{item.name}</Text>
           <Text style={styles.vendorDesc}>{item.description}</Text>
         </View>
-        <TouchableOpacity style={styles.viewMenuButton} onPress={() => navigation.navigate('Menu')}>
+        <TouchableOpacity
+          style={styles.viewMenuButton}
+          onPress={() => navigation.navigate("Menu")}
+        >
           <Text style={styles.viewMenuText}>View Menu</Text>
         </TouchableOpacity>
       </View>
@@ -44,12 +66,18 @@ const FoodOrderingScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => navigation.goBack()}
+          >
             <ChevronLeft size={20} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Order Food & Drinks</Text>
           <View>
-            <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => navigation.navigate("Cart")}
+            >
               <ShoppingBag size={20} color={COLORS.text} />
             </TouchableOpacity>
             <View style={styles.cartBadge}>
@@ -58,12 +86,19 @@ const FoodOrderingScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Search */}
           <View style={styles.searchContainer}>
-            <Search size={20} color="rgba(159, 67, 234, 0.6)" style={styles.searchIcon} />
-            <TextInput 
-              placeholder="Search vendors or menu items..." 
+            <Search
+              size={20}
+              color="rgba(159, 67, 234, 0.6)"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              placeholder="Search vendors or menu items..."
               placeholderTextColor="rgba(159, 67, 234, 0.4)"
               style={styles.searchInput}
             />
@@ -71,22 +106,22 @@ const FoodOrderingScreen = ({ navigation }) => {
 
           {/* Categories */}
           <View style={styles.categoriesContainer}>
-            <FlatList 
+            <FlatList
               horizontal
               data={categories}
-              keyExtractor={item => item}
+              keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[
-                    styles.categoryChip, 
-                    activeCategory === item && styles.categoryChipActive
+                    styles.categoryChip,
+                    activeCategory === item && styles.categoryChipActive,
                   ]}
                   onPress={() => setActiveCategory(item)}
                 >
-                  <Text 
+                  <Text
                     style={[
-                      styles.categoryText, 
-                      activeCategory === item && styles.categoryTextActive
+                      styles.categoryText,
+                      activeCategory === item && styles.categoryTextActive,
                     ]}
                   >
                     {item}
@@ -100,16 +135,20 @@ const FoodOrderingScreen = ({ navigation }) => {
 
           {/* Banner */}
           <View style={styles.banner}>
-             <Image 
-               source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmH2K0hrsOfz81y1Ywtei0NbmHMhzYJUFbsewUaB5rFT-Hc4MUUNWej68r0_97l-mtKkjvasf5EDveil_RBwU0bYF6ZgxlXxODFMziaO8NrV_hEzEJtvmzCVTgByGWezNw7-Q5Uo574wpGneyf6gzZjrm3Z_k371jO8fIA4mPgFCUKAgasEi7S2Jq83z9MDzAgjAAYrfQqSiNgOBsmA1C6XJwNNQTeenxd0SwhsYq0ji9mZDW1eQvkl0FAqiTe8Bp4TNv3zYKCSDQ' }}
-               style={styles.bannerImage}
-               resizeMode="cover"
-             />
-             <View style={styles.bannerOverlay} />
-             <View style={styles.bannerContent}>
-               <Text style={styles.bannerTag}>MATCH DAY SPECIAL</Text>
-               <Text style={styles.bannerTitle}>20% Off All{'\n'}Family Platters</Text>
-             </View>
+            <Image
+              source={{
+                uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuBmH2K0hrsOfz81y1Ywtei0NbmHMhzYJUFbsewUaB5rFT-Hc4MUUNWej68r0_97l-mtKkjvasf5EDveil_RBwU0bYF6ZgxlXxODFMziaO8NrV_hEzEJtvmzCVTgByGWezNw7-Q5Uo574wpGneyf6gzZjrm3Z_k371jO8fIA4mPgFCUKAgasEi7S2Jq83z9MDzAgjAAYrfQqSiNgOBsmA1C6XJwNNQTeenxd0SwhsYq0ji9mZDW1eQvkl0FAqiTe8Bp4TNv3zYKCSDQ",
+              }}
+              style={styles.bannerImage}
+              resizeMode="cover"
+            />
+            <View style={styles.bannerOverlay} />
+            <View style={styles.bannerContent}>
+              <Text style={styles.bannerTag}>MATCH DAY SPECIAL</Text>
+              <Text style={styles.bannerTitle}>
+                20% Off All{"\n"}Family Platters
+              </Text>
+            </View>
           </View>
 
           {/* Popular Vendors */}
@@ -121,10 +160,8 @@ const FoodOrderingScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.vendorsList}>
-            {FOOD_VENDORS.map(vendor => (
-              <View key={vendor.id}>
-                {renderVendor({ item: vendor })}
-              </View>
+            {FOOD_VENDORS.map((vendor) => (
+              <View key={vendor.id}>{renderVendor({ item: vendor })}</View>
             ))}
           </View>
         </ScrollView>
@@ -142,16 +179,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   iconButton: {
@@ -159,11 +196,11 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: COLORS.card,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   cartBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     right: -2,
     width: 20,
@@ -171,21 +208,21 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: COLORS.brandPurple,
     borderWidth: 2,
-    borderColor: '#1d3557',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderColor: "#1d3557",
+    alignItems: "center",
+    justifyContent: "center",
   },
   cartBadgeText: {
     color: COLORS.text,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   scrollContent: {
     paddingBottom: 40,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.card,
     marginHorizontal: 24,
     marginTop: 16,
@@ -229,68 +266,68 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   categoryText: {
-    color: '#a8dadc', // primary-200
+    color: "#a8dadc", // primary-200
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   categoryTextActive: {
     color: COLORS.white,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   banner: {
     height: 128,
     marginHorizontal: 24,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 32,
-    position: 'relative',
+    position: "relative",
   },
   bannerImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   bannerOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'linear-gradient(to right, #9e4fde, transparent)', // Simplified for RN: just background color with opacity or gradient component required. Using semi-transparent fill for now.
-    backgroundColor: 'rgba(230, 57, 70, 0.6)', 
+    backgroundColor: "linear-gradient(to right, #9e4fde, transparent)", // Simplified for RN: just background color with opacity or gradient component required. Using semi-transparent fill for now.
+    backgroundColor: "rgba(230, 57, 70, 0.6)",
   },
   bannerContent: {
-    position: 'absolute',
+    position: "absolute",
     left: 20,
     top: 0,
     bottom: 0,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   bannerTag: {
     fontSize: 10,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.8)',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    color: "rgba(255,255,255,0.8)",
+    textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 4,
   },
   bannerTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
     lineHeight: 24,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 24,
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   seeAllText: {
     color: COLORS.brandPurple,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   vendorsList: {
     paddingHorizontal: 24,
@@ -298,78 +335,84 @@ const styles = StyleSheet.create({
   },
   vendorCard: {
     backgroundColor: COLORS.card,
-    borderRadius: 12,
-    overflow: 'hidden',
+    borderRadius: 28,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: 'rgba(230, 57, 70, 0.1)',
+    borderColor: "rgba(255, 255, 255, 0.05)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.2,
+    shadowRadius: 20,
+    elevation: 6,
   },
   imageContainer: {
-    height: 192,
-    position: 'relative',
+    height: 220,
+    position: "relative",
   },
   vendorImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: "rgba(0,0,0,0.2)",
   },
   badgesContainer: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    flexDirection: 'row',
-    gap: 8,
+    position: "absolute",
+    top: 16,
+    left: 16,
+    flexDirection: "row",
+    gap: 10,
   },
   badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: COLORS.card,
-    backdropFilter: 'blur(12px)', // Note: backdropFilter not supported in RN
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    // RN workaround for blur
-    backgroundColor: 'rgba(30, 30, 30, 0.6)',
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(30, 30, 30, 0.75)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
   badgeText: {
     color: COLORS.white,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "800",
   },
   vendorInfo: {
-    padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    padding: 24,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   vendorName: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: "900",
     color: COLORS.text,
-    marginBottom: 2,
+    marginBottom: 6,
+    letterSpacing: -0.5,
   },
   vendorDesc: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.5)',
+    fontSize: 13,
+    color: "rgba(255,255,255,0.6)",
+    fontWeight: "500",
   },
   viewMenuButton: {
     backgroundColor: COLORS.brandPurple,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 14,
     shadowColor: COLORS.brandPurple,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
     elevation: 4,
   },
   viewMenuText: {
     color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: "800",
   },
 });
 

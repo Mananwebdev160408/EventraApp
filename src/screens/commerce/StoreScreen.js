@@ -1,30 +1,48 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { Search, ShoppingBag, Bell, Plus, Heart } from 'lucide-react-native';
-import { COLORS, FONTS } from '../../constants/theme';
-import { STORE_ITEMS } from '../../constants/mocks';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  TextInput,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { Search, ShoppingBag, Bell, Plus, Heart } from "lucide-react-native";
+import { COLORS, FONTS } from "../../constants/theme";
+import { STORE_ITEMS } from "../../constants/mocks";
 
 const StoreScreen = ({ navigation }) => {
-  const [activeCategory, setActiveCategory] = useState('All');
-  const categories = ['All', 'Jerseys', 'Caps', 'Accessories', 'Souvenirs'];
+  const [activeCategory, setActiveCategory] = useState("All");
+  const categories = ["All", "Jerseys", "Caps", "Accessories", "Souvenirs"];
 
-  const filteredItems = activeCategory === 'All' 
-    ? STORE_ITEMS 
-    : STORE_ITEMS.filter(item => item.category === activeCategory);
+  const filteredItems =
+    activeCategory === "All"
+      ? STORE_ITEMS
+      : STORE_ITEMS.filter((item) => item.category === activeCategory);
 
   const renderItem = ({ item }) => (
     <View style={styles.productCard}>
-      <TouchableOpacity style={styles.imageContainer} onPress={() => navigation.navigate('ProductDetails', { product: item })}>
-        <Image source={{ uri: item.image }} style={styles.productImage} resizeMode="cover" />
+      <TouchableOpacity
+        style={styles.imageContainer}
+        onPress={() => navigation.navigate("ProductDetails", { product: item })}
+      >
+        <Image
+          source={{ uri: item.image }}
+          style={styles.productImage}
+          resizeMode="cover"
+        />
         <TouchableOpacity style={styles.favoriteButton}>
           <Heart size={14} color={COLORS.text} />
         </TouchableOpacity>
       </TouchableOpacity>
       <View style={styles.productInfo}>
-        <View style={{flex: 1}}>
-          <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.productName} numberOfLines={2}>
+            {item.name}
+          </Text>
           <Text style={styles.productPrice}>{item.price}</Text>
         </View>
         <TouchableOpacity style={styles.addButton}>
@@ -49,8 +67,8 @@ const StoreScreen = ({ navigation }) => {
         {/* Search */}
         <View style={styles.searchContainer}>
           <Search size={20} color={COLORS.gray400} style={styles.searchIcon} />
-          <TextInput 
-            placeholder="Search merchandise..." 
+          <TextInput
+            placeholder="Search merchandise..."
             placeholderTextColor={COLORS.gray500}
             style={styles.searchInput}
           />
@@ -58,22 +76,22 @@ const StoreScreen = ({ navigation }) => {
 
         {/* Categories */}
         <View>
-          <FlatList 
+          <FlatList
             horizontal
             data={categories}
-            keyExtractor={item => item}
+            keyExtractor={(item) => item}
             renderItem={({ item }) => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={[
-                  styles.categoryChip, 
-                  activeCategory === item && styles.categoryChipActive
+                  styles.categoryChip,
+                  activeCategory === item && styles.categoryChipActive,
                 ]}
                 onPress={() => setActiveCategory(item)}
               >
-                <Text 
+                <Text
                   style={[
-                    styles.categoryText, 
-                    activeCategory === item && styles.categoryTextActive
+                    styles.categoryText,
+                    activeCategory === item && styles.categoryTextActive,
                   ]}
                 >
                   {item}
@@ -86,10 +104,10 @@ const StoreScreen = ({ navigation }) => {
         </View>
 
         {/* Product Grid */}
-        <FlatList 
+        <FlatList
           data={filteredItems}
           renderItem={renderItem}
-          keyExtractor={item => item.id}
+          keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={styles.productList}
@@ -97,9 +115,9 @@ const StoreScreen = ({ navigation }) => {
         />
 
         {/* Floating Cart Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.floatingCart}
-          onPress={() => navigation.navigate('Cart')}
+          onPress={() => navigation.navigate("Cart")}
         >
           <ShoppingBag size={24} color={COLORS.white} />
           <View style={styles.badge}>
@@ -120,15 +138,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   iconButton: {
@@ -137,8 +155,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.card,
     marginHorizontal: 16,
     borderRadius: 12,
@@ -171,7 +189,7 @@ const styles = StyleSheet.create({
   categoryText: {
     color: COLORS.gray600,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   categoryTextActive: {
     color: COLORS.white,
@@ -186,65 +204,85 @@ const styles = StyleSheet.create({
   },
   productCard: {
     flex: 1,
-    maxWidth: '48%',
+    maxWidth: "48%",
+    backgroundColor: COLORS.card,
+    borderRadius: 24,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.05)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
   },
   imageContainer: {
-    aspectRatio: 0.8,
-    backgroundColor: COLORS.card, // slate-800 equivalent
-    borderRadius: 12,
-    overflow: 'hidden',
+    aspectRatio: 1,
+    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    borderRadius: 20,
+    overflow: "hidden",
     marginBottom: 12,
-    position: 'relative',
+    position: "relative",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.05)",
   },
   productImage: {
-    width: '100%',
-    height: '100%',
-    opacity: 0.9,
+    width: "100%",
+    height: "100%",
+    opacity: 1,
   },
   favoriteButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
-    padding: 6,
-    backgroundColor: COLORS.card,
-    borderRadius: 20,
-    backdropFilter: 'blur(4px)',
+    padding: 8,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
   productInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    paddingHorizontal: 4,
+    paddingBottom: 4,
   },
   productName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.text,
-    marginBottom: 4,
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#E2E8F0",
+    marginBottom: 6,
+    letterSpacing: -0.2,
   },
   productPrice: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: "900",
     color: COLORS.brandPurple,
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     backgroundColor: COLORS.brandPurple,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 8,
+    shadowColor: COLORS.brandPurple,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   floatingCart: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 32,
     right: 24,
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: COLORS.brandPurple,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: COLORS.brandPurple,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.5,
@@ -252,7 +290,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: -4,
     right: -4,
     width: 24,
@@ -261,13 +299,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderWidth: 2,
     borderColor: COLORS.brandPurple,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   badgeText: {
     color: COLORS.brandPurple,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });
 
