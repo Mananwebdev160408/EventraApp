@@ -1,0 +1,434 @@
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  Dimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  Search,
+  MapPin,
+  Calendar,
+  Clock,
+  Filter,
+  Star,
+  Users,
+} from "lucide-react-native";
+import { COLORS, SIZES } from "../../constants/theme";
+import { STADIUMS, ALL_EVENTS } from "../../constants/mocks";
+
+const { width } = Dimensions.get("window");
+
+const ExploreScreen = ({ navigation }) => {
+  const [activeTab, setActiveTab] = useState("Stadiums");
+  const [eventFilter, setEventFilter] = useState("upcoming"); // 'upcoming' or 'ongoing'
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const categories = ["All", "Sports", "Music", "Festival"];
+
+  const filteredEvents = ALL_EVENTS.filter((event) => {
+    const statusMatch =
+      eventFilter === "ongoing"
+        ? event.status === "ongoing"
+        : event.status !== "ongoing";
+    const categoryMatch =
+      activeCategory === "All" || event.category === activeCategory;
+    return statusMatch && categoryMatch;
+  });
+
+  const renderStadiumItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.stadiumCard}
+      activeOpacity={0.9}
+      onPress={() => navigation.navigate("StadiumDetails", { stadium: item })}
+    >
+      <Image source={{ uri: item.image }} style={styles.stadiumImage} />
+      <View style={styles.stadiumInfo}>
+        <View style={styles.stadiumHeader}>
+          <Text style={styles.stadiumName}>{item.name}</Text>
+          <View style={styles.ratingRow}>
+            <Star size={14} color="#FFD700" fill="#FFD700" />
+            <Text style={styles.ratingText}>{item.rating}</Text>
+          </View>
+        </View>
+        <View style={styles.stadiumMeta}>
+          <View style={styles.metaItem}>
+            <MapPin size={14} color={COLORS.gray500} />
+            <Text style={styles.metaText}>{item.location}</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <Users size={14} color={COLORS.gray500} />
+            <Text style={styles.metaText}>{item.capacity}</Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderEventItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.eventCard}
+      activeOpacity={0.9}
+      onPress={() => navigation.navigate("EventDetails", { eventId: item.id })}
+    >
+      <Image source={{ uri: item.image }} style={styles.eventImage} />
+      <View style={styles.eventInfo}>
+        <Text style={styles.eventTitle}>{item.title}</Text>
+        <Text style={styles.eventTime}>{item.time || item.date}</Text>
+        <View style={styles.eventFooter}>
+          <Text style={styles.eventPrice}>{item.price}</Text>
+          {item.status === "ongoing" && (
+            <View style={styles.liveBadge}>
+              <Text style={styles.liveText}>LIVE</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Explore</Text>
+          <View style={styles.searchBar}>
+            <Search size={20} color={COLORS.gray500} />
+            <TextInput
+              placeholder="Search stadiums or events..."
+              style={styles.searchInput}
+              placeholderTextColor={COLORS.gray500}
+            />
+          </View>
+        </View>
+
+        <View style={styles.tabContainer}>
+          {["Stadiums", "Events"].map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.tab, activeTab === tab && styles.activeTab]}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab && styles.activeTabText,
+                ]}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {activeTab === "Events" && (
+          <View>
+            <View style={styles.filterContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.filterBtn,
+                  eventFilter === "upcoming" && styles.activeFilter,
+                ]}
+                onPress={() => setEventFilter("upcoming")}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    eventFilter === "upcoming" && styles.activeFilterText,
+                  ]}
+                >
+                  Upcoming
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.filterBtn,
+                  eventFilter === "ongoing" && styles.activeFilter,
+                ]}
+                onPress={() => setEventFilter("ongoing")}
+              >
+                <Text
+                  style={[
+                    styles.filterText,
+                    eventFilter === "ongoing" && styles.activeFilterText,
+                  ]}
+                >
+                  Ongoing
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryContainer}
+            >
+              {categories.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.categoryChip,
+                    activeCategory === cat && styles.activeCategoryChip,
+                  ]}
+                  onPress={() => setActiveCategory(cat)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      activeCategory === cat && styles.activeCategoryChipText,
+                    ]}
+                  >
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        <ScrollView
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {activeTab === "Stadiums"
+            ? STADIUMS.map((stadium) => (
+                <View key={stadium.id} style={styles.listItem}>
+                  {renderStadiumItem({ item: stadium })}
+                </View>
+              ))
+            : filteredEvents.map((event) => (
+                <View key={event.id} style={styles.listItem}>
+                  {renderEventItem({ item: event })}
+                </View>
+              ))}
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F8F9FA",
+  },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#1d3557",
+    marginBottom: 15,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#E9ECEF",
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 10,
+    fontSize: 16,
+    color: "#1d3557",
+  },
+  tabContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    marginBottom: 15,
+    gap: 15,
+  },
+  tab: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: "#E9ECEF",
+  },
+  activeTab: {
+    backgroundColor: "#1d3557",
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#495057",
+  },
+  activeTabText: {
+    color: "#FFFFFF",
+  },
+  filterContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    marginBottom: 15,
+    gap: 10,
+  },
+  filterBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#DEE2E6",
+  },
+  activeFilter: {
+    backgroundColor: "rgba(29, 53, 87, 0.1)",
+    borderColor: "#1d3557",
+  },
+  filterText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6C757D",
+  },
+  activeFilterText: {
+    color: "#1d3557",
+  },
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+  },
+  listItem: {
+    marginBottom: 20,
+  },
+  stadiumCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#E9ECEF",
+  },
+  stadiumImage: {
+    width: "100%",
+    height: 180,
+    backgroundColor: "#E9ECEF",
+  },
+  stadiumInfo: {
+    padding: 15,
+  },
+  stadiumHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  stadiumName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1d3557",
+  },
+  ratingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1d3557",
+  },
+  stadiumMeta: {
+    flexDirection: "row",
+    gap: 15,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  metaText: {
+    fontSize: 12,
+    color: "#6C757D",
+    fontWeight: "500",
+  },
+  eventCard: {
+    flexDirection: "row",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    overflow: "hidden",
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#E9ECEF",
+  },
+  eventImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: "#E9ECEF",
+  },
+  eventInfo: {
+    flex: 1,
+    marginLeft: 15,
+    justifyContent: "space-between",
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1d3557",
+  },
+  eventTime: {
+    fontSize: 13,
+    color: "#6C757D",
+    fontWeight: "500",
+  },
+  eventFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  eventPrice: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#457b9d",
+  },
+  liveBadge: {
+    backgroundColor: COLORS.error,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  liveText: {
+    color: "#FFFFFF",
+    fontSize: 10,
+    fontWeight: "900",
+  },
+  categoryContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 15,
+    gap: 10,
+  },
+  categoryChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#DEE2E6",
+  },
+  activeCategoryChip: {
+    backgroundColor: "#1d3557",
+    borderColor: "#1d3557",
+  },
+  categoryChipText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6C757D",
+  },
+  activeCategoryChipText: {
+    color: "#FFFFFF",
+  },
+});
+
+export default ExploreScreen;

@@ -1,10 +1,26 @@
-import React from 'react';
+import React from "react";
 
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft, Share, Calendar, Clock, MapPin, MoreVertical, Download, Wallet } from 'lucide-react-native';
-import { COLORS, FONTS } from '../../constants/theme';
-import { EVENT_DETAILS } from '../../constants/mocks';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import {
+  ChevronLeft,
+  Share,
+  Calendar,
+  Clock,
+  MapPin,
+  MoreVertical,
+  Download,
+  Wallet,
+} from "lucide-react-native";
+import { COLORS, FONTS } from "../../constants/theme";
+import { EVENT_DETAILS } from "../../constants/mocks";
 
 const TicketScreen = ({ navigation }) => {
   const event = EVENT_DETAILS;
@@ -12,23 +28,33 @@ const TicketScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-      
+
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('MainTabs')}>
-          <ChevronLeft size={20} color={COLORS.white} />
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => navigation.navigate("MainTabs")}
+        >
+          <ChevronLeft size={20} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Ticket</Text>
         <TouchableOpacity style={styles.iconButton}>
-          <MoreVertical size={20} color={COLORS.white} />
+          <MoreVertical size={20} color={COLORS.text} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.ticketContainer}>
           {/* Ticket Top (Event Image & Info) */}
           <View style={styles.ticketTop}>
-            <Image source={{ uri: event.image }} style={styles.eventImage} resizeMode="cover" />
+            <Image
+              source={{ uri: event.image }}
+              style={styles.eventImage}
+              resizeMode="cover"
+            />
             <View style={styles.eventOverlay} />
             <View style={styles.eventInfo}>
               <Text style={styles.eventTitle}>{event.title}</Text>
@@ -51,9 +77,9 @@ const TicketScreen = ({ navigation }) => {
 
           {/* Semicircles for tear effect */}
           <View style={styles.tearLineContainer}>
-             <View style={styles.semicircleLeft} />
-             <View style={styles.dashedLine} />
-             <View style={styles.semicircleRight} />
+            <View style={styles.semicircleLeft} />
+            <View style={styles.dashedLine} />
+            <View style={styles.semicircleRight} />
           </View>
 
           {/* Ticket Middle (Seat Info) */}
@@ -72,7 +98,7 @@ const TicketScreen = ({ navigation }) => {
                 <Text style={styles.seatValue}>12</Text>
               </View>
             </View>
-            
+
             <View style={styles.userInfoRow}>
               <View>
                 <Text style={styles.userLabel}>HOLDER</Text>
@@ -84,37 +110,27 @@ const TicketScreen = ({ navigation }) => {
               </View>
             </View>
           </View>
-          
-           {/* Tear line 2 */}
+
+          {/* Tear line 2 */}
           <View style={styles.tearLineContainer}>
-             <View style={styles.semicircleLeft} />
-             <View style={styles.dashedLine} />
-             <View style={styles.semicircleRight} />
+            <View style={styles.semicircleLeft} />
+            <View style={styles.dashedLine} />
+            <View style={styles.semicircleRight} />
           </View>
 
           {/* Ticket Bottom (QR Code) */}
           <View style={styles.ticketBottom}>
             <View style={styles.qrContainer}>
-               {/* Mock QR Code */}
-               <Image 
-                 source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg' }}
-                 style={styles.qrCode}
-               />
+              {/* Mock QR Code */}
+              <Image
+                source={{
+                  uri: "https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg",
+                }}
+                style={styles.qrCode}
+              />
             </View>
             <Text style={styles.scanText}>Scan this code at the gate</Text>
           </View>
-        </View>
-
-        {/* Action Buttons */}
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionButton}>
-            <Download size={20} color={COLORS.white} />
-            <Text style={styles.actionText}>Download</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionButton, styles.primaryButton]}>
-            <Wallet size={20} color={COLORS.white} />
-            <Text style={styles.primaryButtonText}>Add to Wallet</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -127,9 +143,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingTop: 50,
     paddingHorizontal: 24,
     paddingBottom: 24,
@@ -139,14 +155,14 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: COLORS.card,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   scrollContent: {
@@ -154,54 +170,54 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   ticketContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 24,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 32,
   },
   ticketTop: {
     height: 200,
-    position: 'relative',
+    position: "relative",
     padding: 24,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   eventImage: {
     ...StyleSheet.absoluteFillObject,
   },
   eventOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   eventInfo: {
     zIndex: 1,
   },
   eventTitle: {
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: "800",
     color: COLORS.white,
     marginBottom: 12,
   },
   metaRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 16,
     marginBottom: 8,
   },
   metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   metaText: {
     fontSize: 12,
     color: COLORS.gray300,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   tearLineContainer: {
     height: 30,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    position: 'relative',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    position: "relative",
     marginHorizontal: -1, // Fix gap
   },
   semicircleLeft: {
@@ -209,7 +225,7 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     backgroundColor: COLORS.background, // Match background
-    position: 'absolute',
+    position: "absolute",
     left: -15,
   },
   semicircleRight: {
@@ -217,96 +233,96 @@ const styles = StyleSheet.create({
     height: 30,
     borderRadius: 15,
     backgroundColor: COLORS.background,
-    position: 'absolute',
+    position: "absolute",
     right: -15,
   },
   dashedLine: {
     flex: 1,
     height: 1,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderStyle: 'dashed',
+    borderColor: "#e2e8f0",
+    borderStyle: "dashed",
     marginHorizontal: 30,
   },
   ticketMiddle: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: 24,
     paddingVertical: 10,
   },
   seatRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 24,
-    backgroundColor: '#f8fafc',
+    backgroundColor: "#f8fafc",
     padding: 16,
     borderRadius: 12,
   },
   seatItem: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   seatLabel: {
     fontSize: 10,
-    color: '#64748b',
-    fontWeight: '700',
+    color: "#64748b",
+    fontWeight: "700",
     marginBottom: 4,
   },
   seatValue: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#0f172a',
+    fontWeight: "800",
+    color: "#0f172a",
   },
   userInfoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   userLabel: {
     fontSize: 10,
-    color: '#94a3b8',
-    fontWeight: '700',
+    color: "#94a3b8",
+    fontWeight: "700",
     marginBottom: 4,
   },
   userName: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontWeight: "700",
+    color: "#0f172a",
   },
   orderId: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#0f172a',
+    fontWeight: "700",
+    color: "#0f172a",
   },
   ticketBottom: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 32,
-    alignItems: 'center',
+    alignItems: "center",
   },
   qrContainer: {
     width: 160,
     height: 160,
     marginBottom: 16,
     borderWidth: 4,
-    borderColor: '#000',
+    borderColor: "#000",
     borderRadius: 8,
     padding: 4,
   },
   qrCode: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   scanText: {
     fontSize: 12,
-    color: '#64748b',
-    fontWeight: '500',
+    color: "#64748b",
+    fontWeight: "500",
   },
   actionsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 16,
   },
   actionButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
     height: 56,
     borderRadius: 16,
@@ -320,11 +336,11 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: COLORS.text,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   primaryButtonText: {
     color: COLORS.white,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });
 

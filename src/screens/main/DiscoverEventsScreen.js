@@ -1,478 +1,620 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, TextInput, FlatList, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { Bell, Search, SlidersHorizontal, MapPin, Calendar, Clock, Armchair, Eye, Utensils, ShoppingBag, LayoutGrid, List, ChevronRight } from 'lucide-react-native';
-import { COLORS, SIZES } from '../../constants/theme';
-import { USERS, FEATURED_EVENTS, UPCOMING_EVENTS } from '../../constants/mocks';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  Dimensions,
+  FlatList,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import {
+  Bell,
+  Search,
+  MapPin,
+  Calendar,
+  ChevronRight,
+  Sparkles,
+  Trophy,
+  Music,
+  Tent,
+  Zap,
+} from "lucide-react-native";
+import { COLORS } from "../../constants/theme";
+import {
+  USERS,
+  FEATURED_EVENTS,
+  UPCOMING_EVENTS,
+  STADIUMS,
+} from "../../constants/mocks";
+import { LinearGradient } from "expo-linear-gradient";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 const DiscoverEventsScreen = ({ navigation }) => {
-  const renderFeaturedItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.featuredDisplay}
-      activeOpacity={0.9}
-      onPress={() => navigation.navigate('EventDetails', { eventId: item.id })}
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const categories = [
+    { name: "All", icon: <Zap size={18} /> },
+    { name: "Sports", icon: <Trophy size={18} /> },
+    { name: "Music", icon: <Music size={18} /> },
+    { name: "Festival", icon: <Tent size={18} /> },
+  ];
+
+  const filteredFeatured = FEATURED_EVENTS.filter(
+    (event) => activeCategory === "All" || event.category === activeCategory,
+  );
+
+  const filteredUpcoming = UPCOMING_EVENTS.filter(
+    (event) => activeCategory === "All" || event.category === activeCategory,
+  );
+
+  const FeaturedEventCard = ({ event }) => (
+    <TouchableOpacity
+      style={styles.featuredCard}
+      activeOpacity={0.95}
+      onPress={() => navigation.navigate("EventDetails", { eventId: event.id })}
     >
-      <Image source={{ uri: item.image }} style={styles.featuredImage} resizeMode="cover" />
-      <LinearGradient 
-        colors={['transparent', 'rgba(29, 53, 87, 0.9)']} 
-        style={styles.featuredOverlay} 
-      />
-      <View style={styles.featuredContent}>
-        <View style={styles.featuredTagContainer}>
-          <Text style={styles.featuredTagText}>{item.tag}</Text>
+      <Image source={{ uri: event.image }} style={styles.featuredImage} />
+      <LinearGradient
+        colors={["transparent", "rgba(29, 53, 87, 0.9)"]}
+        style={styles.featuredOverlay}
+      >
+        <View style={styles.featuredTag}>
+          <Sparkles size={12} color="#FFFFFF" />
+          <Text style={styles.featuredTagText}>{event.tag}</Text>
         </View>
-        <Text style={styles.featuredTitle}>{item.title}</Text>
-        <View style={styles.featuredMetaRow}>
+        <Text style={styles.featuredTitle}>{event.title}</Text>
+        <View style={styles.featuredMeta}>
           <View style={styles.metaItem}>
             <Calendar size={14} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.metaText}>{item.date}</Text>
+            <Text style={styles.metaText}>{event.date}</Text>
           </View>
           <View style={styles.metaItem}>
             <MapPin size={14} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.metaText}>{item.venue}</Text>
+            <Text style={styles.metaText}>{event.venue}</Text>
           </View>
         </View>
-      </View>
+      </LinearGradient>
     </TouchableOpacity>
   );
 
-  const renderUpcomingItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.eventCard}
-      activeOpacity={0.9}
-      onPress={() => navigation.navigate('EventDetails', { eventId: item.id })}
-    >
-      <View style={styles.eventImageContainer}>
-        <Image source={{ uri: item.image }} style={styles.eventImage} resizeMode="cover" />
-        <View style={styles.priceBadge}>
-          <Text style={styles.priceText}>{item.price}</Text>
-        </View>
+  const ExperienceCard = ({ title, subtitle, image, accent }) => (
+    <TouchableOpacity style={styles.expCard} activeOpacity={0.9}>
+      <Image source={{ uri: image }} style={styles.expImage} />
+      <View style={[styles.expAccent, { backgroundColor: accent }]} />
+      <View style={styles.expContent}>
+        <Text style={styles.expTitle}>{title}</Text>
+        <Text style={styles.expSubtitle}>{subtitle}</Text>
       </View>
-      <View style={styles.eventInfo}>
-        <Text style={styles.eventTitle} numberOfLines={1}>{item.title}</Text>
-        <View style={styles.eventMetaRow}>
-            <View style={styles.metaSubRow}>
-                <Clock size={12} color="#457b9d" />
-                <Text style={styles.eventMetaText}>{item.time}</Text>
-            </View>
-        </View>
-        <TouchableOpacity style={styles.viewDetailsBtn}>
-            <Text style={styles.viewDetailsText}>Book Now</Text>
-            <ChevronRight size={14} color="#1d3557" />
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.expBtn}>
+        <ChevronRight size={20} color="#1d3557" />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeArea}>
-        
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.userInfo}>
-            <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-                <View style={styles.avatarContainer}>
-                    <Image source={{ uri: USERS.currentUser.avatar }} style={styles.avatar} />
-                </View>
-            </TouchableOpacity>
-            <View>
-              <Text style={styles.welcomeText}>GOOD MORNING,</Text>
-              <Text style={styles.userName}>{USERS.currentUser.name.split(' ')[0]}</Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.notificationButton} onPress={() => navigation.navigate('Notifications')}>
-            <Bell size={20} color="#1d3557" />
-            <View style={styles.notifDot} />
-          </TouchableOpacity>
-        </View>
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Search */}
+      {/* Dynamic Background Header */}
+      <View style={styles.headerBackground}>
+        <LinearGradient
+          colors={["#f1faee", "#a8dadc"]}
+          style={StyleSheet.absoluteFill}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        />
+        <SafeAreaView style={styles.headerSafeArea}>
+          <View style={styles.headerTop}>
+            <View style={styles.userSection}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Profile")}
+                style={styles.avatarBorder}
+              >
+                <Image
+                  source={{ uri: USERS.currentUser.avatar }}
+                  style={styles.avatar}
+                />
+              </TouchableOpacity>
+              <View>
+                <Text style={styles.greeting}>Hello, Explorer</Text>
+                <Text style={styles.userName}>
+                  {USERS.currentUser.name.split(" ")[0]}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.iconBtn}
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Bell size={22} color="#1d3557" />
+              <View style={styles.dot} />
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.searchContainer}>
             <View style={styles.searchBar}>
-              <Search size={20} color="rgba(29, 53, 87, 0.4)" />
-              <TextInput 
-                placeholder="Find matches, concerts, teams..." 
-                placeholderTextColor="rgba(29, 53, 87, 0.4)"
+              <Search size={20} color={COLORS.gray500} />
+              <TextInput
+                placeholder="Find matches, concerts..."
                 style={styles.searchInput}
+                placeholderTextColor={COLORS.gray500}
               />
-              <TouchableOpacity style={styles.filterButton}>
-                <SlidersHorizontal size={18} color="#1d3557" />
-              </TouchableOpacity>
             </View>
           </View>
+        </SafeAreaView>
+      </View>
 
-          {/* Quick Actions */}
-          <View style={styles.quickActionsContainer}>
-            <QuickActionButton 
-              icon={<Armchair size={24} />} 
-              label="Seats" 
-              onPress={() => navigation.navigate('EventDetails', { eventId: '1' })} 
-            />
-            <QuickActionButton 
-              icon={<Utensils size={24} />} 
-              label="Food" 
-              onPress={() => navigation.navigate('FoodOrdering')} 
-            />
-            <QuickActionButton 
-              icon={<ShoppingBag size={24} />} 
-              label="Merch" 
-              onPress={() => navigation.navigate('Store')} 
-            />
-            <QuickActionButton 
-                icon={<Eye size={24} />} 
-                label="Explore" 
-                onPress={() => navigation.navigate('SelectSeats')} 
-            />
-          </View>
-
-          {/* Featured Events */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Highlights</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>VIEW ALL</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <FlatList
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollBody}
+      >
+        {/* Category Chips */}
+        <View style={styles.categorySection}>
+          <ScrollView
             horizontal
-            data={FEATURED_EVENTS}
-            renderItem={renderFeaturedItem}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.featuredList}
             showsHorizontalScrollIndicator={false}
-            snapToInterval={320 + 16}
-            decelerationRate="fast"
-          />
-
-          {/* Upcoming Events */}
-          <View style={[styles.sectionHeader, { marginTop: 32 }]}>
-            <Text style={styles.sectionTitle}>Upcoming Near You</Text>
-            <TouchableOpacity>
-                <LayoutGrid size={20} color="#1d3557" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.upcomingGrid}>
-            {UPCOMING_EVENTS.map(item => (
-              <View key={item.id} style={styles.gridItemWrapper}>
-                {renderUpcomingItem({ item })}
-              </View>
+            contentContainerStyle={styles.categoryScroll}
+          >
+            {categories.map((cat) => (
+              <TouchableOpacity
+                key={cat.name}
+                onPress={() => setActiveCategory(cat.name)}
+                style={[
+                  styles.categoryChip,
+                  activeCategory === cat.name && styles.categoryChipActive,
+                ]}
+              >
+                {React.cloneElement(cat.icon, {
+                  color: activeCategory === cat.name ? "#FFFFFF" : "#1d3557",
+                })}
+                <Text
+                  style={[
+                    styles.categoryText,
+                    activeCategory === cat.name && styles.categoryTextActive,
+                  ]}
+                >
+                  {cat.name}
+                </Text>
+              </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
+        </View>
+
+        {/* Featured Events Carousel */}
+        {filteredFeatured.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Featured Events</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Explore")}>
+                <Text style={styles.seeAll}>See All</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              horizontal
+              data={filteredFeatured}
+              renderItem={({ item }) => <FeaturedEventCard event={item} />}
+              keyExtractor={(item) => item.id}
+              showsHorizontalScrollIndicator={false}
+              snapToInterval={width * 0.85 + 20}
+              decelerationRate="fast"
+              contentContainerStyle={styles.featuredList}
+            />
+          </>
+        )}
+
+        {/* Upcoming Events Section (New) */}
+        {filteredUpcoming.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Upcoming Events</Text>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredList}
+            >
+              {filteredUpcoming.map((event) => (
+                <TouchableOpacity
+                  key={event.id}
+                  style={styles.upcomingMiniCard}
+                  onPress={() =>
+                    navigation.navigate("EventDetails", { eventId: event.id })
+                  }
+                >
+                  <Image
+                    source={{ uri: event.image }}
+                    style={styles.upcomingImage}
+                  />
+                  <View style={styles.upcomingInfo}>
+                    <Text style={styles.upcomingTitle} numberOfLines={1}>
+                      {event.title}
+                    </Text>
+                    <Text style={styles.upcomingDate}>{event.time}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+        {/* Explore Experiences */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Exclusive Experiences</Text>
+        </View>
+
+        <View style={styles.expContainer}>
+          <ExperienceCard
+            title="VIP Luxury"
+            subtitle="Premium lounge access"
+            image="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&q=80&w=800"
+            accent="#e63946"
+          />
+          <ExperienceCard
+            title="Fan Zones"
+            subtitle="Vibrant match atmosphere"
+            image="https://images.unsplash.com/photo-1504450758481-7338eba7524a?auto=format&fit=crop&q=80&w=800"
+            accent="#457b9d"
+          />
+        </View>
+
+        {/* Stadium Previews */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Top Stadiums</Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.stadiumScroll}
+        >
+          {STADIUMS.map((stadium) => (
+            <TouchableOpacity
+              key={stadium.id}
+              style={styles.stadiumMini}
+              onPress={() => navigation.navigate("StadiumDetails", { stadium })}
+            >
+              <Image
+                source={{ uri: stadium.image }}
+                style={styles.stadiumImg}
+              />
+              <View style={styles.stadiumInfo}>
+                <Text style={styles.stadiumName} numberOfLines={1}>
+                  {stadium.name}
+                </Text>
+                <View style={styles.stadiumMeta}>
+                  <MapPin size={10} color={COLORS.gray500} />
+                  <Text style={styles.stadiumLoc}>{stadium.location}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
-      </SafeAreaView>
+      </ScrollView>
     </View>
   );
 };
 
-const QuickActionButton = ({ icon, label, onPress }) => (
-  <TouchableOpacity style={styles.actionItem} onPress={onPress} activeOpacity={0.8}>
-    <View style={styles.actionButton}>
-      {React.cloneElement(icon, { color: '#1d3557' })}
-    </View>
-    <Text style={styles.actionLabel}>{label}</Text>
-  </TouchableOpacity>
-);
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1faee',
+    backgroundColor: "#FFFFFF",
   },
-  safeArea: {
-      flex: 1,
+  headerBackground: {
+    paddingBottom: 24,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    overflow: "hidden",
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  headerSafeArea: {
     paddingHorizontal: 24,
-    paddingVertical: 16,
   },
-  userInfo: {
-    flexDirection: 'row',
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  userSection: {
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
-    alignItems: 'center',
   },
-  avatarContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: '#ffffff',
+  avatarBorder: {
     padding: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(29, 53, 87, 0.1)',
+    borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#1d3557",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   avatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 14,
+    width: 44,
+    height: 44,
+    borderRadius: 16,
   },
-  welcomeText: {
-    fontSize: 10,
-    color: '#457b9d',
-    fontWeight: '800',
-    letterSpacing: 1.5,
+  greeting: {
+    fontSize: 12,
+    color: "#457b9d",
+    fontWeight: "600",
   },
   userName: {
-    fontSize: 20,
-    color: '#1d3557',
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#1d3557",
   },
-  notificationButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.8)",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(29, 53, 87, 0.1)',
-    position: 'relative',
+    borderColor: "rgba(255,255,255,0.5)",
   },
-  notifDot: {
-      position: 'absolute',
-      top: 14,
-      right: 14,
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: COLORS.error,
-      borderWidth: 2,
-      borderColor: '#ffffff',
-  },
-  scrollContent: {
-    paddingBottom: 40,
+  dot: {
+    position: "absolute",
+    top: 12,
+    right: 13,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#e63946",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
   searchContainer: {
-    paddingHorizontal: 24,
-    marginBottom: 24,
+    marginTop: 20,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     paddingHorizontal: 16,
-    height: 60,
-    shadowColor: '#1d3557',
-    shadowOffset: { width: 0, height: 4 },
+    height: 54,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 3,
   },
   searchInput: {
     flex: 1,
     marginLeft: 12,
-    color: '#1d3557',
     fontSize: 15,
-    fontWeight: '600',
+    color: "#1d3557",
+    fontWeight: "500",
   },
-  filterButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: 'rgba(29, 53, 87, 0.05)',
-    alignItems: 'center',
-    justifyContent: 'center',
+  scrollBody: {
+    paddingBottom: 40,
   },
-  quickActionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  categorySection: {
+    marginTop: 24,
+  },
+  categoryScroll: {
     paddingHorizontal: 24,
-    marginBottom: 32,
+    gap: 12,
   },
-  actionItem: {
-    alignItems: 'center',
+  categoryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 100,
+    backgroundColor: "#f1f3f5",
     gap: 10,
   },
-  actionButton: {
-    width: 68,
-    height: 68,
-    borderRadius: 20,
-    backgroundColor: '#ffffff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#1d3557',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(29, 53, 87, 0.05)',
+  categoryChipActive: {
+    backgroundColor: "#1d3557",
   },
-  actionLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#1d3557',
+  categoryText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1d3557",
+  },
+  categoryTextActive: {
+    color: "#FFFFFF",
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 24,
-    marginBottom: 20,
+    marginTop: 32,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#1d3557',
+    fontWeight: "900",
+    color: "#1d3557",
+    letterSpacing: -0.5,
   },
-  seeAllText: {
-    fontSize: 11,
-    color: '#457b9d',
-    fontWeight: '800',
-    letterSpacing: 0.5,
+  seeAll: {
+    fontSize: 13,
+    color: "#457b9d",
+    fontWeight: "700",
   },
   featuredList: {
     paddingHorizontal: 24,
-    gap: 16,
+    gap: 20,
   },
-  featuredDisplay: {
-    width: 320,
-    height: 220,
-    borderRadius: 24,
-    overflow: 'hidden',
-    backgroundColor: '#000',
+  featuredCard: {
+    width: width * 0.85,
+    height: 240,
+    borderRadius: 32,
+    overflow: "hidden",
+    backgroundColor: "#000",
   },
   featuredImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
+    opacity: 0.9,
   },
   featuredOverlay: {
     ...StyleSheet.absoluteFillObject,
-  },
-  featuredContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     padding: 24,
+    justifyContent: "flex-end",
   },
-  featuredTagContainer: {
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.error,
+  featuredTag: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.25)",
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginBottom: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    gap: 6,
+    marginBottom: 12,
   },
   featuredTagText: {
-    color: '#ffffff',
+    color: "#FFFFFF",
     fontSize: 10,
-    fontWeight: '800',
-    textTransform: 'uppercase',
+    fontWeight: "900",
+    letterSpacing: 1,
   },
   featuredTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#ffffff',
+    color: "#FFFFFF",
+    fontSize: 24,
+    fontWeight: "900",
     marginBottom: 8,
   },
-  featuredMetaRow: {
-    flexDirection: 'row',
+  featuredMeta: {
+    flexDirection: "row",
     gap: 16,
   },
   metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   metaText: {
+    color: "rgba(255,255,255,0.8)",
     fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-    fontWeight: '600',
+    fontWeight: "600",
   },
-  upcomingGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  expContainer: {
     paddingHorizontal: 24,
     gap: 16,
   },
-  gridItemWrapper: {
-    width: (width - 48 - 16) / 2,
-  },
-  eventCard: {
-    backgroundColor: '#ffffff',
+  expCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
-    padding: 10,
-    shadowColor: '#1d3557',
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "#f1f3f5",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.02,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 2,
   },
-  eventImageContainer: {
-    width: '100%',
-    aspectRatio: 1,
+  expImage: {
+    width: 64,
+    height: 64,
     borderRadius: 18,
-    overflow: 'hidden',
-    marginBottom: 12,
   },
-  eventImage: {
-    width: '100%',
-    height: '100%',
+  expAccent: {
+    position: "absolute",
+    left: 12,
+    top: 12,
+    width: 4,
+    height: 20,
+    borderTopLeftRadius: 2,
+    borderBottomLeftRadius: 2,
   },
-  priceBadge: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    backgroundColor: 'rgba(29, 53, 87, 0.8)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+  expContent: {
+    flex: 1,
+    marginLeft: 16,
   },
-  priceText: {
-    color: '#ffffff',
-    fontSize: 11,
-    fontWeight: '800',
+  expTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#1d3557",
+    marginBottom: 2,
   },
-  eventInfo: {
-      paddingHorizontal: 4,
-      paddingBottom: 4,
-  },
-  eventTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#1d3557',
-    marginBottom: 6,
-  },
-  eventMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  metaSubRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-  },
-  eventMetaText: {
+  expSubtitle: {
     fontSize: 12,
-    color: 'rgba(29, 53, 87, 0.5)',
-    fontWeight: '600',
+    color: "#457b9d",
+    fontWeight: "500",
   },
-  viewDetailsBtn: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: 8,
-      backgroundColor: 'rgba(29, 53, 87, 0.05)',
-      borderRadius: 12,
-      gap: 4,
+  expBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#f1f3f5",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  viewDetailsText: {
-      fontSize: 13,
-      fontWeight: '800',
-      color: '#1d3557',
+  stadiumScroll: {
+    paddingHorizontal: 24,
+    gap: 16,
+    paddingBottom: 20,
+  },
+  stadiumMini: {
+    width: 160,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "#f1f3f5",
+    overflow: "hidden",
+  },
+  stadiumImg: {
+    width: "100%",
+    height: 100,
+  },
+  stadiumInfo: {
+    padding: 12,
+  },
+  stadiumName: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1d3557",
+    marginBottom: 4,
+  },
+  stadiumLoc: {
+    fontSize: 10,
+    color: "#457b9d",
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  upcomingMiniCard: {
+    width: 200,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: "#f1f3f5",
+  },
+  upcomingImage: {
+    width: "100%",
+    height: 120,
+    borderRadius: 16,
+    marginBottom: 8,
+  },
+  upcomingInfo: {
+    paddingHorizontal: 4,
+  },
+  upcomingTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1d3557",
+    marginBottom: 2,
+  },
+  upcomingDate: {
+    fontSize: 11,
+    color: "#457b9d",
+    fontWeight: "600",
   },
 });
 
