@@ -32,11 +32,13 @@ import {
   STADIUMS,
 } from "../../constants/mocks";
 import { LinearGradient } from "expo-linear-gradient";
+import { useUser } from "../../context/UserContext";
 
 const { width } = Dimensions.get("window");
 
 const DiscoverEventsScreen = ({ navigation }) => {
   const [activeCategory, setActiveCategory] = useState("All");
+  const { city } = useUser();
 
   const categories = [
     { name: "All", icon: <Zap size={18} /> },
@@ -122,7 +124,10 @@ const DiscoverEventsScreen = ({ navigation }) => {
                 />
               </TouchableOpacity>
               <View>
-                <Text style={styles.greeting}>Hello, Explorer</Text>
+                <View style={styles.locationRow}>
+                  <MapPin size={10} color="#457b9d" />
+                  <Text style={styles.greeting}>{city.toUpperCase()}</Text>
+                </View>
                 <Text style={styles.userName}>
                   {USERS.currentUser.name.split(" ")[0]}
                 </Text>
@@ -324,6 +329,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
   avatarBorder: {
     padding: 2,

@@ -17,9 +17,11 @@ import {
 } from "lucide-react-native";
 
 // Auth Screens
+import AuthLandingScreen from "../screens/auth/AuthLandingScreen";
 import LoginScreen from "../screens/auth/LoginScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
 import RoleSelectionScreen from "../screens/auth/RoleSelectionScreen";
+import StadiumOnboardingScreen from "../screens/auth/StadiumOnboardingScreen";
 
 // User Screens
 import DiscoverEventsScreen from "../screens/main/DiscoverEventsScreen";
@@ -209,9 +211,14 @@ export default function AppNavigator() {
           }}
         >
           {/* Auth Flow */}
+          <Stack.Screen name="AuthLanding" component={AuthLandingScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
+          <Stack.Screen
+            name="StadiumOnboarding"
+            component={StadiumOnboardingScreen}
+          />
 
           {/* Admin Flow */}
           <Stack.Screen name="AdminTabs" component={AdminTabs} />

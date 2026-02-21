@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { View } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen';
-import AppNavigator from './src/navigation/AppNavigator';
-import CustomSplashScreen from './src/screens/onboarding/SplashScreen';
+import React, { useState, useEffect } from "react";
+import { View } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
+import AppNavigator from "./src/navigation/AppNavigator";
+import CustomSplashScreen from "./src/screens/onboarding/SplashScreen";
+import { UserProvider } from "./src/context/UserContext";
 
 // Keep the native splash screen visible while we fetch resources or do setup
 SplashScreen.preventAutoHideAsync();
@@ -15,7 +16,7 @@ export default function App() {
     async function prepare() {
       try {
         // Pre-load fonts, make any API calls you need to do here
-        await new Promise(resolve => setTimeout(resolve, 2000)); 
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (e) {
         console.warn(e);
       } finally {
@@ -30,9 +31,9 @@ export default function App() {
   const onLayoutRootView = async () => {
     if (appIsReady) {
       // This tells the splash screen to hide immediately! If we call this after `setAppIsReady`, then we may see a blank screen while the app is rendering its initial state and rendering its first view. From this moment onwards, the native splash screen is gone.
-       // But we still want to show OUR custom splash screen.
-       // So we hidenative splash here.
-       await SplashScreen.hideAsync();
+      // But we still want to show OUR custom splash screen.
+      // So we hidenative splash here.
+      await SplashScreen.hideAsync();
     }
   };
 
@@ -43,10 +44,14 @@ export default function App() {
   if (showCustomSplash) {
     return (
       <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-         <CustomSplashScreen onFinish={() => setShowCustomSplash(false)} />
+        <CustomSplashScreen onFinish={() => setShowCustomSplash(false)} />
       </View>
     );
   }
 
-  return <AppNavigator />;
+  return (
+    <UserProvider>
+      <AppNavigator />
+    </UserProvider>
+  );
 }

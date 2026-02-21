@@ -24,10 +24,14 @@ import {
 import { COLORS } from "../../constants/theme";
 import { USERS } from "../../constants/mocks";
 import { LinearGradient } from "expo-linear-gradient";
+import { useUser } from "../../context/UserContext";
+import { MapPin } from "lucide-react-native";
 
 const { width } = Dimensions.get("window");
 
 const AdminDashboardScreen = ({ navigation }) => {
+  const { stadiumLocation } = useUser();
+
   const StatCard = ({ label, value, subvalue, icon, color, onPress }) => (
     <TouchableOpacity
       style={styles.statCard}
@@ -54,7 +58,14 @@ const AdminDashboardScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Operational Control</Text>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+            >
+              <MapPin size={10} color="#457b9d" />
+              <Text style={styles.greeting}>
+                {stadiumLocation.toUpperCase()}
+              </Text>
+            </View>
             <Text style={styles.userName}>{USERS.currentUser.name}</Text>
           </View>
           <TouchableOpacity
@@ -89,7 +100,7 @@ const AdminDashboardScreen = ({ navigation }) => {
 
             <Text style={styles.heroTitle}>Champions League Final</Text>
             <Text style={styles.heroSubtitle}>
-              Wembley Stadium • Final Match Day
+              {stadiumLocation} • Final Match Day
             </Text>
 
             <View style={styles.attendanceContainer}>
