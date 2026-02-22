@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   ScrollView,
   Dimensions,
@@ -11,47 +10,61 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import {
-  Settings,
-  CreditCard,
-  Bell,
   LogOut,
-  ChevronRight,
   User,
-  Shield,
-  TriangleAlert,
-  Star,
+  Mail,
+  Phone,
+  Edit3,
+  AtSign,
+  UserCircle,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
-import { USERS } from "../../constants/mocks";
-import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "../../context/AuthContext";
+import { authService } from "../../api/services";
+import { ActivityIndicator } from "react-native";
 
 const { width } = Dimensions.get("window");
 
 const ProfileScreen = ({ navigation }) => {
-  const user = USERS.currentUser;
+  const { userInfo, setUserInfo, logout } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const MenuItem = ({ icon, label, onPress, color }) => (
-    <TouchableOpacity
-      style={styles.menuItem}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <View style={styles.menuItemLeft}>
-        <View
-          style={[
-            styles.iconBox,
-            { backgroundColor: color || "rgba(29, 53, 87, 0.05)" },
-          ]}
-        >
-          {React.cloneElement(icon, {
-            size: 20,
-            color: color ? "#ffffff" : "#1d3557",
-          })}
-        </View>
-        <Text style={styles.menuLabel}>{label}</Text>
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    setLoading(true);
+    try {
+      const data = await authService.getCurrentUser();
+      if (data) {
+        setUserInfo(data);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "AuthLanding" }],
+    });
+  };
+
+  const DetailItem = ({ icon: Icon, label, value }) => (
+    <View style={styles.detailItem}>
+      <View style={styles.detailIconBox}>
+        <Icon size={20} color="#457b9d" />
       </View>
-      <ChevronRight size={18} color="rgba(29, 53, 87, 0.3)" />
-    </TouchableOpacity>
+      <View style={styles.detailContent}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{value || "Not provided"}</Text>
+      </View>
+    </View>
   );
 
   return (
@@ -59,85 +72,84 @@ const ProfileScreen = ({ navigation }) => {
       <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.headerSubtitle}>MEMBER PROFILE</Text>
-            <Text style={styles.headerTitle}>Account</Text>
-          </View>
-          <TouchableOpacity style={styles.settingsBtn}>
-            <Settings size={22} color="#1d3557" />
-          </TouchableOpacity>
+          <Text style={styles.headerTitle}>My Profile</Text>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Profile Card */}
-          <View style={styles.profileCard}>
-            <View style={styles.avatarWrapper}>
-              <Image source={{ uri: user.avatar }} style={styles.avatar} />
-              <View style={styles.editBadge}>
-                <Star size={10} color="#ffffff" fill="#ffffff" />
+        {loading ? (
+          <View style={styles.loadingWrapper}>
+            <ActivityIndicator size="large" color={COLORS.brandPurple} />
+            <Text style={styles.loadingText}>Syncing profile...</Text>
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Avatar Section */}
+            <View style={styles.avatarSection}>
+              <View style={styles.avatarOuter}>
+                <View style={styles.avatarInner}>
+                  <UserCircle size={100} color="#1d3557" strokeWidth={1.2} />
+                </View>
               </View>
+              <Text style={styles.profileName}>
+                {`${userInfo?.firstname || "Eventra"} ${userInfo?.lastname || "User"}`}
+              </Text>
+              <Text style={styles.profileTagline}>Active Member</Text>
             </View>
-            <View style={styles.userInfo}>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userEmail}>alex.johnson@eventra.io</Text>
-              <View style={styles.roleBadge}>
-                <Shield size={12} color="#ffffff" fill="#ffffff" />
-                <Text style={styles.roleText}>Elite Fan Member</Text>
-              </View>
-            </View>
-          </View>
 
-          {/* Stats Summary */}
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>12</Text>
-              <Text style={styles.statLabel}>Events</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>4</Text>
-              <Text style={styles.statLabel}>Badges</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>2.4k</Text>
-              <Text style={styles.statLabel}>Points</Text>
-            </View>
-          </View>
+            {/* User Details Card */}
+            <View style={styles.detailsCard}>
+              <Text style={styles.cardTitle}>ACCOUNT DETAILS</Text>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>GENERAL SETTINGS</Text>
-            <View style={styles.menuGroup}>
-              <MenuItem icon={<User />} label="Personal Information" />
-              <MenuItem icon={<CreditCard />} label="Payment Methods" />
-              <MenuItem icon={<Bell />} label="Notifications" />
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>SAFETY & PRIVACY</Text>
-            <View style={styles.menuGroup}>
-              <MenuItem
-                icon={<Shield />}
-                label="Security & Privacy"
-                onPress={() => console.log("Privacy")}
+              <DetailItem
+                icon={User}
+                label="Full Name"
+                value={`${userInfo?.firstname || ""} ${userInfo?.lastname || ""}`}
+              />
+              <DetailItem
+                icon={AtSign}
+                label="Username"
+                value={`@${userInfo?.username || "user"}`}
+              />
+              <DetailItem
+                icon={Mail}
+                label="Email Address"
+                value={userInfo?.email}
+              />
+              <DetailItem
+                icon={Phone}
+                label="Phone Number"
+                value={userInfo?.phone || "+91 98XXX XXXXX"}
               />
             </View>
-          </View>
 
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={() => navigation.navigate("Login")}
-          >
-            <LogOut size={20} color={COLORS.error} />
-            <Text style={styles.logoutText}>SIGN OUT</Text>
-          </TouchableOpacity>
+            {/* Action Buttons */}
+            <View style={styles.actionSection}>
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => navigation.navigate("EditProfile")}
+                activeOpacity={0.8}
+              >
+                <Edit3 size={18} color="#FFFFFF" strokeWidth={2.5} />
+                <Text style={styles.editBtnText}>Edit Profile</Text>
+              </TouchableOpacity>
 
-          <Text style={styles.versionText}>Eventra v1.0.0 (Production)</Text>
-        </ScrollView>
+              <TouchableOpacity
+                style={styles.signOutBtn}
+                onPress={handleLogout}
+                activeOpacity={0.8}
+              >
+                <LogOut size={18} color="#e63946" strokeWidth={2.5} />
+                <Text style={styles.signOutBtnText}>Sign Out Account</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.versionText}>
+              Eventra v1.0.0 (Global Edition)
+            </Text>
+          </ScrollView>
+        )}
       </SafeAreaView>
     </View>
   );
@@ -146,215 +158,170 @@ const ProfileScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f1faee",
+    backgroundColor: "#f8fafc",
   },
   safeArea: {
     flex: 1,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
     paddingHorizontal: 24,
-    paddingVertical: 16,
-  },
-  headerSubtitle: {
-    fontSize: 10,
-    fontWeight: "800",
-    color: "#457b9d",
-    letterSpacing: 2,
-    marginBottom: 4,
+    paddingVertical: 20,
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: "800",
+    fontSize: 22,
+    fontWeight: "900",
     color: "#1d3557",
-  },
-  settingsBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: "#ffffff",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "rgba(29, 53, 87, 0.05)",
+    letterSpacing: -0.5,
   },
   content: {
     paddingHorizontal: 24,
     paddingBottom: 40,
-    paddingTop: 16,
   },
-  profileCard: {
-    flexDirection: "row",
+  avatarSection: {
     alignItems: "center",
-    backgroundColor: "#1d3557",
-    padding: 24,
-    borderRadius: 24,
-    marginBottom: 24,
+    marginTop: 10,
+    marginBottom: 32,
+  },
+  avatarOuter: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: "#1d3557",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 20,
-    elevation: 8,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: "rgba(29, 53, 87, 0.05)",
   },
-  avatarWrapper: {
-    position: "relative",
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 24,
-    marginRight: 20,
-    borderWidth: 3,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  editBadge: {
-    position: "absolute",
-    bottom: -4,
-    right: 12,
-    backgroundColor: COLORS.error,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  avatarInner: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    backgroundColor: "#f1faee",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#1d3557",
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userName: {
-    fontSize: 22,
-    fontWeight: "800",
-    color: "#ffffff",
-    marginBottom: 4,
-  },
-  userEmail: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.6)",
-    marginBottom: 12,
-    fontWeight: "500",
-  },
-  roleBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    alignSelf: "flex-start",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
-    gap: 6,
-  },
-  roleText: {
-    color: "#ffffff",
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-  },
-  statsRow: {
-    flexDirection: "row",
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    paddingVertical: 20,
-    marginBottom: 32,
-    shadowColor: "#1d3557",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: "center",
-  },
-  statDivider: {
-    width: 1,
-    height: "60%",
-    backgroundColor: "rgba(29, 53, 157, 0.05)",
-    alignSelf: "center",
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1d3557",
-    marginBottom: 2,
-  },
-  statLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "rgba(29, 53, 87, 0.5)",
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#457b9d",
-    marginBottom: 16,
-    marginLeft: 4,
-    letterSpacing: 1.5,
-  },
-  menuGroup: {
-    backgroundColor: "#ffffff",
-    borderRadius: 24,
     overflow: "hidden",
+  },
+  profileName: {
+    fontSize: 26,
+    fontWeight: "900",
+    color: "#1d3557",
+    marginTop: 20,
+    letterSpacing: -0.5,
+  },
+  profileTagline: {
+    fontSize: 14,
+    color: "#457b9d",
+    fontWeight: "600",
+    marginTop: 4,
+  },
+  detailsCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 32,
+    padding: 24,
     shadowColor: "#1d3557",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 3,
+    marginBottom: 32,
   },
-  menuItem: {
+  cardTitle: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: "#457b9d",
+    letterSpacing: 2,
+    marginBottom: 24,
+  },
+  detailItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: 18,
-    borderBottomWidth: 1,
-    borderColor: "rgba(29, 53, 87, 0.03)",
-  },
-  menuItemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
+    marginBottom: 24,
     gap: 16,
   },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+  detailIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "rgba(69, 123, 157, 0.08)",
     alignItems: "center",
     justifyContent: "center",
   },
-  menuLabel: {
-    fontSize: 15,
-    color: "#1d3557",
-    fontWeight: "700",
+  detailContent: {
+    flex: 1,
   },
-  logoutButton: {
+  detailLabel: {
+    fontSize: 11,
+    color: "#94a3b8",
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  detailValue: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1d3557",
+    marginTop: 2,
+  },
+  actionSection: {
+    gap: 16,
+  },
+  editBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 12,
-    marginTop: 8,
-    padding: 18,
+    backgroundColor: "#1d3557",
+    height: 60,
     borderRadius: 20,
+    gap: 12,
+    shadowColor: "#1d3557",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
+    elevation: 6,
+  },
+  editBtnText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  signOutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "rgba(230, 57, 70, 0.05)",
+    height: 60,
+    borderRadius: 20,
+    gap: 12,
     borderWidth: 1,
     borderColor: "rgba(230, 57, 70, 0.1)",
   },
-  logoutText: {
-    color: COLORS.error,
-    fontSize: 14,
+  signOutBtnText: {
+    color: "#e63946",
+    fontSize: 16,
     fontWeight: "800",
-    letterSpacing: 1,
   },
   versionText: {
     textAlign: "center",
-    marginTop: 32,
+    marginTop: 40,
     fontSize: 12,
-    color: "rgba(29, 53, 87, 0.3)",
+    color: "#94a3b8",
+    fontWeight: "600",
+  },
+  loadingWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#457b9d",
     fontWeight: "600",
   },
 });

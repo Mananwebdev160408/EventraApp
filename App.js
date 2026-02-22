@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import AppNavigator from "./src/navigation/AppNavigator";
 import CustomSplashScreen from "./src/screens/onboarding/SplashScreen";
 import { UserProvider } from "./src/context/UserContext";
+import { AuthProvider } from "./src/context/AuthContext";
 
 // Keep the native splash screen visible while we fetch resources or do setup
 SplashScreen.preventAutoHideAsync();
@@ -51,7 +52,9 @@ export default function App() {
 
   return (
     <UserProvider>
-      <AppNavigator />
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
     </UserProvider>
   );
 }

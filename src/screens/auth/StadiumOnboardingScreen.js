@@ -31,7 +31,9 @@ const StadiumOnboardingScreen = ({ navigation }) => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     stadiumName: "",
-    location: "",
+    city: "",
+    state: "",
+    country: "",
     capacity: "",
     adminEmail: "",
     password: "",
@@ -39,7 +41,13 @@ const StadiumOnboardingScreen = ({ navigation }) => {
 
   const handleNext = () => {
     if (step === 1) {
-      if (!formData.stadiumName || !formData.location || !formData.capacity) {
+      if (
+        !formData.stadiumName ||
+        !formData.city ||
+        !formData.state ||
+        !formData.country ||
+        !formData.capacity
+      ) {
         Alert.alert(
           "Required Fields",
           "Please fill in all stadium details to proceed.",
@@ -129,15 +137,45 @@ const StadiumOnboardingScreen = ({ navigation }) => {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>LOCATION / CITY</Text>
+                  <Text style={styles.label}>CITY</Text>
                   <View style={styles.inputWrapper}>
                     <MapPin size={20} color={COLORS.gray400} />
                     <TextInput
                       style={styles.input}
-                      placeholder="e.g. New York, USA"
-                      value={formData.location}
+                      placeholder="e.g. New York"
+                      value={formData.city}
                       onChangeText={(val) =>
-                        setFormData({ ...formData, location: val })
+                        setFormData({ ...formData, city: val })
+                      }
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>STATE</Text>
+                  <View style={styles.inputWrapper}>
+                    <MapPin size={20} color={COLORS.gray400} />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="e.g. NY"
+                      value={formData.state}
+                      onChangeText={(val) =>
+                        setFormData({ ...formData, state: val })
+                      }
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>COUNTRY</Text>
+                  <View style={styles.inputWrapper}>
+                    <MapPin size={20} color={COLORS.gray400} />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="e.g. USA"
+                      value={formData.country}
+                      onChangeText={(val) =>
+                        setFormData({ ...formData, country: val })
                       }
                     />
                   </View>

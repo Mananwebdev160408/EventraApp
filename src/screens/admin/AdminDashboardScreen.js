@@ -32,9 +32,17 @@ const { width } = Dimensions.get("window");
 const AdminDashboardScreen = ({ navigation }) => {
   const { stadiumLocation } = useUser();
 
-  const StatCard = ({ label, value, subvalue, icon, color, onPress }) => (
+  const StatCard = ({
+    label,
+    value,
+    subvalue,
+    icon,
+    color,
+    onPress,
+    fullWidth,
+  }) => (
     <TouchableOpacity
-      style={styles.statCard}
+      style={[styles.statCard, fullWidth && { width: "100%" }]}
       onPress={onPress}
       activeOpacity={0.9}
     >
@@ -218,14 +226,9 @@ const AdminDashboardScreen = ({ navigation }) => {
               color="#059669" // Emerald 600
               icon={<ShoppingBag size={20} color="#059669" />}
               onPress={() => navigation.navigate("Store")}
+              fullWidth
             />
-            <StatCard
-              label="Active Audience"
-              value="12.4k"
-              subvalue="+5.2%"
-              color="#457b9d" // Link Blue
-              icon={<Users size={20} color="#457b9d" />}
-            />
+
             <StatCard
               label="Events Slated"
               value="8"

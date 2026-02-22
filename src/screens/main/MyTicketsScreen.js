@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   FlatList,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -19,77 +20,68 @@ import {
   Ticket as TicketIcon,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
+import { bookingService } from "../../api/services";
 import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
 
-// Mock data for tickets
-const TICKETS = [
-  {
-    id: "t1",
-    eventTitle: "Champions League Final",
-    date: "15 Jun 2026",
-    time: "20:00",
-    venue: "Wembley Stadium",
-    seat: "Sec 104, Row G, Seat 12",
-    image:
-      "https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&q=80&w=800",
-    status: "upcoming",
-    type: "VIP",
-  },
-  {
-    id: "t2",
-    eventTitle: "Neon Lights Concert",
-    date: "22 Jul 2026",
-    time: "19:30",
-    venue: "O2 Arena",
-    seat: "Standing A",
-    image:
-      "https://images.unsplash.com/photo-1459749411177-0473ef716175?auto=format&fit=crop&q=80&w=800",
-    status: "upcoming",
-    type: "Standard",
-  },
-  {
-    id: "t3",
-    eventTitle: "Basketball Finals",
-    date: "10 May 2026",
-    time: "18:00",
-    venue: "Madison Square Garden",
-    seat: "Court Side 2",
-    image:
-      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&q=80&w=800",
-    status: "past",
-    type: "VIP",
-  },
-];
-
 const MyTicketsScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState("upcoming"); // 'upcoming' or 'past'
+  const [bookings, setBookings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredTickets = TICKETS.filter((t) =>
-    activeTab === "upcoming" ? t.status === "upcoming" : t.status === "past",
-  );
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      const data = await bookingService.getUserBookings();
+      setBookings(Array.isArray(data) ? data : data?.bookings || []);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredTickets = bookings.filter((t) => {
+    const isPast = new Date(t.eventDate || t.event?.date) < new Date();
+    return activeTab === "upcoming" ? !isPast : isPast;
+  });
 
   const TicketCard = ({ item }) => (
     <TouchableOpacity
       activeOpacity={0.9}
-      onPress={() => navigation.navigate("Ticket")}
+      onPress={() => navigation.navigate("Ticket", { bookingId: item.id })}
       style={styles.ticketCard}
     >
       <View style={styles.imageContainer}>
-        <Image source={{ uri: item.image }} style={styles.eventImage} />
+        <Image
+          source={{
+            uri:
+              item.event?.image ||
+              "https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&q=80&w=800",
+          }}
+          style={styles.eventImage}
+        />
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.8)"]}
           style={styles.imageOverlay}
         />
         <View style={styles.ticketTypeBadge}>
-          <Text style={styles.ticketType}>{item.type}</Text>
+          <Text style={styles.ticketType}>{item.ticketType || "STANDARD"}</Text>
         </View>
         <View style={styles.cardHeaderContent}>
-          <Text style={styles.eventTitle}>{item.eventTitle}</Text>
+          <Text style={styles.eventTitle}>
+            {item.event?.title || item.eventTitle}
+          </Text>
           <View style={styles.venueRow}>
             <MapPin size={14} color={COLORS.gray300} />
-            <Text style={styles.venueText}>{item.venue}</Text>
+            <Text style={styles.venueText}>
+              {item.event?.venue || item.venue}
+            </Text>
           </View>
         </View>
       </View>
@@ -104,7 +96,9 @@ const MyTicketsScreen = ({ navigation }) => {
             />
             <View>
               <Text style={styles.infoLabel}>Date</Text>
-              <Text style={styles.infoValue}>{item.date}</Text>
+              <Text style={styles.infoValue}>
+                {item.event?.date || item.date}
+              </Text>
             </View>
           </View>
           <View style={styles.separator} />
@@ -116,20 +110,26 @@ const MyTicketsScreen = ({ navigation }) => {
             />
             <View>
               <Text style={styles.infoLabel}>Time</Text>
-              <Text style={styles.infoValue}>{item.time}</Text>
+              <Text style={styles.infoValue}>
+                {item.event?.time || item.time || "20:00"}
+              </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.seatContainer}>
           <Text style={styles.seatLabel}>Seat Location</Text>
-          <Text style={styles.seatValue}>{item.seat}</Text>
+          <Text style={styles.seatValue}>
+            {item.seatNumber || item.seat || "Assigned at entry"}
+          </Text>
         </View>
 
         <View style={styles.actionsFooter}>
           <TouchableOpacity
             style={styles.viewTicketBtn}
-            onPress={() => navigation.navigate("Ticket")}
+            onPress={() =>
+              navigation.navigate("Ticket", { bookingId: item.id })
+            }
           >
             <Text style={styles.viewTicketText}>View Ticket</Text>
             <ChevronRight size={16} color={COLORS.white} />
@@ -152,7 +152,7 @@ const MyTicketsScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>My Tickets</Text>
-          <TouchableOpacity style={styles.calendarBtn}>
+          <TouchableOpacity style={styles.calendarBtn} onPress={fetchBookings}>
             <Calendar size={24} color={COLORS.text} />
           </TouchableOpacity>
         </View>
@@ -186,29 +186,38 @@ const MyTicketsScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={filteredTickets}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <TicketCard item={item} />}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <TicketIcon size={48} color={COLORS.gray300} />
-              <Text style={styles.emptyTitle}>No tickets found</Text>
-              <Text style={styles.emptyText}>
-                You haven't booked any events yet. Explore upcoming events to
-                get started!
-              </Text>
-              <TouchableOpacity
-                style={styles.exploreBtn}
-                onPress={() => navigation.navigate("Discover")}
-              >
-                <Text style={styles.exploreBtnText}>Explore Events</Text>
-              </TouchableOpacity>
-            </View>
-          }
-        />
+        {isLoading ? (
+          <View
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <ActivityIndicator size="large" color={COLORS.brandPurple} />
+          </View>
+        ) : (
+          <FlatList
+            data={filteredTickets}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => <TicketCard item={item} />}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <TicketIcon size={48} color={COLORS.gray300} />
+                <Text style={styles.emptyTitle}>No tickets found</Text>
+                <Text style={styles.emptyText}>
+                  {activeTab === "upcoming"
+                    ? "You haven't booked any upcoming events yet. Explore events to get started!"
+                    : "You haven't attended any past events yet."}
+                </Text>
+                <TouchableOpacity
+                  style={styles.exploreBtn}
+                  onPress={() => navigation.navigate("Discover")}
+                >
+                  <Text style={styles.exploreBtnText}>Explore Events</Text>
+                </TouchableOpacity>
+              </View>
+            }
+          />
+        )}
       </SafeAreaView>
     </View>
   );

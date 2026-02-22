@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,34 +6,51 @@ import {
   TouchableOpacity,
   ScrollView,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { ChevronLeft, Info, ArrowRight } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
+import { seatService } from "../../api/services";
 
 const SeatBlockScreen = ({ navigation, route }) => {
-  const { sector, mode, showUser } = route.params || {};
+  const { sector, mode, showUser, eventId } = route.params || {};
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [seats, setSeats] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const isViewMode = mode === "view";
 
-  // Use the provided sector or a default mock for view mode
-  const currentSector = sector || {
-    name: "Section A",
-    price: 150,
-    seats: Array.from({ length: 40 }, (_, i) => ({
-      id: `A-${i}`,
-      row: Math.floor(i / 8),
-      col: i % 8,
-      status:
-        i === 12 && showUser
-          ? "user"
-          : Math.random() > 0.8
-            ? "booked"
-            : "available",
-    })),
+  useEffect(() => {
+    if (eventId) {
+      fetchSeats();
+    } else if (sector?.seats) {
+      setSeats(sector.seats);
+      setIsLoading(false);
+    }
+  }, [eventId]);
+
+  const fetchSeats = async () => {
+    setIsLoading(true);
+    try {
+      const data = await seatService.getEventSeats(eventId);
+      setSeats(Array.isArray(data) ? data : data?.seats || []);
+    } catch (error) {
+      console.error("Error fetching seats:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // Group seats by row
+  const groupedSeats = seats.reduce((acc, seat) => {
+    const row = seat.row || "A";
+    if (!acc[row]) acc[row] = [];
+    acc[row].push(seat);
+    return acc;
+  }, {});
+
+  const sortedRows = Object.keys(groupedSeats).sort();
   const toggleSeat = (id) => {
     if (isViewMode) return;
     if (selectedSeats.includes(id)) {
@@ -43,12 +60,44 @@ const SeatBlockScreen = ({ navigation, route }) => {
     }
   };
 
-  // Group seats by row for grid rendering
-  const rows = {};
-  currentSector.seats.forEach((seat) => {
-    if (!rows[seat.row]) rows[seat.row] = [];
-    rows[seat.row].push(seat);
-  });
+  const getSeatColor = (seat) => {
+    if (selectedSeats.includes(seat.id)) return COLORS.brandPurple;
+    if (seat.status === "user" && showUser) return "#e63946";
+    if (
+      seat.availability === false ||
+      seat.bookingId !== null ||
+      seat.status === "booked"
+    )
+      return COLORS.gray300;
+
+    // Categorized colors
+    switch (seat.seatCategory) {
+      case "VIP":
+        return "#fbbf24"; // Gold
+      case "Premium":
+        return "#3b82f6"; // Blue
+      case "Regular":
+        return "#10b981"; // Green
+      default:
+        return "#10b981";
+    }
+  };
+
+  const currentSectorName = sector?.name || "Section Layout";
+  const currentSectorPrice = sector?.price || 50;
+
+  if (isLoading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color={COLORS.brandPurple} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -63,7 +112,7 @@ const SeatBlockScreen = ({ navigation, route }) => {
             <ChevronLeft size={20} color={COLORS.text} />
           </TouchableOpacity>
           <View style={styles.headerTitle}>
-            <Text style={styles.title}>{currentSector.name}</Text>
+            <Text style={styles.title}>{currentSectorName}</Text>
             <Text style={styles.subtitle}>
               {isViewMode
                 ? showUser
@@ -89,33 +138,30 @@ const SeatBlockScreen = ({ navigation, route }) => {
                 <Text style={styles.screenText}>PITCH SIDE</Text>
               </View>
 
-              {Object.keys(rows).map((rowIdx) => (
-                <View key={rowIdx} style={styles.row}>
-                  <Text style={styles.rowLabel}>
-                    {String.fromCharCode(65 + parseInt(rowIdx))}
-                  </Text>
-                  {rows[rowIdx].map((seat) => (
+              {sortedRows.map((rowLabel) => (
+                <View key={rowLabel} style={styles.row}>
+                  <Text style={styles.rowLabel}>{rowLabel}</Text>
+                  {groupedSeats[rowLabel].map((seat) => (
                     <TouchableOpacity
                       key={seat.id}
-                      disabled={seat.status === "booked" || isViewMode}
+                      disabled={
+                        seat.availability === false ||
+                        seat.bookingId !== null ||
+                        seat.status === "booked" ||
+                        isViewMode
+                      }
                       onPress={() => toggleSeat(seat.id)}
                       style={[
                         styles.seat,
                         {
-                          backgroundColor: selectedSeats.includes(seat.id)
-                            ? COLORS.brandPurple
-                            : seat.status === "user" && showUser
-                              ? "#e63946" // Highlight user seat
-                              : seat.status === "booked"
-                                ? COLORS.gray300
-                                : "#10b981",
+                          backgroundColor: getSeatColor(seat),
                         },
                       ]}
-                    />
+                    >
+                      {/* Optional: Add seat number inside or a small dot */}
+                    </TouchableOpacity>
                   ))}
-                  <Text style={styles.rowLabel}>
-                    {String.fromCharCode(65 + parseInt(rowIdx))}
-                  </Text>
+                  <Text style={styles.rowLabel}>{rowLabel}</Text>
                 </View>
               ))}
             </View>
@@ -131,7 +177,7 @@ const SeatBlockScreen = ({ navigation, route }) => {
                 <View style={styles.priceContainer}>
                   <Text style={styles.seatCount}>{selectedSeats.length}</Text>
                   <Text style={styles.totalPrice}>
-                    / ${selectedSeats.length * currentSector.price}.00
+                    / ${selectedSeats.length * currentSectorPrice}.00
                   </Text>
                 </View>
               </View>
@@ -143,7 +189,10 @@ const SeatBlockScreen = ({ navigation, route }) => {
                 disabled={selectedSeats.length === 0}
                 onPress={() =>
                   navigation.navigate("SeatInformation", {
-                    seats: selectedSeats,
+                    seats: selectedSeats.map((id) =>
+                      seats.find((s) => s.id === id),
+                    ),
+                    eventId: eventId,
                   })
                 }
               >

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -21,19 +22,37 @@ import {
   Navigation2,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
-import { ALL_EVENTS } from "../../constants/mocks";
+import { eventService } from "../../api/services";
 import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
 
 const StadiumDetailsScreen = ({ route, navigation }) => {
   const { stadium } = route.params;
+  const [stadiumEvents, setStadiumEvents] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Filter events for this stadium
-  const stadiumEvents = ALL_EVENTS.filter(
-    (event) =>
-      event.venue === stadium.name || event.venue === "Olympic Stadium", // Fallback for better empty state
-  );
+  useEffect(() => {
+    fetchStadiumEvents();
+  }, [stadium.id]);
+
+  const fetchStadiumEvents = async () => {
+    setIsLoading(true);
+    try {
+      // In a real app, you'd have an endpoint getEventsByStadiumId
+      // For now, we fetch all events and filter them
+      const data = await eventService.getEvents();
+      const events = Array.isArray(data) ? data : data?.events || [];
+      const filtered = events.filter(
+        (e) => e.stadiumId === stadium.id || e.venue === stadium.name,
+      );
+      setStadiumEvents(filtered);
+    } catch (error) {
+      console.error("Error fetching stadium events:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -66,10 +85,6 @@ const StadiumDetailsScreen = ({ route, navigation }) => {
           <View style={styles.mainInfo}>
             <View style={styles.titleRow}>
               <Text style={styles.stadiumName}>{stadium.name}</Text>
-              <View style={styles.ratingBadge}>
-                <Star size={14} color="#FFFFFF" fill="#FFFFFF" />
-                <Text style={styles.ratingText}>{stadium.rating}</Text>
-              </View>
             </View>
             <View style={styles.locRow}>
               <MapPin size={16} color={COLORS.gray500} />
@@ -131,27 +146,41 @@ const StadiumDetailsScreen = ({ route, navigation }) => {
               <Calendar size={18} color={COLORS.gray500} />
             </View>
 
-            {stadiumEvents.map((event) => (
-              <TouchableOpacity
-                key={event.id}
-                style={styles.eventItem}
-                onPress={() =>
-                  navigation.navigate("EventDetails", { eventId: event.id })
-                }
-              >
-                <Image
-                  source={{ uri: event.image }}
-                  style={styles.eventThumb}
-                />
-                <View style={styles.eventInfo}>
-                  <Text style={styles.eventName}>{event.title}</Text>
-                  <Text style={styles.eventTime}>
-                    {event.time || event.date}
-                  </Text>
-                </View>
-                <ChevronRight size={20} color={COLORS.gray400} />
-              </TouchableOpacity>
-            ))}
+            {isLoading ? (
+              <ActivityIndicator
+                size="large"
+                color={COLORS.brandPurple}
+                style={{ marginVertical: 20 }}
+              />
+            ) : stadiumEvents.length > 0 ? (
+              stadiumEvents.map((event) => (
+                <TouchableOpacity
+                  key={event.id}
+                  style={styles.eventItem}
+                  onPress={() =>
+                    navigation.navigate("EventDetails", { eventId: event.id })
+                  }
+                >
+                  <Image
+                    source={{ uri: event.image }}
+                    style={styles.eventThumb}
+                  />
+                  <View style={styles.eventInfo}>
+                    <Text style={styles.eventName}>{event.title}</Text>
+                    <Text style={styles.eventTime}>
+                      {event.time || event.date}
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={COLORS.gray400} />
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  No events scheduled at this stadium.
+                </Text>
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -365,6 +394,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.gray500,
     fontWeight: "600",
+  },
+  emptyContainer: {
+    padding: 24,
+    backgroundColor: "rgba(29, 53, 87, 0.03)",
+    borderRadius: 16,
+    borderStyle: "dashed",
+    borderWidth: 1,
+    borderColor: "rgba(29, 53, 87, 0.1)",
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#457b9d",
+    fontWeight: "500",
   },
 });
 

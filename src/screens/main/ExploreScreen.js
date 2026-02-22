@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TextInput,
   FlatList,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -21,7 +22,7 @@ import {
   Users,
 } from "lucide-react-native";
 import { COLORS, SIZES } from "../../constants/theme";
-import { STADIUMS, ALL_EVENTS } from "../../constants/mocks";
+import { eventService, stadiumService } from "../../api/services";
 
 const { width } = Dimensions.get("window");
 
@@ -29,18 +30,57 @@ const ExploreScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState("Stadiums");
   const [eventFilter, setEventFilter] = useState("upcoming"); // 'upcoming' or 'ongoing'
   const [activeCategory, setActiveCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allEvents, setAllEvents] = useState([]);
+  const [allStadiums, setAllStadiums] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const categories = ["All", "Sports", "Music", "Festival"];
 
-  const filteredEvents = ALL_EVENTS.filter((event) => {
+  useEffect(() => {
+    fetchData();
+  }, [activeCategory]);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const eventParams =
+        activeCategory !== "All" ? { category: activeCategory } : {};
+      const [eventsData, stadiumsData] = await Promise.all([
+        eventService.getEvents(eventParams),
+        stadiumService.getAllStadiums(),
+      ]);
+      setAllEvents(
+        Array.isArray(eventsData) ? eventsData : eventsData?.events || [],
+      );
+      setAllStadiums(
+        Array.isArray(stadiumsData)
+          ? stadiumsData
+          : stadiumsData?.stadiums || [],
+      );
+    } catch (error) {
+      console.error("Error fetching explore data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredEvents = allEvents.filter((event) => {
     const statusMatch =
       eventFilter === "ongoing"
         ? event.status === "ongoing"
         : event.status !== "ongoing";
-    const categoryMatch =
-      activeCategory === "All" || event.category === activeCategory;
-    return statusMatch && categoryMatch;
+    const searchMatch = event.title
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    return statusMatch && searchMatch;
   });
+
+  const filteredStadiums = allStadiums.filter(
+    (stadium) =>
+      stadium.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      stadium.location.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const renderStadiumItem = ({ item }) => (
     <TouchableOpacity
@@ -52,10 +92,6 @@ const ExploreScreen = ({ navigation }) => {
       <View style={styles.stadiumInfo}>
         <View style={styles.stadiumHeader}>
           <Text style={styles.stadiumName}>{item.name}</Text>
-          <View style={styles.ratingRow}>
-            <Star size={14} color="#FFD700" fill="#FFD700" />
-            <Text style={styles.ratingText}>{item.rating}</Text>
-          </View>
         </View>
         <View style={styles.stadiumMeta}>
           <View style={styles.metaItem}>
@@ -104,6 +140,8 @@ const ExploreScreen = ({ navigation }) => {
               placeholder="Search stadiums or events..."
               style={styles.searchInput}
               placeholderTextColor={COLORS.gray500}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
             />
           </View>
         </View>
@@ -192,22 +230,47 @@ const ExploreScreen = ({ navigation }) => {
           </View>
         )}
 
-        <ScrollView
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {activeTab === "Stadiums"
-            ? STADIUMS.map((stadium) => (
-                <View key={stadium.id} style={styles.listItem}>
-                  {renderStadiumItem({ item: stadium })}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.brandPurple} />
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {activeTab === "Stadiums" ? (
+              filteredStadiums.length > 0 ? (
+                filteredStadiums.map((stadium) => (
+                  <View
+                    key={stadium.id || stadium.name}
+                    style={styles.listItem}
+                  >
+                    {renderStadiumItem({ item: stadium })}
+                  </View>
+                ))
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>
+                    No stadiums found matching your search.
+                  </Text>
                 </View>
-              ))
-            : filteredEvents.map((event) => (
+              )
+            ) : filteredEvents.length > 0 ? (
+              filteredEvents.map((event) => (
                 <View key={event.id} style={styles.listItem}>
                   {renderEventItem({ item: event })}
                 </View>
-              ))}
-        </ScrollView>
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>
+                  No events found matching your filter.
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        )}
       </SafeAreaView>
     </View>
   );
@@ -446,6 +509,22 @@ const styles = StyleSheet.create({
   },
   activeCategoryChipText: {
     color: "#FFFFFF",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 50,
+  },
+  emptyContainer: {
+    padding: 30,
+    alignItems: "center",
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#6C757D",
+    textAlign: "center",
+    fontWeight: "500",
   },
 });
 

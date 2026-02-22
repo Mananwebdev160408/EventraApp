@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   TouchableOpacity,
   Dimensions,
   TextInput,
+  ActivityIndicator,
+  RefreshControl,
+  ImageBackground,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -24,19 +27,73 @@ import {
   MessageSquare,
   TriangleAlert,
   Star,
-  Heart,
+  History,
+  Lock,
+  Shield,
+  UserCircle,
 } from "lucide-react-native";
 import { COLORS, SIZES } from "../../constants/theme";
-import { MY_REGISTRATIONS } from "../../constants/mocks";
 import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "../../context/AuthContext";
+import { bookingService } from "../../api/services";
 
 const { width } = Dimensions.get("window");
 
 const EventDashboardScreen = ({ navigation }) => {
-  const [stadiumRating, setStadiumRating] = React.useState(0);
-  const [eventRating, setEventRating] = React.useState(0);
-  const [eventComment, setEventComment] = React.useState("");
-  const currentEvent = MY_REGISTRATIONS[0]; // Mocking the "active" event
+  const { userInfo } = useAuth();
+  const [eventRating, setEventRating] = useState(0);
+  const [eventComment, setEventComment] = useState("");
+  const [activeEvent, setActiveEvent] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    checkLiveEvent();
+  }, []);
+
+  const checkLiveEvent = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      // In a real scenario, we check if there's a booking for today
+      const response = await bookingService.getUserBookings(userInfo?.username);
+      const bookings = Array.isArray(response)
+        ? response
+        : response?.bookings || [];
+
+      // Get today's date in YYYY-MM-DD
+      const today = new Date().toISOString().split("T")[0];
+
+      // Find a booking that matches today's date
+      const liveBooking = bookings.find((b) => {
+        const eventDate = b.event?.date || b.date;
+        return eventDate && eventDate.includes(today);
+      });
+
+      if (liveBooking) {
+        setActiveEvent({
+          id: liveBooking.event?.id || liveBooking.eventId,
+          title: liveBooking.event?.title || "Active Event",
+          gate: liveBooking.event?.gate || "A2",
+          section: liveBooking.event?.section || "A",
+          row: liveBooking.event?.row || "05",
+          seat: liveBooking.seatNumber || liveBooking.seat,
+        });
+      } else {
+        setActiveEvent(null);
+      }
+    } catch (error) {
+      console.error("Error checking live event:", error);
+      setActiveEvent(null);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    checkLiveEvent(false);
+  };
 
   const ActionCard = ({ title, subtitle, icon, color, onPress }) => (
     <TouchableOpacity
@@ -55,27 +112,147 @@ const EventDashboardScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={COLORS.brandPurple} />
+        <Text style={styles.loadingText}>Verifying entry pass...</Text>
+      </View>
+    );
+  }
+
+  if (!activeEvent) {
+    return (
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.liveLabel}>DASHBOARD STATUS</Text>
+              <Text style={styles.eventTitle}>No Live Event</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.headerBtn}
+              onPress={() => navigation.navigate("Profile")}
+            >
+              <UserCircle size={22} color="#1d3557" />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            contentContainerStyle={styles.inactiveContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.lockedCard}>
+              <View style={styles.lockIllustration}>
+                <LinearGradient
+                  colors={["#f1faee", "#FFFFFF"]}
+                  style={styles.illustrationCircle}
+                >
+                  <Lock size={42} color="#1d3557" strokeWidth={1.5} />
+                </LinearGradient>
+                <View style={styles.lockedBadge}>
+                  <Text style={styles.lockedBadgeText}>OFFLINE</Text>
+                </View>
+              </View>
+
+              <Text style={styles.lockedTitle}>Dashboard Inactive</Text>
+              <Text style={styles.lockedSubtitle}>
+                Live features like SOS, In-Seat Ordering, and AI Assistance
+                activate once you're at the venue for an event.
+              </Text>
+
+              <View style={styles.featureBox}>
+                <View style={styles.featureRow}>
+                  <View style={styles.featureIconBox}>
+                    <Utensils size={18} color="#1d3557" />
+                  </View>
+                  <View>
+                    <Text style={styles.featureLabel}>Food & Beverages</Text>
+                    <Text style={styles.featureDesc}>
+                      Deliver direct to your seat
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.featureRow}>
+                  <View style={styles.featureIconBox}>
+                    <TriangleAlert size={18} color="#e63946" />
+                  </View>
+                  <View>
+                    <Text style={styles.featureLabel}>Emergency SOS</Text>
+                    <Text style={styles.featureDesc}>
+                      Instant security & medical aid
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.mainCheckBtn}
+                onPress={onRefresh}
+                disabled={isRefreshing}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={["#1d3557", "#2a4a7a"]}
+                  style={styles.mainCheckGradient}
+                >
+                  {isRefreshing ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <>
+                      <History size={20} color="#FFFFFF" />
+                      <Text style={styles.mainCheckText}>
+                        Check Today's Booking
+                      </Text>
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.browseBtn}
+                onPress={() => navigation.navigate("Discover")}
+              >
+                <Text style={styles.browseBtnText}>
+                  Explore upcoming events
+                </Text>
+                <ChevronRight size={16} color="#457b9d" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.infoNote}>
+              <Info size={14} color="#457b9d" />
+              <Text style={styles.infoNoteText}>
+                Your dashboard will auto-unlock 2 hours before the event start
+                time.
+              </Text>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
         >
-          {/* Active Event Header */}
           <View style={styles.header}>
             <View>
               <Text style={styles.liveLabel}>LIVE EVENT DASHBOARD</Text>
-              <Text style={styles.eventTitle}>{currentEvent.title}</Text>
+              <Text style={styles.eventTitle}>{activeEvent.title}</Text>
             </View>
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.headerBtn}>
-                <Bell size={22} color="#1d3557" />
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.headerBtn}>
+              <Bell size={22} color="#1d3557" />
+            </TouchableOpacity>
           </View>
 
-          {/* Emergency Quick Access */}
           <View style={styles.emergencyContainer}>
             <TouchableOpacity
               style={styles.sosBanner}
@@ -101,7 +278,6 @@ const EventDashboardScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Seat Info Card */}
           <LinearGradient
             colors={["#1d3557", "#457b9d"]}
             start={{ x: 0, y: 0 }}
@@ -122,26 +298,24 @@ const EventDashboardScreen = ({ navigation }) => {
             <View style={styles.detailedSeatInfo}>
               <View style={styles.seatDetailItem}>
                 <Text style={styles.detailLabel}>SECTION</Text>
-                <Text style={styles.detailValue}>A</Text>
+                <Text style={styles.detailValue}>{activeEvent.section}</Text>
               </View>
               <View style={styles.detailDivider} />
               <View style={styles.seatDetailItem}>
                 <Text style={styles.detailLabel}>ROW</Text>
-                <Text style={styles.detailValue}>05</Text>
+                <Text style={styles.detailValue}>{activeEvent.row}</Text>
               </View>
               <View style={styles.detailDivider} />
               <View style={styles.seatDetailItem}>
                 <Text style={styles.detailLabel}>SEAT</Text>
-                <Text style={styles.detailValue}>12</Text>
+                <Text style={styles.detailValue}>{activeEvent.seat}</Text>
               </View>
             </View>
 
             <View style={styles.seatFooter}>
               <View style={styles.gateInfo}>
                 <Text style={styles.gateLabel}>GATE</Text>
-                <Text style={styles.gateValue}>
-                  {currentEvent.gate || "A2"}
-                </Text>
+                <Text style={styles.gateValue}>{activeEvent.gate}</Text>
               </View>
               <TouchableOpacity
                 style={styles.viewMapBtn}
@@ -158,7 +332,6 @@ const EventDashboardScreen = ({ navigation }) => {
             </View>
           </LinearGradient>
 
-          {/* Commerce and Info Actions */}
           <View style={styles.actionsContainer}>
             <Text style={styles.sectionTitle}>Event Services</Text>
 
@@ -187,6 +360,14 @@ const EventDashboardScreen = ({ navigation }) => {
             />
 
             <ActionCard
+              title="Order History"
+              subtitle="Track and manage deliveries"
+              icon={<History size={24} color="#FFFFFF" />}
+              color="#fbbf24"
+              onPress={() => navigation.navigate("OrderHistory")}
+            />
+
+            <ActionCard
               title="Stadium Map"
               subtitle="Find toilets, exits, and help"
               icon={<MapIcon size={24} color="#FFFFFF" />}
@@ -206,13 +387,12 @@ const EventDashboardScreen = ({ navigation }) => {
               color="#457b9d"
               onPress={() =>
                 navigation.navigate("EventDetails", {
-                  eventId: currentEvent.eventId,
+                  eventId: activeEvent.id,
                 })
               }
             />
           </View>
 
-          {/* AI Assistant Section */}
           <View style={styles.aiContainer}>
             <View style={styles.aiHeader}>
               <View style={styles.aiTitleRow}>
@@ -234,8 +414,9 @@ const EventDashboardScreen = ({ navigation }) => {
                 </View>
                 <View style={styles.botBubble}>
                   <Text style={styles.botText}>
-                    Hi Alex! I'm your event assistant. Ask me anything about
-                    concessions, toilets, or the event schedule!
+                    Hi {userInfo?.firstname || "Alex"}! I'm your event
+                    assistant. Ask me anything about concessions, toilets, or
+                    the event schedule!
                   </Text>
                 </View>
               </View>
@@ -266,7 +447,6 @@ const EventDashboardScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Stats / Live Updates */}
           <View style={styles.updatesContainer}>
             <Text style={styles.sectionTitle}>Live Update</Text>
             <View style={styles.updateCard}>
@@ -281,44 +461,10 @@ const EventDashboardScreen = ({ navigation }) => {
             </View>
           </View>
 
-          {/* Feedback Section */}
           <View style={styles.feedbackContainer}>
             <Text style={styles.sectionTitle}>Help us improve</Text>
 
             <View style={styles.feedbackCard}>
-              {/* Stadium Feedback */}
-              <View style={styles.feedbackTypeSection}>
-                <View style={styles.feedbackHeaderSmall}>
-                  <MapIcon size={18} color="#1d3557" />
-                  <Text style={styles.feedbackTypeTitle}>
-                    Stadium Experience
-                  </Text>
-                </View>
-                <Text style={styles.feedbackTypeSubtitle}>
-                  Facilities, crowd management, and safety.
-                </Text>
-                <View style={styles.ratingRow}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <TouchableOpacity
-                      key={star}
-                      onPress={() => setStadiumRating(star)}
-                      activeOpacity={0.7}
-                    >
-                      <Star
-                        size={28}
-                        color={
-                          star <= stadiumRating ? "#facc15" : "rgba(0,0,0,0.1)"
-                        }
-                        fill={star <= stadiumRating ? "#facc15" : "transparent"}
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              <View style={styles.feedbackDivider} />
-
-              {/* Event Feedback */}
               <View style={styles.feedbackTypeSection}>
                 <View style={styles.feedbackHeaderSmall}>
                   <Sparkles size={18} color="#1d3557" />
@@ -359,10 +505,9 @@ const EventDashboardScreen = ({ navigation }) => {
               <TouchableOpacity
                 style={[
                   styles.submitFeedbackBtn,
-                  (stadiumRating === 0 || eventRating === 0) &&
-                    styles.submitFeedbackBtnDisabled,
+                  eventRating === 0 && styles.submitFeedbackBtnDisabled,
                 ]}
-                disabled={stadiumRating === 0 || eventRating === 0}
+                disabled={eventRating === 0}
               >
                 <Text style={styles.submitFeedbackText}>Submit Review</Text>
               </TouchableOpacity>
@@ -378,6 +523,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f1faee",
+  },
+  centerContent: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#457b9d",
+    fontWeight: "600",
   },
   safeArea: {
     flex: 1,
@@ -403,10 +558,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "800",
     color: "#1d3557",
-  },
-  headerActions: {
-    flexDirection: "row",
-    gap: 12,
   },
   headerBtn: {
     width: 48,
@@ -827,19 +978,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(0,0,0,0.03)",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.05,
-    shadowRadius: 15,
-    elevation: 4,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  feedbackTypeSection: {
+    marginBottom: 24,
   },
   feedbackHeaderSmall: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 6,
-  },
-  feedbackTypeSection: {
-    width: "100%",
+    gap: 10,
+    marginBottom: 4,
   },
   feedbackTypeTitle: {
     fontSize: 16,
@@ -849,55 +1000,195 @@ const styles = StyleSheet.create({
   feedbackTypeSubtitle: {
     fontSize: 13,
     color: COLORS.gray500,
-    fontWeight: "500",
-    marginBottom: 12,
-  },
-  feedbackDivider: {
-    height: 1,
-    backgroundColor: "rgba(0,0,0,0.05)",
-    marginVertical: 24,
-    width: "100%",
+    marginBottom: 16,
   },
   ratingRow: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 4,
+    gap: 12,
+    marginBottom: 20,
+    justifyContent: "center",
   },
   feedbackInput: {
-    backgroundColor: "rgba(241, 250, 238, 0.5)",
-    borderRadius: 16,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 18,
     padding: 16,
     color: "#1d3557",
     fontSize: 14,
-    fontWeight: "500",
-    marginTop: 16,
-    minHeight: 80,
+    height: 100,
     textAlignVertical: "top",
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.03)",
+    borderColor: "rgba(0,0,0,0.02)",
   },
   submitFeedbackBtn: {
     backgroundColor: "#1d3557",
     paddingVertical: 16,
-    width: "100%",
-    alignItems: "center",
     borderRadius: 18,
-    marginTop: 24,
+    alignItems: "center",
     shadowColor: "#1d3557",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
-    shadowRadius: 12,
+    shadowRadius: 10,
+    elevation: 4,
   },
   submitFeedbackBtnDisabled: {
-    backgroundColor: COLORS.gray300,
+    backgroundColor: "#e9ecef",
     shadowOpacity: 0,
   },
   submitFeedbackText: {
     color: "#FFFFFF",
     fontSize: 16,
+    fontWeight: "800",
+  },
+  bgImage: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+  inactiveContent: {
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    alignItems: "center",
+  },
+  lockedCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 32,
+    padding: 30,
+    width: "100%",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(29, 53, 87, 0.05)",
+    shadowColor: "#1d3557",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.05,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  lockIllustration: {
+    width: 120,
+    height: 120,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  illustrationCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(29, 53, 87, 0.05)",
+  },
+  lockedBadge: {
+    position: "absolute",
+    bottom: 5,
+    backgroundColor: "#457b9d",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  lockedBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 10,
     fontWeight: "900",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+  },
+  lockedTitle: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#1d3557",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  lockedSubtitle: {
+    fontSize: 14,
+    color: "#457b9d",
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 30,
+    fontWeight: "500",
+  },
+  featureBox: {
+    width: "100%",
+    backgroundColor: "#f8fafc",
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 30,
+  },
+  featureRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    marginBottom: 16,
+  },
+  featureIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#1d3557",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  featureLabel: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1d3557",
+  },
+  featureDesc: {
+    fontSize: 12,
+    color: "#457b9d",
+    fontWeight: "500",
+  },
+  mainCheckBtn: {
+    width: "100%",
+    height: 60,
+    borderRadius: 18,
+    overflow: "hidden",
+    marginBottom: 15,
+  },
+  mainCheckGradient: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  mainCheckText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  browseBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  browseBtnText: {
+    color: "#457b9d",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  infoNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 30,
+    backgroundColor: "rgba(69, 123, 157, 0.05)",
+    padding: 16,
+    borderRadius: 16,
+    paddingHorizontal: 20,
+  },
+  infoNoteText: {
+    flex: 1,
+    fontSize: 12,
+    color: "#457b9d",
+    fontWeight: "600",
+    lineHeight: 18,
   },
 });
 

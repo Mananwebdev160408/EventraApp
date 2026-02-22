@@ -1,26 +1,99 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft, Share, Heart, Calendar, Clock, MapPin, ChevronRight, Briefcase, Utensils, ArrowRight } from 'lucide-react-native';
-import { COLORS, FONTS } from '../../constants/theme';
-import { EVENT_DETAILS } from '../../constants/mocks';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import {
+  ChevronLeft,
+  Share,
+  Heart,
+  Calendar,
+  Clock,
+  MapPin,
+  ChevronRight,
+  Briefcase,
+  Utensils,
+  ArrowRight,
+} from "lucide-react-native";
+import { COLORS, FONTS } from "../../constants/theme";
+import { eventService } from "../../api/services";
+import { ActivityIndicator } from "react-native";
 
-const EventDetailsScreen = ({ navigation }) => {
-  const event = EVENT_DETAILS; // Using mock data for single event
+const EventDetailsScreen = ({ route, navigation }) => {
+  const { eventId } = route.params;
+  const [event, setEvent] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    fetchEventDetails();
+  }, [eventId]);
+
+  const fetchEventDetails = async () => {
+    try {
+      const data = await eventService.getEventDetails(eventId);
+      setEvent(data);
+    } catch (error) {
+      console.error("Error fetching event details:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <ActivityIndicator size="large" color={COLORS.brandPurple} />
+      </View>
+    );
+  }
+
+  if (!event) {
+    return (
+      <View
+        style={[
+          styles.container,
+          { justifyContent: "center", alignItems: "center" },
+        ]}
+      >
+        <Text style={{ color: COLORS.text }}>Event not found</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         {/* Immersive Header */}
         <View style={styles.imageContainer}>
-          <Image source={{ uri: event.image }} style={styles.image} resizeMode="cover" />
+          <Image
+            source={{ uri: event.image }}
+            style={styles.image}
+            resizeMode="cover"
+          />
           <View style={styles.gradientTop} />
           <View style={styles.gradientBottom} />
-          
+
           <View style={styles.headerControls}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => navigation.goBack()}
+            >
               <ChevronLeft size={20} color={COLORS.white} />
             </TouchableOpacity>
             <View style={styles.headerRight}>
@@ -37,18 +110,20 @@ const EventDetailsScreen = ({ navigation }) => {
         {/* Content Card */}
         <View style={styles.contentCard}>
           <View style={styles.tagsRow}>
-            {event.tags.map((tag, index) => (
-              <View 
-                key={index} 
+            {(event.tags || [event.category || "Event"]).map((tag, index) => (
+              <View
+                key={index}
                 style={[
-                  styles.tag, 
-                  index === 1 ? styles.tagSellingFast : styles.tagDefault
+                  styles.tag,
+                  index === 1 ? styles.tagSellingFast : styles.tagDefault,
                 ]}
               >
-                <Text 
+                <Text
                   style={[
                     styles.tagText,
-                    index === 1 ? styles.tagTextSellingFast : styles.tagTextDefault
+                    index === 1
+                      ? styles.tagTextSellingFast
+                      : styles.tagTextDefault,
                   ]}
                 >
                   {tag}
@@ -66,7 +141,7 @@ const EventDetailsScreen = ({ navigation }) => {
               </View>
               <View>
                 <Text style={styles.infoLabel}>DATE</Text>
-                <Text style={styles.infoValue}>{event.date}</Text>
+                <Text style={styles.infoValue}>{event.date || "TBA"}</Text>
               </View>
             </View>
             <View style={styles.infoItem}>
@@ -75,7 +150,7 @@ const EventDetailsScreen = ({ navigation }) => {
               </View>
               <View>
                 <Text style={styles.infoLabel}>TIME</Text>
-                <Text style={styles.infoValue}>{event.time}</Text>
+                <Text style={styles.infoValue}>{event.time || "TBA"}</Text>
               </View>
             </View>
           </View>
@@ -90,9 +165,11 @@ const EventDetailsScreen = ({ navigation }) => {
             <Text style={styles.description}>{event.description}</Text>
 
             <View style={styles.mapThumbnail}>
-              <Image 
-                source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAAzR0Ruy7cFi--xT7VeobBs5dR1nYNL3guqfz7lH2J4fqovKJLH14axCX7BQ8P6fJArq_349ihuJB9UyCp9QrRw12AfY8tDxaKPpeG7IoAheTkWngn4p5qs_j5fvZbs8tW5CxArWm1e1YCH0KoeNfyIIJdbyOw_u_YQG0uzzmv114EYk66BjSfeVkSMS30QutpheGbqV-WOnp3s7mkzp13V_gicElgWJh7MYoz1y7aFfYSCkZ34YU-Qdsc4M8xjf4DebLW0tjyrZI' }} 
-                style={styles.mapImage} 
+              <Image
+                source={{
+                  uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuAAzR0Ruy7cFi--xT7VeobBs5dR1nYNL3guqfz7lH2J4fqovKJLH14axCX7BQ8P6fJArq_349ihuJB9UyCp9QrRw12AfY8tDxaKPpeG7IoAheTkWngn4p5qs_j5fvZbs8tW5CxArWm1e1YCH0KoeNfyIIJdbyOw_u_YQG0uzzmv114EYk66BjSfeVkSMS30QutpheGbqV-WOnp3s7mkzp13V_gicElgWJh7MYoz1y7aFfYSCkZ34YU-Qdsc4M8xjf4DebLW0tjyrZI",
+                }}
+                style={styles.mapImage}
               />
               <View style={styles.mapOverlay}>
                 <View style={styles.directionsButton}>
@@ -120,7 +197,7 @@ const EventDetailsScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
-        
+
         {/* Padding for footer */}
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -131,13 +208,15 @@ const EventDetailsScreen = ({ navigation }) => {
           <View>
             <Text style={styles.startFromText}>STARTING FROM</Text>
             <View style={styles.priceRow}>
-              <Text style={styles.price}>{event.price}</Text>
+              <Text style={styles.price}>${event.price || "0"}</Text>
               <Text style={styles.perPerson}>/person</Text>
             </View>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.selectSeatsButton}
-            onPress={() => navigation.navigate('SelectSeats')}
+            onPress={() =>
+              navigation.navigate("SelectSeats", { eventId: event.id })
+            }
           >
             <Text style={styles.selectSeatsText}>Select Seats</Text>
             <ArrowRight size={18} color={COLORS.white} />
@@ -151,7 +230,7 @@ const EventDetailsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f7f6f8', // Using light bg as per design, then dark content if needed, but HTML has .dark class on Html, and body bg-background-light dark:bg-background-dark.
+    backgroundColor: "#f7f6f8", // Using light bg as per design, then dark content if needed, but HTML has .dark class on Html, and body bg-background-light dark:bg-background-dark.
     // Let's stick to dark theme consistent with other pages
     backgroundColor: COLORS.background,
   },
@@ -160,51 +239,51 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     height: 400,
-    width: '100%',
-    position: 'relative',
+    width: "100%",
+    position: "relative",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   gradientTop: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     height: 150,
-    backgroundColor: 'rgba(0,0,0,0.4)', // Simplified gradient
+    backgroundColor: "rgba(0,0,0,0.4)", // Simplified gradient
   },
   gradientBottom: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     height: 150,
-    backgroundColor: 'rgba(29, 53, 87, 0)', // Gradient handled by View styles if using LinearGradient, keeping simple here
+    backgroundColor: "rgba(29, 53, 87, 0)", // Gradient handled by View styles if using LinearGradient, keeping simple here
   },
   headerControls: {
-    position: 'absolute',
+    position: "absolute",
     top: 50,
     left: 24,
     right: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   headerRight: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   iconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backdropFilter: 'blur(12px)', // Note: backdropFilter not supported in RN directly
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    backdropFilter: "blur(12px)", // Note: backdropFilter not supported in RN directly
   },
   contentCard: {
     marginTop: -64,
@@ -216,7 +295,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   tagsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
     marginBottom: 16,
   },
@@ -226,57 +305,57 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   tagDefault: {
-    backgroundColor: 'rgba(230, 57, 70, 0.2)',
+    backgroundColor: "rgba(230, 57, 70, 0.2)",
   },
   tagSellingFast: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: "rgba(16, 185, 129, 0.2)",
   },
   tagText: {
     fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    fontWeight: "700",
+    textTransform: "uppercase",
   },
   tagTextDefault: {
-    color: '#e63946',
+    color: "#e63946",
   },
   tagTextSellingFast: {
-    color: '#10b981',
+    color: "#10b981",
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
     marginBottom: 24,
     lineHeight: 34,
   },
   infoGrid: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 24,
     marginBottom: 32,
   },
   infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   infoIconBox: {
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: 'rgba(230, 57, 70, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(230, 57, 70, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   infoLabel: {
     fontSize: 11,
     color: COLORS.gray600,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 2,
   },
   infoValue: {
     fontSize: 14,
     color: COLORS.text,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   divider: {
     height: 1,
@@ -287,14 +366,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   description: {
@@ -306,60 +385,60 @@ const styles = StyleSheet.create({
   mapThumbnail: {
     height: 160,
     borderRadius: 12,
-    overflow: 'hidden',
-    position: 'relative',
+    overflow: "hidden",
+    position: "relative",
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   mapImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   mapOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0,0,0,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   directionsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: "rgba(255,255,255,0.1)",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 100,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: "rgba(255,255,255,0.2)",
   },
   directionsText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   menuLinks: {
     gap: 16,
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
     backgroundColor: COLORS.background,
     borderRadius: 12,
   },
   menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   menuItemText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     color: COLORS.text,
   },
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
@@ -371,26 +450,26 @@ const styles = StyleSheet.create({
     paddingBottom: 32, // Safe area padding
   },
   footerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: 24,
   },
   startFromText: {
     fontSize: 10,
     color: COLORS.gray600,
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: 4,
   },
   priceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    flexDirection: "row",
+    alignItems: "baseline",
     gap: 4,
   },
   price: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#e63946',
+    fontWeight: "700",
+    color: "#e63946",
   },
   perPerson: {
     fontSize: 12,
@@ -399,13 +478,13 @@ const styles = StyleSheet.create({
   selectSeatsButton: {
     flex: 1,
     height: 56,
-    backgroundColor: '#e63946',
+    backgroundColor: "#e63946",
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    shadowColor: '#e63946',
+    shadowColor: "#e63946",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -413,7 +492,7 @@ const styles = StyleSheet.create({
   },
   selectSeatsText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
 });

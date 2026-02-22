@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   Settings,
   Activity,
+  Package,
 } from "lucide-react-native";
 
 // Auth Screens
@@ -33,6 +34,7 @@ import TicketScreen from "../screens/main/TicketScreen";
 import ProfileScreen from "../screens/main/ProfileScreen";
 import EmergencyScreen from "../screens/main/EmergencyScreen";
 import ActivityHistoryScreen from "../screens/main/ActivityHistoryScreen";
+import EditProfileScreen from "../screens/main/EditProfileScreen";
 
 // Commerce Screens
 import StoreScreen from "../screens/commerce/StoreScreen";
@@ -53,11 +55,13 @@ import AddEventScreen from "../screens/admin/AddEventScreen";
 import ManageEventDetailsScreen from "../screens/admin/ManageEventDetailsScreen";
 import AdminLayoutScreen from "../screens/admin/AdminLayoutScreen";
 import AdminStoreScreen from "../screens/admin/AdminStoreScreen";
+import AdminInventoryScreen from "../screens/admin/AdminInventoryScreen";
 import MyTicketsScreen from "../screens/main/MyTicketsScreen";
 import StadiumMapScreen from "../screens/main/StadiumMapScreen";
 import StadiumDetailsScreen from "../screens/main/StadiumDetailsScreen";
 import SystemLogsScreen from "../screens/admin/SystemLogsScreen";
 import NotificationsScreen from "../screens/main/NotificationsScreen";
+import OrderHistoryScreen from "../screens/main/OrderHistoryScreen";
 
 // Placeholder screens
 
@@ -190,6 +194,13 @@ function AdminTabs() {
         }}
       />
       <AdminTab.Screen
+        name="Inventory"
+        component={AdminInventoryScreen}
+        options={{
+          tabBarIcon: ({ color }) => <Package size={24} color={color} />,
+        }}
+      />
+      <AdminTab.Screen
         name="Analytics"
         component={AdminAnalyticsScreen}
         options={{
@@ -264,6 +275,8 @@ export default function AppNavigator() {
             name="ActivityHistory"
             component={ActivityHistoryScreen}
           />
+          <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
 
           {/* Commerce Flow */}
           <Stack.Screen name="Store" component={StoreScreen} />

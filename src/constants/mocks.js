@@ -261,7 +261,6 @@ export const STADIUMS = [
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuBVbU7LRxdQHmPVrTWO60ift0Ktua33XZ-kS9mnN-XX3cfUUikXiOEvrsbJDe__SiLy_swMO2qilZf1bzUWWwPhWZpO6ZqPDdvgzVrjIn6_qYRb3jtVcNL2TBDlYU41ep0flfisacPFSFoMEO1cf8KPQx6H1m0yEah6E_sQTAog85Gp2mVgEDjqncAACnWZ7k8ghN1lkYt9IaWWhYDdGmA2F91EoAe59ZQSKG5n8-bqhyBJB8lI_GI2QYsAXdtk6rGG_G5GEFjMqE0",
     capacity: "80,000",
-    rating: 4.8,
   },
   {
     id: "s2",
@@ -270,7 +269,6 @@ export const STADIUMS = [
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDl3zfRsBlzPawPgRuPBfoQWnMCOHYqlbCCVcQ_WM3FccGObHIcvhyL8Gk0HwLbbg7CFr5zVPR4ufu_dlkg_w8RGi83w7ouQ_iZrtp1pq_Mthloq_jDOmv61BJ0Fieip0kdOLM_O7Gtewx2K4QoSvLav3aYAJ_qHXG52hd8cUOjQo3NrmFeqYEMGVCLJpFLDTmz4MaPTcfYpp1-ACjgBYrEDK4ps5XjW6zqMdflN5KDbx0-bL4uJ7BwiLFGxBbwO8g6VBOtZX6aX30",
     capacity: "20,000",
-    rating: 4.5,
   },
   {
     id: "s3",
@@ -279,7 +277,6 @@ export const STADIUMS = [
     image:
       "https://lh3.googleusercontent.com/aida-public/AB6AXuDP2cnwb_OtUaIiwDHdvwSO4lZF6a0Fq1vObv3vAhmv6-3sZPRRQ_GiGC1DDTjMT2oMLbKZR2b8mNeEWbcM11sE_udwp_oYjwJ9_s9EINp9DKn2-BUNdcVqKugXuMYft6ZP_AomiM0a48FLQ1h312LqyUrWJdT_0T0nbafXAK8r20QEwFx1aCEdoIpNyNKFDqH7XkwByFMNZI5jkM9vfy-_XkRMfd0NSlvMqHo0eFEGB-q_qIai3jtm4sFfXG9_W-4bOX8ftKUKH0k",
     capacity: "90,000",
-    rating: 4.9,
   },
 ];
 

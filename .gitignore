@@ -39,3 +39,4 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+Eventra_API_Collection.postman_collection.json

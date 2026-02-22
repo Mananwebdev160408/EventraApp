@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   View,
@@ -21,9 +21,53 @@ import {
 } from "lucide-react-native";
 import { COLORS, FONTS } from "../../constants/theme";
 import { EVENT_DETAILS } from "../../constants/mocks";
+import { bookingService } from "../../api/services";
+import { useAuth } from "../../context/AuthContext";
+import { ActivityIndicator } from "react-native";
 
-const TicketScreen = ({ navigation }) => {
-  const event = EVENT_DETAILS;
+const TicketScreen = ({ navigation, route }) => {
+  const { bookingId } = route.params || {};
+  const { userInfo } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [ticketData, setTicketData] = useState(null);
+
+  useEffect(() => {
+    fetchTicketDetails();
+  }, [bookingId]);
+
+  const fetchTicketDetails = async () => {
+    if (!bookingId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await bookingService.getUserBookings(userInfo?.username);
+      const bookings = Array.isArray(response)
+        ? response
+        : response?.bookings || [];
+      const booking = bookings.find(
+        (b) => b.id === bookingId || b._id === bookingId,
+      );
+
+      if (booking) {
+        setTicketData(booking);
+      }
+    } catch (error) {
+      console.error("Error fetching ticket details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const event = ticketData?.event || EVENT_DETAILS;
+  const seatInfo = ticketData
+    ? {
+        section: ticketData.section || ticketData.event?.section || "A",
+        row: ticketData.row || ticketData.event?.row || "05",
+        seat: ticketData.seatNumber || ticketData.seat || "--",
+      }
+    : { section: "A", row: "5", seat: "12" };
 
   return (
     <View style={styles.container}>
@@ -43,96 +87,138 @@ const TicketScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.ticketContainer}>
-          {/* Ticket Top (Event Image & Info) */}
-          <View style={styles.ticketTop}>
-            <Image
-              source={{ uri: event.image }}
-              style={styles.eventImage}
-              resizeMode="cover"
-            />
-            <View style={styles.eventOverlay} />
-            <View style={styles.eventInfo}>
-              <Text style={styles.eventTitle}>{event.title}</Text>
-              <View style={styles.metaRow}>
-                <View style={styles.metaItem}>
-                  <Calendar size={14} color={COLORS.gray300} />
-                  <Text style={styles.metaText}>{event.date}</Text>
-                </View>
-                <View style={styles.metaItem}>
-                  <Clock size={14} color={COLORS.gray300} />
-                  <Text style={styles.metaText}>{event.time}</Text>
-                </View>
-              </View>
-              <View style={styles.metaItem}>
-                <MapPin size={14} color={COLORS.gray300} />
-                <Text style={styles.metaText}>{event.venue}</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Semicircles for tear effect */}
-          <View style={styles.tearLineContainer}>
-            <View style={styles.semicircleLeft} />
-            <View style={styles.dashedLine} />
-            <View style={styles.semicircleRight} />
-          </View>
-
-          {/* Ticket Middle (Seat Info) */}
-          <View style={styles.ticketMiddle}>
-            <View style={styles.seatRow}>
-              <View style={styles.seatItem}>
-                <Text style={styles.seatLabel}>SECTION</Text>
-                <Text style={styles.seatValue}>A</Text>
-              </View>
-              <View style={styles.seatItem}>
-                <Text style={styles.seatLabel}>ROW</Text>
-                <Text style={styles.seatValue}>5</Text>
-              </View>
-              <View style={styles.seatItem}>
-                <Text style={styles.seatLabel}>SEAT</Text>
-                <Text style={styles.seatValue}>12</Text>
-              </View>
-            </View>
-
-            <View style={styles.userInfoRow}>
-              <View>
-                <Text style={styles.userLabel}>HOLDER</Text>
-                <Text style={styles.userName}>Alex Johnson</Text>
-              </View>
-              <View>
-                <Text style={styles.userLabel}>ORDER ID</Text>
-                <Text style={styles.orderId}>#928374</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Tear line 2 */}
-          <View style={styles.tearLineContainer}>
-            <View style={styles.semicircleLeft} />
-            <View style={styles.dashedLine} />
-            <View style={styles.semicircleRight} />
-          </View>
-
-          {/* Ticket Bottom (QR Code) */}
-          <View style={styles.ticketBottom}>
-            <View style={styles.qrContainer}>
-              {/* Mock QR Code */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={COLORS.brandPurple} />
+          <Text style={styles.loadingText}>Fetching your pass...</Text>
+        </View>
+      ) : !ticketData && !bookingId ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>No ticket selected</Text>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.backBtnText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.ticketContainer}>
+            {/* Ticket Top (Event Image & Info) */}
+            <View style={styles.ticketTop}>
               <Image
                 source={{
-                  uri: "https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg",
+                  uri:
+                    event.image ||
+                    "https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&q=80&w=800",
                 }}
-                style={styles.qrCode}
+                style={styles.eventImage}
+                resizeMode="cover"
               />
+              <View style={styles.eventOverlay} />
+              <View style={styles.eventInfo}>
+                <Text style={styles.eventTitle}>{event.title}</Text>
+                <View style={styles.metaRow}>
+                  <View style={styles.metaItem}>
+                    <Calendar size={14} color={COLORS.gray300} />
+                    <Text style={styles.metaText}>{event.date}</Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Clock size={14} color={COLORS.gray300} />
+                    <Text style={styles.metaText}>{event.time || "20:00"}</Text>
+                  </View>
+                </View>
+                <View style={styles.metaItem}>
+                  <MapPin size={14} color={COLORS.gray300} />
+                  <Text style={styles.metaText}>
+                    {event.venue || event.location}
+                  </Text>
+                </View>
+              </View>
             </View>
-            <Text style={styles.scanText}>Scan this code at the gate</Text>
+
+            {/* Semicircles for tear effect */}
+            <View style={styles.tearLineContainer}>
+              <View style={styles.semicircleLeft} />
+              <View style={styles.dashedLine} />
+              <View style={styles.semicircleRight} />
+            </View>
+
+            {/* Ticket Middle (Seat Info) */}
+            <View style={styles.ticketMiddle}>
+              <View style={styles.seatRow}>
+                <View style={styles.seatItem}>
+                  <Text style={styles.seatLabel}>SECTION</Text>
+                  <Text style={styles.seatValue}>{seatInfo.section}</Text>
+                </View>
+                <View style={styles.seatItem}>
+                  <Text style={styles.seatLabel}>ROW</Text>
+                  <Text style={styles.seatValue}>{seatInfo.row}</Text>
+                </View>
+                <View style={styles.seatItem}>
+                  <Text style={styles.seatLabel}>SEAT</Text>
+                  <Text style={styles.seatValue}>{seatInfo.seat}</Text>
+                </View>
+              </View>
+
+              <View style={styles.userInfoRow}>
+                <View>
+                  <Text style={styles.userLabel}>HOLDER</Text>
+                  <Text style={styles.userName}>
+                    {userInfo?.firstname} {userInfo?.lastname}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={styles.userLabel}>ORDER ID</Text>
+                  <Text style={styles.orderId}>
+                    #
+                    {ticketData?.id?.toString().slice(-6).toUpperCase() ||
+                      "928374"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Tear line 2 */}
+            <View style={styles.tearLineContainer}>
+              <View style={styles.semicircleLeft} />
+              <View style={styles.dashedLine} />
+              <View style={styles.semicircleRight} />
+            </View>
+
+            {/* Ticket Bottom (QR Code) */}
+            <View style={styles.ticketBottom}>
+              <View style={styles.qrContainer}>
+                {/* Real ID used in QR simulation */}
+                <Image
+                  source={{
+                    uri: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${ticketData?.id || "EVENTRA-TICKET"}`,
+                  }}
+                  style={styles.qrCode}
+                />
+              </View>
+              <Text style={styles.scanText}>Scan this code at the gate</Text>
+            </View>
           </View>
-        </View>
-      </ScrollView>
+
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity style={styles.actionButton}>
+              <Download size={20} color={COLORS.text} />
+              <Text style={styles.actionText}>Download</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.primaryButton]}
+            >
+              <Wallet size={20} color={COLORS.white} />
+              <Text style={styles.primaryButtonText}>Add to Wallet</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      )}
     </View>
   );
 };
@@ -339,6 +425,38 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   primaryButtonText: {
+    color: COLORS.white,
+    fontWeight: "700",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: COLORS.gray500,
+    fontWeight: "600",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  errorText: {
+    fontSize: 16,
+    color: COLORS.gray500,
+    marginBottom: 20,
+  },
+  backBtn: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: COLORS.brandPurple,
+    borderRadius: 12,
+  },
+  backBtnText: {
     color: COLORS.white,
     fontWeight: "700",
   },

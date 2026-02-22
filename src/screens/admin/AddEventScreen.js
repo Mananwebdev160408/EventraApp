@@ -1,18 +1,32 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity,  ScrollView, TextInput, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft, Calendar, Clock, MapPin, Upload } from 'lucide-react-native';
-import { COLORS } from '../../constants/theme';
-import Button from '../../components/Button';
-import Input from '../../components/Input';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Image,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import {
+  ChevronLeft,
+  Calendar,
+  Clock,
+  MapPin,
+  Upload,
+} from "lucide-react-native";
+import { COLORS } from "../../constants/theme";
+import Button from "../../components/Button";
+import Input from "../../components/Input";
 
 const AddEventScreen = ({ navigation }) => {
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [venue, setVenue] = useState('Wembley Stadium');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [venue, setVenue] = useState("Wembley Stadium");
+  const [description, setDescription] = useState("");
 
   const handleCreate = () => {
     // Logic to add event would go here
@@ -24,27 +38,21 @@ const AddEventScreen = ({ navigation }) => {
       <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <ChevronLeft size={24} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Add New Event</Text>
-          <View style={{width: 40}} /> 
+          <View style={{ width: 40 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
-          {/* Image Upload Placeholder */}
-          <TouchableOpacity style={styles.imageUpload}>
-            <View style={styles.uploadIcon}>
-              <Upload size={32} color={COLORS.brandPurple} />
-            </View>
-            <Text style={styles.uploadText}>Upload Event Banner</Text>
-            <Text style={styles.uploadSubtext}>Recommended size: 1200x600</Text>
-          </TouchableOpacity>
-
           <View style={styles.formGroup}>
             <Text style={styles.label}>Event Title</Text>
-            <Input 
-              placeholder="e.g. Champions League Final" 
+            <Input
+              placeholder="e.g. Champions League Final"
               value={title}
               onChangeText={setTitle}
             />
@@ -52,29 +60,29 @@ const AddEventScreen = ({ navigation }) => {
 
           <View style={styles.row}>
             <View style={[styles.formGroup, { flex: 1 }]}>
-               <Text style={styles.label}>Date</Text>
-               <Input 
-                 placeholder="YYYY-MM-DD" 
-                 value={date}
-                 onChangeText={setDate}
-                 icon={<Calendar size={20} color={COLORS.gray400} />}
-               />
+              <Text style={styles.label}>Date</Text>
+              <Input
+                placeholder="YYYY-MM-DD"
+                value={date}
+                onChangeText={setDate}
+                icon={<Calendar size={20} color={COLORS.gray400} />}
+              />
             </View>
             <View style={[styles.formGroup, { flex: 1 }]}>
-               <Text style={styles.label}>Time</Text>
-               <Input 
-                 placeholder="HH:MM" 
-                 value={time}
-                 onChangeText={setTime}
-                 icon={<Clock size={20} color={COLORS.gray400} />}
-               />
+              <Text style={styles.label}>Time</Text>
+              <Input
+                placeholder="HH:MM"
+                value={time}
+                onChangeText={setTime}
+                icon={<Clock size={20} color={COLORS.gray400} />}
+              />
             </View>
           </View>
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Venue</Text>
-            <Input 
-              placeholder="Venue Name" 
+            <Input
+              placeholder="Venue Name"
               value={venue}
               onChangeText={setVenue}
               icon={<MapPin size={20} color={COLORS.gray400} />}
@@ -83,7 +91,7 @@ const AddEventScreen = ({ navigation }) => {
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Description</Text>
-            <TextInput 
+            <TextInput
               style={styles.textArea}
               placeholder="Describe the event..."
               placeholderTextColor={COLORS.gray400}
@@ -95,18 +103,25 @@ const AddEventScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.divider} />
-          
-          <Text style={styles.sectionTitle}>Ticket Settings</Text>
-          
-          <View style={styles.ticketRow}>
-             <Text style={styles.ticketLabel}>VIP Seats</Text>
-             <Input placeholder="$300" style={{ width: 100 }} keyboardType="numeric" />
-          </View>
-          <View style={styles.ticketRow}>
-             <Text style={styles.ticketLabel}>Standard Seats</Text>
-             <Input placeholder="$150" style={{ width: 100 }} keyboardType="numeric" />
-          </View>
 
+          <Text style={styles.sectionTitle}>Ticket Settings</Text>
+
+          <View style={styles.ticketRow}>
+            <Text style={styles.ticketLabel}>VIP Seats</Text>
+            <Input
+              placeholder="$300"
+              style={{ width: 100 }}
+              keyboardType="numeric"
+            />
+          </View>
+          <View style={styles.ticketRow}>
+            <Text style={styles.ticketLabel}>Standard Seats</Text>
+            <Input
+              placeholder="$150"
+              style={{ width: 100 }}
+              keyboardType="numeric"
+            />
+          </View>
         </ScrollView>
 
         <View style={styles.footer}>
@@ -126,9 +141,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 24,
   },
   backButton: {
@@ -136,14 +151,14 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: COLORS.card,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   content: {
@@ -155,24 +170,24 @@ const styles = StyleSheet.create({
     height: 200,
     backgroundColor: COLORS.card,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     marginBottom: 8,
   },
   uploadIcon: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(230, 57, 70, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(230, 57, 70, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 12,
   },
   uploadText: {
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
     marginBottom: 4,
   },
@@ -185,11 +200,11 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.gray600,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 16,
   },
   textArea: {
@@ -199,7 +214,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     color: COLORS.text,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     height: 100,
   },
   divider: {
@@ -209,18 +224,18 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: COLORS.text,
   },
   ticketRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   ticketLabel: {
     fontSize: 14,
     color: COLORS.text,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   footer: {
     padding: 24,
