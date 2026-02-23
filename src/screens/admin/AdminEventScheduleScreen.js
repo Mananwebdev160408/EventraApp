@@ -132,7 +132,7 @@ const AdminEventScheduleScreen = ({ navigation }) => {
   };
 
   const renderEventItem = ({ item }) => {
-    const { day, month } = getDayAndMonth(item.dateTime || item.date);
+    const { day, month } = getDayAndMonth(item.datetime || item.date);
     const isLive = item.status === "LIVE" || item.status === "ongoing";
     const eventTime =
       (item.dateTime || item.time || "").split("T")[1]?.substring(0, 5) ||

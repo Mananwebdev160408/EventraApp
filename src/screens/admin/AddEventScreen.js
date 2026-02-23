@@ -46,6 +46,7 @@ const AddEventScreen = ({ navigation }) => {
   const fetchAdminStadium = async () => {
     try {
       const stadiums = await stadiumService.getAllStadiums();
+      console.log("on add event page",stadiums);
       const myStadium = stadiums.find(
         (s) =>
           s.adminEmail === userInfo?.email ||
