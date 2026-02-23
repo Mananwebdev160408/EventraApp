@@ -52,6 +52,7 @@ export const eventService = {
   },
   getEventDetails: async (eventId) => {
     const response = await apiClient.get(`/events/${eventId}`);
+    console.log(response.data)
     return response.data;
   },
   createEvent: async (eventData) => {
@@ -136,6 +137,10 @@ export const foodService = {
   },
   getAllFoodOrders: async () => {
     const response = await apiClient.get("/foodOrder/allFoodOrders");
+    return response.data;
+  },
+  getAllFoods: async () => {
+    const response = await apiClient.get("/food/allFoods");
     return response.data;
   },
 };

@@ -44,6 +44,7 @@ import {
   stadiumService,
   bookingService,
 } from "../../api/services";
+import { getEventImage, getStadiumImage } from "../../constants/assets";
 
 const { width } = Dimensions.get("window");
 
@@ -292,7 +293,7 @@ const DiscoverEventsScreen = ({ navigation }) => {
       activeOpacity={0.95}
       onPress={() => navigation.navigate("EventDetails", { eventId: event.id })}
     >
-      <Image source={{ uri: event.image }} style={styles.featuredImage} />
+      <Image source={getEventImage(event.id)} style={styles.featuredImage} />
       <LinearGradient
         colors={["transparent", "rgba(29, 53, 87, 0.9)"]}
         style={styles.featuredOverlay}
@@ -496,7 +497,7 @@ const DiscoverEventsScreen = ({ navigation }) => {
                   }
                 >
                   <Image
-                    source={{ uri: event.image }}
+                    source={getEventImage(event.id)}
                     style={styles.upcomingImage}
                   />
                   <View style={styles.upcomingInfo}>
@@ -538,7 +539,7 @@ const DiscoverEventsScreen = ({ navigation }) => {
                   }
                 >
                   <Image
-                    source={{ uri: stadium.image }}
+                    source={getStadiumImage(stadium.id)}
                     style={styles.stadiumImg}
                   />
                   <View style={styles.stadiumInfo}>

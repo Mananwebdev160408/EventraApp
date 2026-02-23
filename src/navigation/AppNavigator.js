@@ -15,6 +15,7 @@ import {
   Settings,
   Activity,
   Package,
+  Layers,
 } from "lucide-react-native";
 
 // Auth Screens
@@ -174,17 +175,17 @@ function AdminTabs() {
         }}
       />
       <AdminTab.Screen
-        name="Events"
+        name="Schedule"
         component={AdminEventScheduleScreen}
         options={{
           tabBarIcon: ({ color }) => <Calendar size={24} color={color} />,
         }}
       />
       <AdminTab.Screen
-        name="Layout"
+        name="Venue"
         component={AdminLayoutScreen}
         options={{
-          tabBarIcon: ({ color }) => <Activity size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Layers size={24} color={color} />,
         }}
       />
       <AdminTab.Screen
@@ -192,13 +193,6 @@ function AdminTabs() {
         component={AdminStoreScreen}
         options={{
           tabBarIcon: ({ color }) => <ShoppingBag size={24} color={color} />,
-        }}
-      />
-      <AdminTab.Screen
-        name="Inventory"
-        component={AdminInventoryScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Package size={24} color={color} />,
         }}
       />
       <AdminTab.Screen
@@ -341,6 +335,10 @@ export default function AppNavigator() {
                 component={AdminAnalyticsScreen}
               />
               <Stack.Screen name="AdminStore" component={AdminStoreScreen} />
+              <Stack.Screen
+                name="AdminInventory"
+                component={AdminInventoryScreen}
+              />
               <Stack.Screen name="SystemLogs" component={SystemLogsScreen} />
             </>
           ) : (

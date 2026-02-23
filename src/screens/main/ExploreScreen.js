@@ -23,6 +23,7 @@ import {
 } from "lucide-react-native";
 import { COLORS, SIZES } from "../../constants/theme";
 import { eventService, stadiumService } from "../../api/services";
+import { getEventImage, getStadiumImage } from "../../constants/assets";
 
 const { width } = Dimensions.get("window");
 
@@ -146,7 +147,7 @@ const ExploreScreen = ({ navigation }) => {
       activeOpacity={0.9}
       onPress={() => navigation.navigate("StadiumDetails", { stadium: item })}
     >
-      <Image source={{ uri: item.image }} style={styles.stadiumImage} />
+      <Image source={getStadiumImage(item.id)} style={styles.stadiumImage} />
       <View style={styles.stadiumInfo}>
         <View style={styles.stadiumHeader}>
           <Text style={styles.stadiumName}>{item.name}</Text>
@@ -174,7 +175,7 @@ const ExploreScreen = ({ navigation }) => {
       activeOpacity={0.9}
       onPress={() => navigation.navigate("EventDetails", { eventId: item.id })}
     >
-      <Image source={{ uri: item.image }} style={styles.eventImage} />
+      <Image source={getEventImage(item.id)} style={styles.eventImage} />
       <View style={styles.eventInfo}>
         <Text style={styles.eventTitle}>{item.name || item.title}</Text>
         <Text style={styles.eventTime}>

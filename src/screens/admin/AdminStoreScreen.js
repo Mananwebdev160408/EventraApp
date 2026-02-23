@@ -30,6 +30,7 @@ import {
   Coffee,
   X,
   Upload,
+  TrendingUp,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
 import { foodService, merchandiseService } from "../../api/services";
@@ -65,12 +66,19 @@ const AdminStoreScreen = ({ navigation }) => {
       let data;
       if (activeTab === "Merchandise") {
         data = await merchandiseService.getAllMerchandise();
+      } else if (activeTab === "Food") {
+        data = await foodService.getAllFoods();
       } else {
-        // Fallback or use a specific restaurant ID if needed
-        data = await foodService.getAllFoodOrders(); // Note: This service name in services.js seems to return orders, need to check if there is a getFood
+        // Miscellaneous - for now showing mixed or filtered merch
+        const allMerch = await merchandiseService.getAllMerchandise();
+        data = allMerch.filter(
+          (m) => m.type === "other" || m.category === "Other",
+        );
       }
       setItems(
-        Array.isArray(data) ? data : data?.items || data?.merchandise || [],
+        Array.isArray(data)
+          ? data
+          : data?.items || data?.merchandise || data?.foods || [],
       );
     } catch (error) {
       console.error(`Error fetching ${activeTab}:`, error);
@@ -190,15 +198,30 @@ const AdminStoreScreen = ({ navigation }) => {
             <Text style={styles.headerTitle}>Store Management</Text>
             <Text style={styles.stadiumSubtitle}>{stadiumLocation}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => {
-              resetForm();
-              setIsModalVisible(true);
-            }}
-          >
-            <Plus size={24} color={COLORS.white} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", gap: 12 }}>
+            <TouchableOpacity
+              style={[
+                styles.addButton,
+                {
+                  backgroundColor: COLORS.card,
+                  borderWidth: 1,
+                  borderColor: COLORS.border,
+                },
+              ]}
+              onPress={() => navigation.navigate("AdminInventory")}
+            >
+              <TrendingUp size={20} color={COLORS.brandPurple} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => {
+                resetForm();
+                setIsModalVisible(true);
+              }}
+            >
+              <Plus size={24} color={COLORS.white} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Add Item Modal */}

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -47,7 +48,8 @@ const ProfileScreen = ({ navigation }) => {
     setLoading(true);
     try {
       const data = await authService.getCurrentUser();
-      if (data) {
+      // Guard: don't overwrite state if user has already logged out
+      if (data && userInfo) {
         setUserInfo(data);
       }
     } catch (error) {
@@ -57,8 +59,17 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          await logout();
+        },
+      },
+    ]);
   };
 
   const DetailItem = ({ icon: Icon, label, value }) => (

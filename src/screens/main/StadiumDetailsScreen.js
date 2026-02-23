@@ -24,6 +24,7 @@ import {
 import { COLORS } from "../../constants/theme";
 import { eventService } from "../../api/services";
 import { LinearGradient } from "expo-linear-gradient";
+import { getEventImage, getStadiumImage } from "../../constants/assets";
 
 const { width } = Dimensions.get("window");
 
@@ -106,7 +107,10 @@ const StadiumDetailsScreen = ({ route, navigation }) => {
       <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
         {/* Cover Image */}
         <View style={styles.imageContainer}>
-          <Image source={{ uri: stadium.image }} style={styles.coverImage} />
+          <Image
+            source={getStadiumImage(stadium.id)}
+            style={styles.coverImage}
+          />
           <LinearGradient
             colors={[
               "rgba(29, 53, 87, 0.6)",
@@ -203,7 +207,7 @@ const StadiumDetailsScreen = ({ route, navigation }) => {
                   }
                 >
                   <Image
-                    source={{ uri: event.image }}
+                    source={getEventImage(event.id)}
                     style={styles.eventThumb}
                   />
                   <View style={styles.eventInfo}>

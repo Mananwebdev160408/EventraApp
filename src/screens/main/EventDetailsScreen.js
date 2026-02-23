@@ -23,6 +23,7 @@ import {
 import { COLORS, FONTS } from "../../constants/theme";
 import { eventService } from "../../api/services";
 import { ActivityIndicator } from "react-native";
+import { getEventImage } from "../../constants/assets";
 
 const formatEventDate = (dateString) => {
   if (!dateString) return "";
@@ -121,7 +122,7 @@ const EventDetailsScreen = ({ route, navigation }) => {
         {/* Immersive Header */}
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: event.image }}
+            source={getEventImage(event.id)}
             style={styles.image}
             resizeMode="cover"
           />
@@ -190,48 +191,101 @@ const EventDetailsScreen = ({ route, navigation }) => {
                 </Text>
               </View>
             </View>
+            {(event.venue || event.stadiumName || event.stadium?.name) && (
+              <View style={styles.infoItem}>
+                <View style={styles.infoIconBox}>
+                  <MapPin size={20} color={COLORS.brandPurple} />
+                </View>
+                <View>
+                  <Text style={styles.infoLabel}>STADIUM</Text>
+                  <Text style={styles.infoValue}>
+                    {event.venue || event.stadiumName || event.stadium?.name}
+                  </Text>
+                </View>
+              </View>
+            )}
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.section}>
             <View style={styles.sectionTitleRow}>
-              <MapPin size={20} color="rgba(230, 57, 70, 0.8)" />
-              <Text style={styles.sectionTitle}>Stadium Info</Text>
+              <Briefcase size={20} color="rgba(230, 57, 70, 0.8)" />
+              <Text style={styles.sectionTitle}>About This Event</Text>
             </View>
-            <Text style={styles.description}>{event.description}</Text>
+            <Text style={styles.description}>
+              {event.description || "No description available for this event."}
+            </Text>
+          </View>
 
-            <View style={styles.mapThumbnail}>
-              <Image
-                source={{
-                  uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuAAzR0Ruy7cFi--xT7VeobBs5dR1nYNL3guqfz7lH2J4fqovKJLH14axCX7BQ8P6fJArq_349ihuJB9UyCp9QrRw12AfY8tDxaKPpeG7IoAheTkWngn4p5qs_j5fvZbs8tW5CxArWm1e1YCH0KoeNfyIIJdbyOw_u_YQG0uzzmv114EYk66BjSfeVkSMS30QutpheGbqV-WOnp3s7mkzp13V_gicElgWJh7MYoz1y7aFfYSCkZ34YU-Qdsc4M8xjf4DebLW0tjyrZI",
-                }}
-                style={styles.mapImage}
-              />
-              <View style={styles.mapOverlay}>
-                <View style={styles.directionsButton}>
-                  <MapPin size={14} color={COLORS.white} />
-                  <Text style={styles.directionsText}>GET DIRECTIONS</Text>
+          <View style={styles.divider} />
+
+          {/* Highlights */}
+          <View style={styles.section}>
+            <View style={styles.sectionTitleRow}>
+              <Utensils size={20} color="rgba(230, 57, 70, 0.8)" />
+              <Text style={styles.sectionTitle}>Event Highlights</Text>
+            </View>
+            <View style={styles.highlightsGrid}>
+              {[
+                "Live Performance",
+                "Fan Zone",
+                "VIP Lounge",
+                "Meet & Greet",
+                "Food Court",
+                "Merchandise",
+              ].map((h) => (
+                <View key={h} style={styles.highlightChip}>
+                  <Text style={styles.highlightChipText}>{h}</Text>
                 </View>
-              </View>
+              ))}
             </View>
           </View>
 
-          <View style={styles.menuLinks}>
-            <TouchableOpacity style={styles.menuItem}>
-              <View style={styles.menuItemLeft}>
-                <Briefcase size={20} color="rgba(230, 57, 70, 0.8)" />
-                <Text style={styles.menuItemText}>Bag Policy</Text>
+          <View style={styles.divider} />
+
+          {/* What to Bring */}
+          <View style={styles.section}>
+            <View style={styles.sectionTitleRow}>
+              <ChevronRight size={20} color="rgba(230, 57, 70, 0.8)" />
+              <Text style={styles.sectionTitle}>What to Bring</Text>
+            </View>
+            {[
+              { icon: "✅", text: "Valid photo ID or passport" },
+              { icon: "✅", text: "Printed or digital ticket" },
+              { icon: "✅", text: "Small bag (under 30x30cm)" },
+              { icon: "❌", text: "No outside food or drinks" }
+            ].map((item, i) => (
+              <View key={i} style={styles.checklistItem}>
+                <Text style={styles.checklistIcon}>{item.icon}</Text>
+                <Text style={styles.checklistText}>{item.text}</Text>
               </View>
-              <ChevronRight size={20} color={COLORS.gray400} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <View style={styles.menuItemLeft}>
-                <Utensils size={20} color="rgba(230, 57, 70, 0.8)" />
-                <Text style={styles.menuItemText}>Food & Drinks</Text>
-              </View>
-              <ChevronRight size={20} color={COLORS.gray400} />
-            </TouchableOpacity>
+            ))}
+          </View>
+
+          <View style={styles.divider} />
+
+          {/* Venue Amenities */}
+          <View style={styles.section}>
+            <View style={styles.sectionTitleRow}>
+              <MapPin size={20} color="rgba(230, 57, 70, 0.8)" />
+              <Text style={styles.sectionTitle}>Venue Amenities</Text>
+            </View>
+            <View style={styles.amenitiesGrid}>
+              {[
+                { emoji: "🍔", label: "Food Stalls" },
+                { emoji: "🚻", label: "Restrooms" },
+                { emoji: "♿", label: "Accessible" },
+                { emoji: "🅿️", label: "Parking" },
+                { emoji: "🏪", label: "Merch Store" },
+                { emoji: "📶", label: "Free WiFi" },
+              ].map((a) => (
+                <View key={a.label} style={styles.amenityCard}>
+                  <Text style={styles.amenityEmoji}>{a.emoji}</Text>
+                  <Text style={styles.amenityLabel}>{a.label}</Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
 
@@ -368,7 +422,7 @@ const styles = StyleSheet.create({
     lineHeight: 34,
   },
   infoGrid: {
-    flexDirection: "row",
+    flexDirection: "column",
     gap: 24,
     marginBottom: 32,
   },
@@ -533,6 +587,65 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: COLORS.text,
+  },
+  highlightsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  highlightChip: {
+    backgroundColor: "rgba(230, 57, 70, 0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(230, 57, 70, 0.25)",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 100,
+  },
+  highlightChipText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#e63946",
+  },
+  checklistItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(255,255,255,0.05)",
+  },
+  checklistIcon: {
+    fontSize: 16,
+  },
+  checklistText: {
+    fontSize: 14,
+    color: COLORS.gray300,
+    fontWeight: "500",
+    flex: 1,
+  },
+  amenitiesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+  },
+  amenityCard: {
+    width: "30%",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: "center",
+    gap: 8,
+  },
+  amenityEmoji: {
+    fontSize: 24,
+  },
+  amenityLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: COLORS.gray300,
+    textAlign: "center",
   },
 });
 

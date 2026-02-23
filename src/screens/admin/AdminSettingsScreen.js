@@ -7,6 +7,7 @@ import {
   ScrollView,
   Switch,
   Image,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -132,7 +133,16 @@ const AdminSettingsScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.logoutButton}
-            onPress={async () => await logout()}
+            onPress={() => {
+              Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Sign Out",
+                  style: "destructive",
+                  onPress: async () => await logout(),
+                },
+              ]);
+            }}
           >
             <LogOut size={20} color={COLORS.error} />
             <Text style={styles.logoutText}>Log Out</Text>

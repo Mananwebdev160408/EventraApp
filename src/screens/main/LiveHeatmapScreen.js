@@ -1,113 +1,216 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
+  Animated,
 } from "react-native";
 import MapView, { Heatmap, PROVIDER_GOOGLE } from "react-native-maps";
-import * as Location from "expo-location";
-import { Client } from "@stomp/stompjs";
-import { useAuth } from "../../context/AuthContext";
-import { API_CONFIG } from "../../api/config";
-import { ChevronLeft, Flame, Users, Info } from "lucide-react-native";
+import {
+  ChevronLeft,
+  Flame,
+  Users,
+  Info,
+  Zap,
+  Shield,
+} from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { COLORS } from "../../constants/theme";
-import "text-encoding";
+
+// ── Stadium center (can be changed to match any real venue) ──
+const STADIUM_CENTER = { latitude: 28.6127, longitude: 77.2292 }; // Delhi region
+const STADIUM_RADIUS = 0.004; // ~400m spread around stadium
+
+// ── Predefined hotspot zones within the stadium ──
+const ZONES = [
+  { name: "Main Gate", lat: 28.614, lng: 77.229, baseIntensity:0 },
+  { name: "South Stand", lat: 28.6115, lng: 77.2285, baseIntensity:0 },
+  { name: "VIP Lounge", lat: 28.6132, lng: 77.2305, baseIntensity:0 },
+  { name: "Food Court", lat: 28.612, lng: 77.23, baseIntensity:0 },
+  { name: "North Stand", lat: 28.6145, lng: 77.2295, baseIntensity:0 },
+  { name: "Merch Zone", lat: 28.6128, lng: 77.2275, baseIntensity:0 },
+  { name: "East Wing", lat: 28.6135, lng: 77.231, baseIntensity:0 },
+  { name: "Parking A", lat: 28.615, lng: 77.228, baseIntensity:0 },
+];
+
+// ── Generate initial grid of heatmap points ──
+const generateInitialGrid = () => {
+  const points = [];
+  const GRID_SIZE = 18; // 18x18 grid = 324 points
+
+  for (let i = 0; i < GRID_SIZE; i++) {
+    for (let j = 0; j < GRID_SIZE; j++) {
+      const lat =
+        STADIUM_CENTER.latitude -
+        STADIUM_RADIUS +
+        (i / GRID_SIZE) * STADIUM_RADIUS * 2;
+      const lng =
+        STADIUM_CENTER.longitude -
+        STADIUM_RADIUS +
+        (j / GRID_SIZE) * STADIUM_RADIUS * 2;
+
+      // Calculate base weight from proximity to zone hotspots
+      let weight = 0.05; // ambient floor
+      ZONES.forEach((zone) => {
+        const dist = Math.hypot(lat - zone.lat, lng - zone.lng);
+        weight += zone.baseIntensity * Math.exp(-dist / 0.0012);
+      });
+
+      points.push({
+        latitude: lat,
+        longitude: lng,
+        weight: Math.min(weight, 1) * 10, // scale up for heatmap visibility
+        _baseWeight: Math.min(weight, 1),
+      });
+    }
+  }
+  return points;
+};
+
+// ── Hotspot burst: spike a random area ──
+const addRandomHotspot = (points) => {
+  const zone = ZONES[Math.floor(Math.random() * ZONES.length)];
+  const cx = zone.lat + (Math.random() - 0.5) * 0.001;
+  const cy = zone.lng + (Math.random() - 0.5) * 0.001;
+  const intensity = 3 + Math.random() * 5;
+  const radius = 0.0008 + Math.random() * 0.0008;
+
+  return points.map((p) => {
+    const dist = Math.hypot(p.latitude - cx, p.longitude - cy);
+    const boost = intensity * Math.exp(-dist / radius);
+    return { ...p, weight: Math.max(0.1, Math.min(p.weight + boost, 20)) };
+  });
+};
+
+// ── Random walk: each point drifts slightly ──
+const applyRandomWalk = (points, frame) => {
+  return points.map((p) => {
+    // Sine wave modulation for smooth organic motion
+    const sineWave =
+      Math.sin(p.latitude * 500 + frame * 0.08) *
+      Math.cos(p.longitude * 500 + frame * 0.06) *
+      1.5;
+    // Random drift
+    const drift = (Math.random() - 0.5) * 0.4;
+    // Pull back toward base weight to prevent runaway values
+    const pullback = (p._baseWeight * 10 - p.weight) * 0.03;
+    const newWeight = p.weight + sineWave * 0.15 + drift + pullback;
+    return { ...p, weight: Math.max(0.1, Math.min(newWeight, 20)) };
+  });
+};
 
 const LiveHeatmapScreen = ({ navigation }) => {
-  const { userInfo } = useAuth();
   const [heatmapPoints, setHeatmapPoints] = useState([]);
-  const [connecting, setConnecting] = useState(true);
   const [userCount, setUserCount] = useState(0);
-  const stompClient = useRef(null);
-  const locationInterval = useRef(null);
+  const [peakZone, setPeakZone] = useState("Main Gate");
+  const [isLive, setIsLive] = useState(false);
+  const [heatmapKey, setHeatmapKey] = useState(0); // forces Heatmap re-mount
+  const frameRef = useRef(0);
+  const pulseAnim = useRef(new Animated.Value(0.8)).current;
 
+  // Pulsing animation for live dot
   useEffect(() => {
-    // Convert https to wss or http to ws
-    const socketUrl = API_CONFIG.BASE_URL.replace("http", "ws") + "/ws";
-
-    stompClient.current = new Client({
-      brokerURL: socketUrl,
-      reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
-      onConnect: (frame) => {
-        console.log("Connected to Stadium WebSocket: " + frame);
-        setConnecting(false);
-
-        // Subscribe to the clustered heatmap data from backend
-        // Backend broadcastHeatmap() sends to "/topic/admin/heatmap"
-        stompClient.current.subscribe("/topic/admin/heatmap", (message) => {
-          const clusteredData = JSON.parse(message.body);
-          setHeatmapPoints(clusteredData);
-
-          // Calculate total users from weights
-          const total = clusteredData.reduce(
-            (acc, point) => acc + (point.weight || 0),
-            0,
-          );
-          setUserCount(total);
-        });
-
-        // Start sending this user's location
-        startLocationReporting();
-      },
-      onStompError: (frame) => {
-        console.error("STOMP error", frame);
-      },
-      onWebSocketClose: () => {
-        console.log("WebSocket connection closed");
-        setConnecting(true);
-      },
-    });
-
-    stompClient.current.activate();
-
-    return () => {
-      if (locationInterval.current) clearInterval(locationInterval.current);
-      if (stompClient.current) stompClient.current.deactivate();
-    };
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.2,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.8,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
   }, []);
 
-  const startLocationReporting = async () => {
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      console.log("Location permission denied");
-      return;
-    }
+  // Initialize grid
+  useEffect(() => {
+    const initial = generateInitialGrid();
+    setHeatmapPoints(initial);
+    // Simulate "connecting" delay
+    const timer = setTimeout(() => setIsLive(true), 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
-    // Send location every 2 seconds to match backend request
-    locationInterval.current = setInterval(async () => {
-      try {
-        const position = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-        console.log("Live Heatmap - Raw GPS data captured:", position);
+  // Main animation loop — runs every 800ms
+  useEffect(() => {
+    if (!isLive) return;
 
-        const locationData = {
-          userId: userInfo?.id || userInfo?.userId || 1,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-        console.log(
-          "Live Heatmap - Reporting coordinates to backend:",
-          locationData,
-        );
+    const interval = setInterval(() => {
+      frameRef.current += 1;
 
-        if (stompClient.current && stompClient.current.connected) {
-          stompClient.current.publish({
-            destination: "/app/location/update",
-            body: JSON.stringify(locationData),
-          });
+      setHeatmapPoints((prev) => {
+        let updated = applyRandomWalk(prev, frameRef.current);
+
+        // Every ~4 ticks, add a random hotspot burst
+        if (frameRef.current % 4 === 0) {
+          updated = addRandomHotspot(updated);
         }
-      } catch (error) {
-        console.error("Failed to get or send location:", error);
-      }
-    }, 2000);
-  };
+
+        // Calculate live stats
+        const totalWeight = updated.reduce((acc, p) => acc + p.weight, 0);
+        const simulatedUsers = Math.floor(totalWeight * 1.8 + 120);
+        setUserCount(simulatedUsers);
+
+        // Find peak zone
+        let maxVal = 0;
+        let maxZone = "Main Gate";
+        ZONES.forEach((zone) => {
+          const nearbyPoints = updated.filter(
+            (p) =>
+              Math.hypot(p.latitude - zone.lat, p.longitude - zone.lng) <
+              0.0015,
+          );
+          const zoneWeight = nearbyPoints.reduce((a, p) => a + p.weight, 0);
+          if (zoneWeight > maxVal) {
+            maxVal = zoneWeight;
+            maxZone = zone.name;
+          }
+        });
+        setPeakZone(maxZone);
+
+        return updated;
+      });
+
+      // Force Heatmap component to re-mount with fresh data
+      setHeatmapKey((k) => k + 1);
+    }, 1500); // slightly slower to avoid flicker from re-mount
+
+    return () => clearInterval(interval);
+  }, [isLive]);
+
+  // Filter valid points for the Heatmap component
+  const validPoints = heatmapPoints
+    .filter((p) => p.weight > 0.5)
+    .map(({ latitude, longitude, weight }) => ({
+      latitude,
+      longitude,
+      weight,
+    }));
+
+  const density =
+    userCount > 800
+      ? "Critical"
+      : userCount > 400
+        ? "High"
+        : userCount > 150
+          ? "Medium"
+          : "Low";
+  const densityColor =
+    userCount > 800
+      ? "#e63946"
+      : userCount > 400
+        ? "#f4a261"
+        : userCount > 150
+          ? "#2a9d8f"
+          : "#457b9d";
 
   return (
     <View style={styles.container}>
@@ -117,21 +220,22 @@ const LiveHeatmapScreen = ({ navigation }) => {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={{
-          latitude: 28.6139, // Default: New Delhi (matches backend example)
-          longitude: 77.209,
-          latitudeDelta: 0.015,
-          longitudeDelta: 0.015,
+          latitude: STADIUM_CENTER.latitude,
+          longitude: STADIUM_CENTER.longitude,
+          latitudeDelta: 0.012,
+          longitudeDelta: 0.012,
         }}
         customMapStyle={mapStyle}
       >
-        {heatmapPoints.length > 0 && (
+        {validPoints.length > 0 && (
           <Heatmap
-            points={heatmapPoints}
-            radius={40}
-            opacity={0.7}
+            key={`heatmap-${heatmapKey}`}
+            points={validPoints}
+            radius={35}
+            opacity={0.75}
             gradient={{
-              colors: ["#0000FF", "#00FF00", "#FFFF00", "#FF0000"],
-              startPoints: [0.01, 0.25, 0.5, 0.75],
+              colors: ["#2a9d8f", "#e9c46a", "#f4a261", "#e76f51", "#e63946"],
+              startPoints: [0.05, 0.2, 0.4, 0.65, 0.85],
               colorMapSize: 256,
             }}
           />
@@ -150,14 +254,23 @@ const LiveHeatmapScreen = ({ navigation }) => {
           <View style={styles.titleContainer}>
             <Text style={styles.title}>Live Stadium Heatmap</Text>
             <View style={styles.statusRow}>
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: connecting ? "#e63946" : "#2a9d8f" },
-                ]}
-              />
+              {isLive ? (
+                <Animated.View
+                  style={[
+                    styles.statusDot,
+                    {
+                      backgroundColor: "#2a9d8f",
+                      transform: [{ scale: pulseAnim }],
+                    },
+                  ]}
+                />
+              ) : (
+                <View
+                  style={[styles.statusDot, { backgroundColor: "#e63946" }]}
+                />
+              )}
               <Text style={styles.statusText}>
-                {connecting ? "Connecting..." : "Live Updates Active"}
+                {isLive ? "LIVE — Simulated Data" : "Initializing..."}
               </Text>
             </View>
           </View>
@@ -167,81 +280,151 @@ const LiveHeatmapScreen = ({ navigation }) => {
         </View>
       </SafeAreaView>
 
-      {/* Stats Overlay */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Users size={20} color={COLORS.brandPurple} />
-          <View>
-            <Text style={styles.statLabel}>Active Users</Text>
-            <Text style={styles.statValue}>{userCount}</Text>
+      {/* Bottom Stats Panel */}
+      <View style={styles.bottomPanel}>
+        <View style={styles.statsRow}>
+          {/* Active Users */}
+          <View style={styles.statCard}>
+            <View
+              style={[
+                styles.statIconBox,
+                { backgroundColor: "rgba(29, 53, 87, 0.08)" },
+              ]}
+            >
+              <Users size={18} color="#1d3557" />
+            </View>
+            <View>
+              <Text style={styles.statLabel}>Active Fans</Text>
+              <Text style={styles.statValue}>{userCount.toLocaleString()}</Text>
+            </View>
+          </View>
+
+          {/* Density */}
+          <View style={styles.statCard}>
+            <View
+              style={[
+                styles.statIconBox,
+                { backgroundColor: `${densityColor}18` },
+              ]}
+            >
+              <Flame size={18} color={densityColor} />
+            </View>
+            <View>
+              <Text style={styles.statLabel}>Density</Text>
+              <Text style={[styles.statValue, { color: densityColor }]}>
+                {density}
+              </Text>
+            </View>
           </View>
         </View>
-        <View style={[styles.statCard, { marginLeft: 12 }]}>
-          <Flame size={20} color="#e63946" />
-          <View>
-            <Text style={styles.statLabel}>Density</Text>
-            <Text style={styles.statValue}>
-              {userCount > 50 ? "High" : userCount > 10 ? "Medium" : "Low"}
-            </Text>
+
+        <View style={styles.statsRow}>
+          {/* Peak Zone */}
+          <View style={styles.statCard}>
+            <View
+              style={[
+                styles.statIconBox,
+                { backgroundColor: "rgba(230, 57, 70, 0.08)" },
+              ]}
+            >
+              <Zap size={18} color="#e63946" />
+            </View>
+            <View>
+              <Text style={styles.statLabel}>Hottest Zone</Text>
+              <Text style={styles.statValue}>{peakZone}</Text>
+            </View>
+          </View>
+
+          {/* Safety Status */}
+          <View style={styles.statCard}>
+            <View
+              style={[
+                styles.statIconBox,
+                { backgroundColor: "rgba(42, 157, 143, 0.08)" },
+              ]}
+            >
+              <Shield size={18} color="#2a9d8f" />
+            </View>
+            <View>
+              <Text style={styles.statLabel}>Safety</Text>
+              <Text style={[styles.statValue, { color: "#2a9d8f" }]}>
+                Normal
+              </Text>
+            </View>
           </View>
         </View>
       </View>
 
-      {connecting && (
+      {/* Loading overlay */}
+      {!isLive && (
         <View style={styles.loader}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
-          <Text style={styles.loaderText}>Establishing Secure Link...</Text>
+          <Flame size={48} color="#e63946" />
+          <Text style={styles.loaderTitle}>Warming Up Heatmap</Text>
+          <Text style={styles.loaderText}>
+            Generating crowd simulation data...
+          </Text>
         </View>
       )}
     </View>
   );
 };
 
-// Dark theme for map to make heatmap pop
+// ── Dark map theme ──
 const mapStyle = [
-  {
-    elementType: "geometry",
-    stylers: [{ color: "#242f3e" }],
-  },
-  {
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#746855" }],
-  },
-  {
-    elementType: "labels.text.stroke",
-    stylers: [{ color: "#242f3e" }],
-  },
+  { elementType: "geometry", stylers: [{ color: "#1a1a2e" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#8a8a8a" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a2e" }] },
   {
     featureType: "administrative.locality",
     elementType: "labels.text.fill",
-    stylers: [{ color: "#d59563" }],
+    stylers: [{ color: "#d4a574" }],
   },
   {
     featureType: "poi",
     elementType: "labels.text.fill",
-    stylers: [{ color: "#d59563" }],
+    stylers: [{ color: "#6a6a6a" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#1e3a2e" }],
   },
   {
     featureType: "road",
     elementType: "geometry",
-    stylers: [{ color: "#38414e" }],
+    stylers: [{ color: "#2a2a4a" }],
   },
   {
     featureType: "road",
     elementType: "geometry.stroke",
-    stylers: [{ color: "#212a37" }],
+    stylers: [{ color: "#1a1a3e" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#2a3a5a" }],
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [{ color: "#2a2a4e" }],
   },
   {
     featureType: "water",
     elementType: "geometry",
-    stylers: [{ color: "#17263c" }],
+    stylers: [{ color: "#0a1a3e" }],
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#3a5a8a" }],
   },
 ];
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1d3557",
+    backgroundColor: "#1a1a2e",
   },
   map: {
     ...StyleSheet.absoluteFillObject,
@@ -262,21 +445,24 @@ const styles = StyleSheet.create({
   backButton: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.6)",
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
   titleContainer: {
     alignItems: "center",
   },
   title: {
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#FFFFFF",
-    textShadowColor: "rgba(0, 0, 0, 0.75)",
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10,
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 12,
+    letterSpacing: 0.5,
   },
   statusRow: {
     flexDirection: "row",
@@ -291,61 +477,83 @@ const styles = StyleSheet.create({
   },
   statusText: {
     color: "rgba(255,255,255,0.8)",
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+    textTransform: "uppercase",
   },
   infoButton: {
     width: 44,
     height: 44,
-    borderRadius: 12,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.6)",
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
   },
-  statsContainer: {
+  bottomPanel: {
     position: "absolute",
-    bottom: 40,
-    left: 20,
-    right: 20,
+    bottom: 30,
+    left: 16,
+    right: 16,
+    gap: 10,
+  },
+  statsRow: {
     flexDirection: "row",
+    gap: 10,
   },
   statCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    padding: 16,
+    padding: 14,
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  statLabel: {
-    fontSize: 11,
-    color: "#457b9d",
-    fontWeight: "700",
-    textTransform: "uppercase",
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: "900",
-    color: "#1d3557",
-  },
-  loader: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(29, 53, 87, 0.8)",
+  statIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },
-  loaderText: {
+  statLabel: {
+    fontSize: 9,
+    color: "#457b9d",
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  statValue: {
+    fontSize: 16,
+    fontWeight: "900",
+    color: "#1d3557",
+    marginTop: 1,
+  },
+  loader: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(26, 26, 46, 0.92)",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+  },
+  loaderTitle: {
     color: "#FFFFFF",
-    marginTop: 16,
-    fontWeight: "700",
-    fontSize: 15,
+    fontWeight: "900",
+    fontSize: 20,
+    marginTop: 8,
+  },
+  loaderText: {
+    color: "rgba(255,255,255,0.6)",
+    fontWeight: "600",
+    fontSize: 13,
   },
 });
 
