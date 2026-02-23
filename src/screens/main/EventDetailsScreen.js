@@ -24,6 +24,45 @@ import { COLORS, FONTS } from "../../constants/theme";
 import { eventService } from "../../api/services";
 import { ActivityIndicator } from "react-native";
 
+const formatEventDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(
+      dateString.includes(" ") ? dateString.replace(" ", "T") : dateString,
+    );
+    if (isNaN(date.getTime())) return dateString;
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const dayName = days[date.getDay()];
+    const monthName = months[date.getMonth()];
+    const day = date.getDate();
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${dayName}, ${monthName} ${day} • ${hours}:${minutes} ${ampm}`;
+  } catch (e) {
+    return dateString;
+  }
+};
+
 const EventDetailsScreen = ({ route, navigation }) => {
   const { eventId } = route.params;
   const [event, setEvent] = React.useState(null);
@@ -132,7 +171,7 @@ const EventDetailsScreen = ({ route, navigation }) => {
             ))}
           </View>
 
-          <Text style={styles.title}>{event.title}</Text>
+          <Text style={styles.title}>{event.name || event.title}</Text>
 
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
@@ -140,17 +179,15 @@ const EventDetailsScreen = ({ route, navigation }) => {
                 <Calendar size={20} color={COLORS.brandPurple} />
               </View>
               <View>
-                <Text style={styles.infoLabel}>DATE</Text>
-                <Text style={styles.infoValue}>{event.date || "TBA"}</Text>
-              </View>
-            </View>
-            <View style={styles.infoItem}>
-              <View style={styles.infoIconBox}>
-                <Clock size={20} color={COLORS.brandPurple} />
-              </View>
-              <View>
-                <Text style={styles.infoLabel}>TIME</Text>
-                <Text style={styles.infoValue}>{event.time || "TBA"}</Text>
+                <Text style={styles.infoLabel}>DATE & TIME</Text>
+                <Text style={styles.infoValue}>
+                  {formatEventDate(
+                    event.dateTime ||
+                      event.datetime ||
+                      event.date ||
+                      event.time,
+                  )}
+                </Text>
               </View>
             </View>
           </View>
@@ -208,7 +245,9 @@ const EventDetailsScreen = ({ route, navigation }) => {
           <View>
             <Text style={styles.startFromText}>STARTING FROM</Text>
             <View style={styles.priceRow}>
-              <Text style={styles.price}>${event.price || "0"}</Text>
+              <Text style={styles.price}>
+                ₹{event.minPrice || event.price || "0"}
+              </Text>
               <Text style={styles.perPerson}>/person</Text>
             </View>
           </View>

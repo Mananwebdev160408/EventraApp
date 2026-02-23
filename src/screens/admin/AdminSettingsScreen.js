@@ -21,8 +21,10 @@ import {
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
 import { USERS } from "../../constants/mocks";
+import { useAuth } from "../../context/AuthContext";
 
 const AdminSettingsScreen = ({ navigation }) => {
+  const { logout } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -130,9 +132,7 @@ const AdminSettingsScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.logoutButton}
-            onPress={() =>
-              navigation.reset({ index: 0, routes: [{ name: "AuthLanding" }] })
-            }
+            onPress={async () => await logout()}
           >
             <LogOut size={20} color={COLORS.error} />
             <Text style={styles.logoutText}>Log Out</Text>

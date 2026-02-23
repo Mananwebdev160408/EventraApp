@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -20,17 +22,75 @@ import {
   LayoutDashboard,
   ChevronRight,
   Flame,
+  MapPin,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
-import { USERS } from "../../constants/mocks";
 import { LinearGradient } from "expo-linear-gradient";
 import { useUser } from "../../context/UserContext";
-import { MapPin } from "lucide-react-native";
+import { useAuth } from "../../context/AuthContext";
+import { eventService, bookingService, sosService } from "../../api/services";
 
 const { width } = Dimensions.get("window");
 
 const AdminDashboardScreen = ({ navigation }) => {
   const { stadiumLocation } = useUser();
+  const { userInfo } = useAuth();
+  const [dashboardData, setDashboardData] = useState({
+    liveEvent: null,
+    attendance: "0 / 0",
+    capacityPercent: 0,
+    storeRevenue: "$0",
+    eventsCount: 0,
+    activeAlerts: 0,
+    recentActivity: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const [events, sosAlerts] = await Promise.all([
+        eventService.getEvents(),
+        sosService.getAllSos(),
+      ]);
+
+      const liveEvent = Array.isArray(events) ? events[0] : null; // Assume first event is upcoming/live
+      const alertsCount = Array.isArray(sosAlerts) ? sosAlerts.length : 0;
+      const recentSos = Array.isArray(sosAlerts) ? sosAlerts.slice(0, 3) : [];
+
+      setDashboardData({
+        liveEvent,
+        attendance: liveEvent ? "42,000 / 50,000" : "0 / 0",
+        capacityPercent: liveEvent ? 84 : 0,
+        storeRevenue: "$1.2M",
+        eventsCount: Array.isArray(events) ? events.length : 0,
+        activeAlerts: alertsCount,
+        recentActivity: recentSos.map((alert) => ({
+          id: alert.id,
+          type: "SOS",
+          text: `Emergency alert from User ${alert.userId}`,
+          time: new Date(alert.timestamp).toLocaleTimeString(),
+          icon: <AlertCircle size={16} color={COLORS.error} />,
+          iconBg: "rgba(230, 57, 70, 0.1)",
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchDashboardData(false);
+  };
 
   const StatCard = ({
     label,
@@ -74,14 +134,20 @@ const AdminDashboardScreen = ({ navigation }) => {
                 {stadiumLocation.toUpperCase()}
               </Text>
             </View>
-            <Text style={styles.userName}>{USERS.currentUser.name}</Text>
+            <Text style={styles.userName}>
+              {userInfo?.name || userInfo?.username || "Admin"}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.profileButton}
             onPress={() => navigation.navigate("AdminSettings")}
           >
             <Image
-              source={{ uri: USERS.currentUser.avatar }}
+              source={{
+                uri:
+                  userInfo?.avatar ||
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
+              }}
               style={styles.avatar}
             />
           </TouchableOpacity>
@@ -90,230 +156,233 @@ const AdminDashboardScreen = ({ navigation }) => {
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
         >
-          {/* Hero Section - Live Event Status */}
-          <LinearGradient
-            colors={["#1d3557", "#0f172a"]}
-            style={styles.heroCard}
-          >
-            <View style={styles.heroHeader}>
-              <View style={styles.liveBadge}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveText}>LIVE MONITORING</Text>
-              </View>
-              <TouchableOpacity>
-                <MoreHorizontal size={20} color={COLORS.white} />
-              </TouchableOpacity>
+          {isLoading ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color={COLORS.brandPurple} />
             </View>
-
-            <Text style={styles.heroTitle}>Champions League Final</Text>
-            <Text style={styles.heroSubtitle}>
-              {stadiumLocation} • Final Match Day
-            </Text>
-
-            <View style={styles.attendanceContainer}>
-              <View style={styles.attendanceInfo}>
-                <Text style={styles.attendanceLabel}>Attendance</Text>
-                <Text style={styles.attendanceValue}>45,000 / 50,000</Text>
-              </View>
-              <View style={styles.progressContainer}>
-                <View
-                  style={[
-                    styles.progressBar,
-                    { width: "90%", backgroundColor: COLORS.error },
-                  ]}
-                />
-              </View>
-              <View style={styles.attendanceFooter}>
-                <Text style={styles.progressText}>90% Capacity</Text>
-                <Text style={[styles.progressText, { color: COLORS.error }]}>
-                  High Traffic
-                </Text>
-              </View>
-            </View>
-          </LinearGradient>
-
-          {/* Stadium Heatmap Section */}
-          <View style={styles.heatmapContainer}>
-            <View style={styles.sectionHeader}>
-              <View style={styles.aiTitleRow}>
-                <View style={styles.heatmapBadge}>
-                  <Flame size={16} color="#FFFFFF" />
+          ) : (
+            <>
+              {/* Hero Section - Live Event Status */}
+              <LinearGradient
+                colors={["#1d3557", "#0f172a"]}
+                style={styles.heroCard}
+              >
+                <View style={styles.heroHeader}>
+                  <View style={styles.liveBadge}>
+                    <View style={styles.liveDot} />
+                    <Text style={styles.liveText}>LIVE MONITORING</Text>
+                  </View>
+                  <TouchableOpacity>
+                    <MoreHorizontal size={20} color={COLORS.white} />
+                  </TouchableOpacity>
                 </View>
-                <Text style={styles.sectionTitle}>Real-time Heatmap</Text>
-              </View>
-              <Text style={styles.updatedText}>Auto-updates: 1s</Text>
-            </View>
 
-            <View style={styles.heatmapCard}>
-              <View style={styles.stadiumMock}>
-                {/* Visual representation of stadium sectors with heatmap colors */}
-                <View style={styles.stadiumOval}>
-                  {/* North Block - High Density */}
-                  <View
-                    style={[
-                      styles.sector,
-                      styles.northSector,
-                      { backgroundColor: "#ef4444" },
-                    ]}
-                  />
-                  {/* South Block - Critical Density */}
-                  <View
-                    style={[
-                      styles.sector,
-                      styles.southSector,
-                      { backgroundColor: "#b91c1c" },
-                    ]}
-                  />
-                  {/* East Block - Low Density */}
-                  <View
-                    style={[
-                      styles.sector,
-                      styles.eastSector,
-                      { backgroundColor: "#10b981" },
-                    ]}
-                  />
-                  {/* West Block - Medium Density */}
-                  <View
-                    style={[
-                      styles.sector,
-                      styles.westSector,
-                      { backgroundColor: "#f59e0b" },
-                    ]}
-                  />
-                  {/* Center Pitch */}
-                  <View style={styles.centerPitch}>
-                    <View style={styles.pitchLines} />
+                <Text style={styles.heroTitle}>
+                  {dashboardData.liveEvent?.title || "No Live Event"}
+                </Text>
+                <Text style={styles.heroSubtitle}>
+                  {stadiumLocation} •{" "}
+                  {dashboardData.liveEvent?.venue || "Monitoring Active"}
+                </Text>
+
+                {dashboardData.liveEvent && (
+                  <View style={styles.attendanceContainer}>
+                    <View style={styles.attendanceInfo}>
+                      <Text style={styles.attendanceLabel}>Attendance</Text>
+                      <Text style={styles.attendanceValue}>
+                        {dashboardData.attendance}
+                      </Text>
+                    </View>
+                    <View style={styles.progressContainer}>
+                      <View
+                        style={[
+                          styles.progressBar,
+                          {
+                            width: `${dashboardData.capacityPercent}%`,
+                            backgroundColor: COLORS.error,
+                          },
+                        ]}
+                      />
+                    </View>
+                    <View style={styles.attendanceFooter}>
+                      <Text style={styles.progressText}>
+                        {dashboardData.capacityPercent}% Capacity
+                      </Text>
+                      <Text
+                        style={[styles.progressText, { color: COLORS.error }]}
+                      >
+                        High Traffic
+                      </Text>
+                    </View>
+                  </View>
+                )}
+              </LinearGradient>
+
+              {/* Stadium Heatmap Section */}
+              <View style={styles.heatmapContainer}>
+                <View style={styles.sectionHeader}>
+                  <View style={styles.aiTitleRow}>
+                    <View style={styles.heatmapBadge}>
+                      <Flame size={16} color="#FFFFFF" />
+                    </View>
+                    <Text style={styles.sectionTitle}>Real-time Heatmap</Text>
+                  </View>
+                  <Text style={styles.updatedText}>Auto-updates: 1s</Text>
+                </View>
+
+                <View style={styles.heatmapCard}>
+                  <View style={styles.stadiumMock}>
+                    <View style={styles.stadiumOval}>
+                      <View
+                        style={[
+                          styles.sector,
+                          styles.northSector,
+                          { backgroundColor: "#ef4444" },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.sector,
+                          styles.southSector,
+                          { backgroundColor: "#b91c1c" },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.sector,
+                          styles.eastSector,
+                          { backgroundColor: "#10b981" },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.sector,
+                          styles.westSector,
+                          { backgroundColor: "#f59e0b" },
+                        ]}
+                      />
+                      <View style={styles.centerPitch}>
+                        <View style={styles.pitchLines} />
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={styles.heatmapLegend}>
+                    <View style={styles.legendItem}>
+                      <View
+                        style={[
+                          styles.legendDot,
+                          { backgroundColor: "#10b981" },
+                        ]}
+                      />
+                      <Text style={styles.legendText}>Low</Text>
+                    </View>
+                    <View style={styles.legendItem}>
+                      <View
+                        style={[
+                          styles.legendDot,
+                          { backgroundColor: "#f59e0b" },
+                        ]}
+                      />
+                      <Text style={styles.legendText}>Moderate</Text>
+                    </View>
+                    <View style={styles.legendItem}>
+                      <View
+                        style={[
+                          styles.legendDot,
+                          { backgroundColor: "#ef4444" },
+                        ]}
+                      />
+                      <Text style={styles.legendText}>High</Text>
+                    </View>
+                    <View style={styles.legendItem}>
+                      <View
+                        style={[
+                          styles.legendDot,
+                          { backgroundColor: "#b91c1c" },
+                        ]}
+                      />
+                      <Text style={styles.legendText}>Critical</Text>
+                    </View>
                   </View>
                 </View>
               </View>
 
-              <View style={styles.heatmapLegend}>
-                <View style={styles.legendItem}>
-                  <View
-                    style={[styles.legendDot, { backgroundColor: "#10b981" }]}
-                  />
-                  <Text style={styles.legendText}>Low</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View
-                    style={[styles.legendDot, { backgroundColor: "#f59e0b" }]}
-                  />
-                  <Text style={styles.legendText}>Moderate</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View
-                    style={[styles.legendDot, { backgroundColor: "#ef4444" }]}
-                  />
-                  <Text style={styles.legendText}>High</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View
-                    style={[styles.legendDot, { backgroundColor: "#b91c1c" }]}
-                  />
-                  <Text style={styles.legendText}>Critical</Text>
-                </View>
-              </View>
-            </View>
-          </View>
+              {/* Quick Stats Grid */}
+              <View style={styles.statsGrid}>
+                <StatCard
+                  label="Store Revenue"
+                  value={dashboardData.storeRevenue}
+                  subvalue="+12.5%"
+                  color="#059669" // Emerald 600
+                  icon={<ShoppingBag size={20} color="#059669" />}
+                  onPress={() => navigation.navigate("Store")}
+                  fullWidth
+                />
 
-          {/* Quick Stats Grid */}
-          <View style={styles.statsGrid}>
-            <StatCard
-              label="Store Revenue"
-              value="$1.2M"
-              subvalue="+12.5%"
-              color="#059669" // Emerald 600
-              icon={<ShoppingBag size={20} color="#059669" />}
-              onPress={() => navigation.navigate("Store")}
-              fullWidth
-            />
+                <StatCard
+                  label="Events Slated"
+                  value={dashboardData.eventsCount.toString()}
+                  subvalue="This Month"
+                  color="#1d3557" // Navy
+                  icon={<Calendar size={20} color="#1d3557" />}
+                  onPress={() => navigation.navigate("Events")}
+                />
+                <StatCard
+                  label="System Alerts"
+                  value={dashboardData.activeAlerts.toString()}
+                  subvalue="Critical"
+                  color={COLORS.error}
+                  icon={<AlertCircle size={20} color={COLORS.error} />}
+                  onPress={() => navigation.navigate("SystemLogs")}
+                />
+              </View>
 
-            <StatCard
-              label="Events Slated"
-              value="8"
-              subvalue="This Month"
-              color="#1d3557" // Navy
-              icon={<Calendar size={20} color="#1d3557" />}
-              onPress={() => navigation.navigate("Events")}
-            />
-            <StatCard
-              label="System Alerts"
-              value="3"
-              subvalue="Critical"
-              color={COLORS.error}
-              icon={<AlertCircle size={20} color={COLORS.error} />}
-            />
-          </View>
+              {/* Recent Activity / Notifications */}
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Operational Log</Text>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("SystemLogs")}
+                >
+                  <Text style={styles.viewAllText}>View All</Text>
+                </TouchableOpacity>
+              </View>
 
-          {/* Recent Activity / Notifications */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Operational Log</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("SystemLogs")}>
-              <Text style={styles.viewAllText}>View All</Text>
-            </TouchableOpacity>
-          </View>
+              <View style={styles.activityList}>
+                {dashboardData.recentActivity.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles.activityItem}
+                    activeOpacity={0.7}
+                  >
+                    <View
+                      style={[
+                        styles.activityIcon,
+                        { backgroundColor: item.iconBg },
+                      ]}
+                    >
+                      {item.icon}
+                    </View>
+                    <View style={styles.activityContent}>
+                      <Text style={styles.activityText}>{item.text}</Text>
+                      <Text style={styles.activityTime}>{item.time}</Text>
+                    </View>
+                    <ChevronRight size={16} color={COLORS.gray300} />
+                  </TouchableOpacity>
+                ))}
 
-          <View style={styles.activityList}>
-            <View style={styles.activityItem}>
-              <View
-                style={[
-                  styles.activityIcon,
-                  { backgroundColor: "rgba(69, 123, 157, 0.1)" },
-                ]}
-              >
-                <Users size={16} color="#457b9d" />
+                {dashboardData.recentActivity.length === 0 && (
+                  <View style={styles.emptyActivity}>
+                    <Text style={styles.emptyText}>No recent activity</Text>
+                  </View>
+                )}
               </View>
-              <View style={styles.activityContent}>
-                <Text style={styles.activityText}>
-                  New VIP booking for{" "}
-                  <Text style={{ fontWeight: "700" }}>Summer Concert</Text>
-                </Text>
-                <Text style={styles.activityTime}>2 mins ago</Text>
-              </View>
-              <ChevronRight size={16} color={COLORS.gray300} />
-            </View>
-
-            <View style={styles.activityItem}>
-              <View
-                style={[
-                  styles.activityIcon,
-                  { backgroundColor: "rgba(230, 57, 70, 0.1)" },
-                ]}
-              >
-                <AlertCircle size={16} color={COLORS.error} />
-              </View>
-              <View style={styles.activityContent}>
-                <Text style={styles.activityText}>
-                  Maintenance alert:{" "}
-                  <Text style={{ fontWeight: "700" }}>
-                    South Gate Turnstile
-                  </Text>
-                </Text>
-                <Text style={styles.activityTime}>1 hour ago</Text>
-              </View>
-              <ChevronRight size={16} color={COLORS.gray300} />
-            </View>
-
-            <View style={styles.activityItem}>
-              <View
-                style={[
-                  styles.activityIcon,
-                  { backgroundColor: "rgba(5, 150, 105, 0.1)" },
-                ]}
-              >
-                <TrendingUp size={16} color="#059669" />
-              </View>
-              <View style={styles.activityContent}>
-                <Text style={styles.activityText}>
-                  Revenue milestone reached:{" "}
-                  <Text style={{ fontWeight: "700" }}>$1M</Text>
-                </Text>
-                <Text style={styles.activityTime}>4 hours ago</Text>
-              </View>
-              <ChevronRight size={16} color={COLORS.gray300} />
-            </View>
-          </View>
+            </>
+          )}
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -671,6 +740,20 @@ const styles = StyleSheet.create({
   legendText: {
     fontSize: 10,
     color: "#64748b",
+    fontWeight: "600",
+  },
+  loaderContainer: {
+    height: 300,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  emptyActivity: {
+    padding: 40,
+    alignItems: "center",
+  },
+  emptyText: {
+    color: COLORS.gray400,
+    fontSize: 14,
     fontWeight: "600",
   },
 });

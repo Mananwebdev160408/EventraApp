@@ -21,7 +21,6 @@ import {
 import AuthLandingScreen from "../screens/auth/AuthLandingScreen";
 import LoginScreen from "../screens/auth/LoginScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
-import RoleSelectionScreen from "../screens/auth/RoleSelectionScreen";
 import StadiumOnboardingScreen from "../screens/auth/StadiumOnboardingScreen";
 
 // User Screens
@@ -62,6 +61,7 @@ import StadiumDetailsScreen from "../screens/main/StadiumDetailsScreen";
 import SystemLogsScreen from "../screens/admin/SystemLogsScreen";
 import NotificationsScreen from "../screens/main/NotificationsScreen";
 import OrderHistoryScreen from "../screens/main/OrderHistoryScreen";
+import LiveHeatmapScreen from "../screens/main/LiveHeatmapScreen";
 
 // Placeholder screens
 
@@ -211,7 +211,94 @@ function AdminTabs() {
   );
 }
 
+import { useAuth } from "../context/AuthContext";
+
 export default function AppNavigator() {
+  const { userToken, userInfo, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Loading App...</Text>
+      </View>
+    );
+  }
+
+  console.log("AppNavigator - UserInfo:", JSON.stringify(userInfo, null, 2));
+
+  // Improved role detection
+  const getRoles = (user) => {
+    if (!user) return [];
+
+    // 1. Check for 'roles' or 'role' or 'authorities' or 'permissions'
+    const source = user.userDetails || user;
+    const rolesData =
+      source.roles ||
+      source.role ||
+      source.authorities ||
+      source.permissions ||
+      [];
+
+    // 2. If it's an array, process each item
+    if (Array.isArray(rolesData)) {
+      return rolesData
+        .map((r) => {
+          if (typeof r === "string") return r.toUpperCase();
+          if (typeof r === "object") {
+            // Flatten object to string (check name, authority, value, etc)
+            return (
+              r.name ||
+              r.authority ||
+              r.value ||
+              r.role ||
+              ""
+            ).toUpperCase();
+          }
+          return "";
+        })
+        .filter(Boolean);
+    }
+
+    // 3. If it's a single string, return as array
+    if (typeof rolesData === "string") {
+      return [rolesData.toUpperCase()];
+    }
+
+    // 4. If it's a single object, extract role name
+    if (typeof rolesData === "object" && rolesData !== null) {
+      const roleName =
+        rolesData.name || rolesData.authority || rolesData.role || "";
+      if (roleName) return [roleName.toUpperCase()];
+    }
+
+    // 5. Hard check on username if it contains 'admin' (only as a safety fallback)
+    if (
+      user.username &&
+      user.username.toLowerCase().includes("admin") &&
+      !user.roles
+    ) {
+      return ["ADMIN"];
+    }
+
+    return [];
+  };
+
+  const currentRoles = getRoles(userInfo);
+  const isAdmin = currentRoles.some(
+    (r) =>
+      r === "ADMIN" ||
+      r === "ROLE_ADMIN" ||
+      r === "STADIUM_ADMIN" ||
+      r.includes("ADMIN"),
+  );
+
+  console.log(
+    "AppNavigator - IsAdmin:",
+    isAdmin,
+    "Roles Detected:",
+    currentRoles,
+  );
+
   return (
     <SafeAreaProvider>
       <NavigationContainer>
@@ -221,78 +308,98 @@ export default function AppNavigator() {
             contentStyle: { backgroundColor: COLORS.background },
           }}
         >
-          {/* Auth Flow */}
-          <Stack.Screen name="AuthLanding" component={AuthLandingScreen} />
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Signup" component={SignupScreen} />
-          <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
-          <Stack.Screen
-            name="StadiumOnboarding"
-            component={StadiumOnboardingScreen}
-          />
+          {!userToken ? (
+            <>
+              <Stack.Screen name="AuthLanding" component={AuthLandingScreen} />
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Signup" component={SignupScreen} />
+              <Stack.Screen
+                name="StadiumOnboarding"
+                component={StadiumOnboardingScreen}
+              />
+            </>
+          ) : isAdmin ? (
+            <>
+              {/* Admin Flow */}
+              <Stack.Screen name="AdminTabs" component={AdminTabs} />
+              <Stack.Screen name="AddEvent" component={AddEventScreen} />
+              <Stack.Screen
+                name="ManageEventDetails"
+                component={ManageEventDetailsScreen}
+              />
+              <Stack.Screen
+                name="AdminSettings"
+                component={AdminSettingsScreen}
+              />
+              <Stack.Screen
+                name="AdminEventSchedule"
+                component={AdminEventScheduleScreen}
+              />
+              <Stack.Screen
+                name="AdminAnalytics"
+                component={AdminAnalyticsScreen}
+              />
+              <Stack.Screen name="AdminStore" component={AdminStoreScreen} />
+              <Stack.Screen name="SystemLogs" component={SystemLogsScreen} />
+            </>
+          ) : (
+            <>
+              {/* User Main Flow */}
+              <Stack.Screen name="MainTabs" component={MainTabs} />
+              <Stack.Screen
+                name="EventDetails"
+                component={EventDetailsScreen}
+              />
+              <Stack.Screen name="SelectSeats" component={SelectSeatsScreen} />
+              <Stack.Screen name="SeatBlock" component={SeatBlockScreen} />
+              <Stack.Screen
+                name="SeatInformation"
+                component={SeatInformationScreen}
+                options={{
+                  presentation: "transparentModal",
+                  animation: "slide_from_bottom",
+                }}
+              />
+              <Stack.Screen name="Ticket" component={TicketScreen} />
+              <Stack.Screen name="StadiumMap" component={StadiumMapScreen} />
+              <Stack.Screen
+                name="StadiumDetails"
+                component={StadiumDetailsScreen}
+              />
+              <Stack.Screen name="Emergency" component={EmergencyScreen} />
+              <Stack.Screen
+                name="ActivityHistory"
+                component={ActivityHistoryScreen}
+              />
+              <Stack.Screen
+                name="OrderHistory"
+                component={OrderHistoryScreen}
+              />
+              <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+              <Stack.Screen name="LiveHeatmap" component={LiveHeatmapScreen} />
 
-          {/* Admin Flow */}
-          <Stack.Screen name="AdminTabs" component={AdminTabs} />
-          <Stack.Screen name="AddEvent" component={AddEventScreen} />
-          <Stack.Screen
-            name="ManageEventDetails"
-            component={ManageEventDetailsScreen}
-          />
-          <Stack.Screen name="AdminSettings" component={AdminSettingsScreen} />
-          <Stack.Screen
-            name="AdminEventSchedule"
-            component={AdminEventScheduleScreen}
-          />
-          <Stack.Screen
-            name="AdminAnalytics"
-            component={AdminAnalyticsScreen}
-          />
-          <Stack.Screen name="AdminStore" component={AdminStoreScreen} />
-          <Stack.Screen name="SystemLogs" component={SystemLogsScreen} />
+              {/* Commerce Flow */}
+              <Stack.Screen name="Store" component={StoreScreen} />
+              <Stack.Screen
+                name="FoodOrdering"
+                component={FoodOrderingScreen}
+              />
+              <Stack.Screen name="Cart" component={CartScreen} />
+              <Stack.Screen name="Checkout" component={CheckoutScreen} />
+              <Stack.Screen name="TrackOrder" component={TrackOrderScreen} />
+              <Stack.Screen
+                name="ProductDetails"
+                component={ProductDetailsScreen}
+              />
+              <Stack.Screen name="Menu" component={MenuScreen} />
+              <Stack.Screen
+                name="OrderConfirmed"
+                component={OrderConfirmedScreen}
+              />
+            </>
+          )}
+
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
-
-          {/* User Main Flow */}
-          <Stack.Screen name="MainTabs" component={MainTabs} />
-          <Stack.Screen name="EventDetails" component={EventDetailsScreen} />
-          <Stack.Screen name="SelectSeats" component={SelectSeatsScreen} />
-          <Stack.Screen name="SeatBlock" component={SeatBlockScreen} />
-          <Stack.Screen
-            name="SeatInformation"
-            component={SeatInformationScreen}
-            options={{
-              presentation: "transparentModal",
-              animation: "slide_from_bottom",
-            }}
-          />
-          <Stack.Screen name="Ticket" component={TicketScreen} />
-          <Stack.Screen name="StadiumMap" component={StadiumMapScreen} />
-          <Stack.Screen
-            name="StadiumDetails"
-            component={StadiumDetailsScreen}
-          />
-          <Stack.Screen name="Emergency" component={EmergencyScreen} />
-          <Stack.Screen
-            name="ActivityHistory"
-            component={ActivityHistoryScreen}
-          />
-          <Stack.Screen name="OrderHistory" component={OrderHistoryScreen} />
-          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-
-          {/* Commerce Flow */}
-          <Stack.Screen name="Store" component={StoreScreen} />
-          <Stack.Screen name="FoodOrdering" component={FoodOrderingScreen} />
-          <Stack.Screen name="Cart" component={CartScreen} />
-          <Stack.Screen name="Checkout" component={CheckoutScreen} />
-          <Stack.Screen name="TrackOrder" component={TrackOrderScreen} />
-          <Stack.Screen
-            name="ProductDetails"
-            component={ProductDetailsScreen}
-          />
-          <Stack.Screen name="Menu" component={MenuScreen} />
-          <Stack.Screen
-            name="OrderConfirmed"
-            component={OrderConfirmedScreen}
-          />
         </Stack.Navigator>
         <StatusBar style="dark" />
       </NavigationContainer>

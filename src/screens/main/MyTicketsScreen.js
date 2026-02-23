@@ -22,10 +22,12 @@ import {
 import { COLORS } from "../../constants/theme";
 import { bookingService } from "../../api/services";
 import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "../../context/AuthContext";
 
 const { width } = Dimensions.get("window");
 
 const MyTicketsScreen = ({ navigation }) => {
+  const { userInfo } = useAuth();
   const [activeTab, setActiveTab] = useState("upcoming"); // 'upcoming' or 'past'
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,7 +39,7 @@ const MyTicketsScreen = ({ navigation }) => {
   const fetchBookings = async () => {
     setIsLoading(true);
     try {
-      const data = await bookingService.getUserBookings();
+      const data = await bookingService.getUserBookings(userInfo?.id);
       setBookings(Array.isArray(data) ? data : data?.bookings || []);
     } catch (error) {
       console.error("Error fetching bookings:", error);

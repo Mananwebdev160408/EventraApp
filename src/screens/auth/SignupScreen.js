@@ -59,9 +59,9 @@ const SignupScreen = ({ navigation }) => {
         gender: gender,
         email: email,
         password: password,
-        firstname: firstName.trim(),
-        lastname: lastName.trim(),
-        phonenumber: phoneNumber.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phoneNumber: phoneNumber.trim(),
         roles: ["user"],
       };
 
@@ -84,33 +84,6 @@ const SignupScreen = ({ navigation }) => {
       setIsLoading(false);
     }
   };
-
-  const FloatingInput = ({
-    label,
-    value,
-    onChangeText,
-    secureTextEntry,
-    toggleSecure,
-  }) => (
-    <View style={styles.floatingGroup}>
-      <TextInput
-        style={styles.floatingInput}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={label}
-        placeholderTextColor="transparent" // Using label as placeholder visually
-        secureTextEntry={secureTextEntry}
-      />
-      <Text
-        style={[styles.floatingLabel, value ? styles.floatingLabelActive : {}]}
-      >
-        {label}
-      </Text>
-
-      {/* Add eye toggle specifically if needed, simplified for this layout to match design which puts button absolute right bottom */}
-    </View>
-  );
-
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />

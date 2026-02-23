@@ -25,6 +25,16 @@ import { ActivityIndicator } from "react-native";
 
 const { width } = Dimensions.get("window");
 
+const getUserField = (user, ...keys) => {
+  if (!user) return "";
+  const source = user.userDetails || user;
+  for (const key of keys) {
+    if (source[key]) return source[key];
+    if (user[key]) return user[key];
+  }
+  return "";
+};
+
 const ProfileScreen = ({ navigation }) => {
   const { userInfo, setUserInfo, logout } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -49,10 +59,6 @@ const ProfileScreen = ({ navigation }) => {
 
   const handleLogout = async () => {
     await logout();
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "AuthLanding" }],
-    });
   };
 
   const DetailItem = ({ icon: Icon, label, value }) => (
@@ -93,7 +99,7 @@ const ProfileScreen = ({ navigation }) => {
                 </View>
               </View>
               <Text style={styles.profileName}>
-                {`${userInfo?.firstname || "Eventra"} ${userInfo?.lastname || "User"}`}
+                {`${getUserField(userInfo, "firstName", "firstname") || "Eventra"} ${getUserField(userInfo, "lastName", "lastname") || "User"}`}
               </Text>
               <Text style={styles.profileTagline}>Active Member</Text>
             </View>
@@ -105,22 +111,29 @@ const ProfileScreen = ({ navigation }) => {
               <DetailItem
                 icon={User}
                 label="Full Name"
-                value={`${userInfo?.firstname || ""} ${userInfo?.lastname || ""}`}
+                value={`${getUserField(userInfo, "firstName", "firstname") || ""} ${getUserField(userInfo, "lastName", "lastname") || ""}`}
               />
               <DetailItem
                 icon={AtSign}
                 label="Username"
-                value={`@${userInfo?.username || "user"}`}
+                value={`@${getUserField(userInfo, "username") || "user"}`}
               />
               <DetailItem
                 icon={Mail}
                 label="Email Address"
-                value={userInfo?.email}
+                value={getUserField(userInfo, "email")}
               />
               <DetailItem
                 icon={Phone}
                 label="Phone Number"
-                value={userInfo?.phone || "+91 98XXX XXXXX"}
+                value={
+                  getUserField(
+                    userInfo,
+                    "phoneNumber",
+                    "phone",
+                    "phonenumber",
+                  ) || "+91 98XXX XXXXX"
+                }
               />
             </View>
 

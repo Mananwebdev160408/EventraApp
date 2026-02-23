@@ -27,6 +27,45 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const { width } = Dimensions.get("window");
 
+const formatEventDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(
+      dateString.includes(" ") ? dateString.replace(" ", "T") : dateString,
+    );
+    if (isNaN(date.getTime())) return dateString;
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const dayName = days[date.getDay()];
+    const monthName = months[date.getMonth()];
+    const day = date.getDate();
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${dayName}, ${monthName} ${day} • ${hours}:${minutes} ${ampm}`;
+  } catch (e) {
+    return dateString;
+  }
+};
+
 const StadiumDetailsScreen = ({ route, navigation }) => {
   const { stadium } = route.params;
   const [stadiumEvents, setStadiumEvents] = useState([]);
@@ -42,9 +81,16 @@ const StadiumDetailsScreen = ({ route, navigation }) => {
       // In a real app, you'd have an endpoint getEventsByStadiumId
       // For now, we fetch all events and filter them
       const data = await eventService.getEvents();
-      const events = Array.isArray(data) ? data : data?.events || [];
+      const events = Array.isArray(data.content)
+        ? data.content
+        : Array.isArray(data)
+          ? data
+          : data?.events || [];
       const filtered = events.filter(
-        (e) => e.stadiumId === stadium.id || e.venue === stadium.name,
+        (e) =>
+          e.stadiumId === stadium.id ||
+          e.venue === stadium.name ||
+          (e.stadium && e.stadium.id === stadium.id),
       );
       setStadiumEvents(filtered);
     } catch (error) {
@@ -88,7 +134,10 @@ const StadiumDetailsScreen = ({ route, navigation }) => {
             </View>
             <View style={styles.locRow}>
               <MapPin size={16} color={COLORS.gray500} />
-              <Text style={styles.locationText}>{stadium.location}</Text>
+              <Text style={styles.locationText}>
+                {stadium.location ||
+                  `${stadium.city || ""}${stadium.city && stadium.state ? ", " : ""}${stadium.state || ""}${(stadium.city || stadium.state) && stadium.country ? ", " : ""}${stadium.country || ""}`}
+              </Text>
             </View>
 
             <View style={styles.statsBar}>
@@ -97,14 +146,6 @@ const StadiumDetailsScreen = ({ route, navigation }) => {
                 <View>
                   <Text style={styles.statVal}>{stadium.capacity}</Text>
                   <Text style={styles.statLabel}>Capacity</Text>
-                </View>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statBox}>
-                <Navigation2 size={18} color={COLORS.brandPurple} />
-                <View>
-                  <Text style={styles.statVal}>8 Gates</Text>
-                  <Text style={styles.statLabel}>Entry Points</Text>
                 </View>
               </View>
             </View>
@@ -166,9 +207,13 @@ const StadiumDetailsScreen = ({ route, navigation }) => {
                     style={styles.eventThumb}
                   />
                   <View style={styles.eventInfo}>
-                    <Text style={styles.eventName}>{event.title}</Text>
+                    <Text style={styles.eventName}>
+                      {event.name || event.title}
+                    </Text>
                     <Text style={styles.eventTime}>
-                      {event.time || event.date}
+                      {formatEventDate(
+                        event.dateTime || event.time || event.date,
+                      )}
                     </Text>
                   </View>
                   <ChevronRight size={20} color={COLORS.gray400} />

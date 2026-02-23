@@ -51,10 +51,10 @@ export default function App() {
   }
 
   return (
-    <UserProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <UserProvider>
         <AppNavigator />
-      </AuthProvider>
-    </UserProvider>
+      </UserProvider>
+    </AuthProvider>
   );
 }

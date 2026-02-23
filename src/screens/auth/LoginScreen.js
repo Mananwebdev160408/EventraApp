@@ -39,6 +39,7 @@ const LoginScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -46,6 +47,7 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
 
+    setErrorMessage("");
     setIsLoading(true);
     try {
       console.log("Attempting login for:", username);
@@ -68,7 +70,7 @@ const LoginScreen = ({ navigation }) => {
         response?.data?.token;
 
       if (token) {
-        // Extract user data from various possible structures
+        // ... (rest of the logic remains the same)
         let userData =
           response.user || response.data?.user || response.data || response;
 
@@ -80,8 +82,8 @@ const LoginScreen = ({ navigation }) => {
         // If user info is not in login response or missing name, fetch it
         if (
           !userData ||
-          (!userData.firstname &&
-            !userData.firstName &&
+          (!userData.firstName &&
+            !userData.lastName &&
             !userData.name &&
             !userData.username)
         ) {
@@ -103,21 +105,21 @@ const LoginScreen = ({ navigation }) => {
         await login(token, userData);
 
         console.log("Login successful with user:", userData.username);
-        navigation.navigate("RoleSelection");
+
+        // Check user roles for redirection
+        const userRoles = userData.roles || userData.role || [];
+        const isAdmin = Array.isArray(userRoles)
+          ? userRoles.includes("admin") || userRoles.includes("ADMIN")
+          : userRoles === "admin" || userRoles === "ADMIN";
+
+        console.log(`User type identified as: ${isAdmin ? "ADMIN" : "USER"}`);
       } else {
         console.warn("No token found in response body");
-        Alert.alert(
-          "Login Failed",
-          "The server did not return a valid session token. Please try again.",
-        );
+        setErrorMessage("Invalid credentials or user doesn't exist");
       }
     } catch (error) {
       console.error("Login detailed error:", error);
-      const serverMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message;
-      Alert.alert("Login Error", `Server said: ${serverMessage}`);
+      setErrorMessage("Invalid credentials or user doesn't exist");
     } finally {
       setIsLoading(false);
     }
@@ -222,6 +224,13 @@ const LoginScreen = ({ navigation }) => {
                 <Text style={styles.forgotText}>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Error Message */}
+            {errorMessage ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            ) : null}
 
             {/* Login Button */}
             <TouchableOpacity
@@ -426,6 +435,20 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#1d3557",
     letterSpacing: 1.5,
+  },
+  errorContainer: {
+    backgroundColor: "rgba(223, 71, 89, 0.1)",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(223, 71, 89, 0.2)",
+  },
+  errorText: {
+    color: "#df4759",
+    fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   },
 });
 

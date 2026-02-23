@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   ScrollView,
   TextInput,
   Image,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -16,21 +18,79 @@ import {
   Clock,
   MapPin,
   Upload,
+  Tag,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
+import { eventService, stadiumService } from "../../api/services";
+import { useAuth } from "../../context/AuthContext";
 
 const AddEventScreen = ({ navigation }) => {
+  const { userInfo } = useAuth();
   const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [venue, setVenue] = useState("Wembley Stadium");
+  const [date, setDate] = useState("2026-12-05");
+  const [time, setTime] = useState("18:30");
+  const [venue, setVenue] = useState("");
   const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("Sports");
+  const [stadiumId, setStadiumId] = useState(null);
+  const [vipPrice, setVipPrice] = useState("500");
+  const [standardPrice, setStandardPrice] = useState("200");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCreate = () => {
-    // Logic to add event would go here
-    navigation.goBack();
+  useEffect(() => {
+    fetchAdminStadium();
+  }, []);
+
+  const fetchAdminStadium = async () => {
+    try {
+      const stadiums = await stadiumService.getAllStadiums();
+      const myStadium = stadiums.find(
+        (s) =>
+          s.adminEmail === userInfo?.email ||
+          s.adminEmail === userInfo?.username,
+      );
+      if (myStadium) {
+        setStadiumId(myStadium.id);
+        setVenue(myStadium.name);
+      }
+    } catch (error) {
+      console.error("Error fetching stadium:", error);
+    }
+  };
+
+  const handleCreate = async () => {
+    if (!title || !date || !time || !stadiumId) {
+      Alert.alert("Error", "Please fill in all required fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const dateTime = new Date(`${date}T${time}:00`).toISOString();
+      const payload = {
+        name: title,
+        dateTime: dateTime,
+        category: category,
+        stadiumId: stadiumId,
+        description: description,
+        tierPrices: {
+          VIP: parseFloat(vipPrice),
+          Standard: parseFloat(standardPrice),
+        },
+      };
+
+      await eventService.createEvent(payload);
+      Alert.alert("Success", "Event created successfully", [
+        { text: "OK", onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      console.error("Error creating event:", error);
+      Alert.alert("Error", "Failed to create event. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -80,11 +140,21 @@ const AddEventScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.formGroup}>
+            <Text style={styles.label}>Category</Text>
+            <Input
+              placeholder="e.g. Sports, Music"
+              value={category}
+              onChangeText={setCategory}
+              icon={<Tag size={20} color={COLORS.gray400} />}
+            />
+          </View>
+
+          <View style={styles.formGroup}>
             <Text style={styles.label}>Venue</Text>
             <Input
               placeholder="Venue Name"
               value={venue}
-              onChangeText={setVenue}
+              editable={false}
               icon={<MapPin size={20} color={COLORS.gray400} />}
             />
           </View>
@@ -107,25 +177,33 @@ const AddEventScreen = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Ticket Settings</Text>
 
           <View style={styles.ticketRow}>
-            <Text style={styles.ticketLabel}>VIP Seats</Text>
+            <Text style={styles.ticketLabel}>VIP Seats Price</Text>
             <Input
-              placeholder="$300"
+              placeholder="300"
               style={{ width: 100 }}
               keyboardType="numeric"
+              value={vipPrice}
+              onChangeText={setVipPrice}
             />
           </View>
           <View style={styles.ticketRow}>
-            <Text style={styles.ticketLabel}>Standard Seats</Text>
+            <Text style={styles.ticketLabel}>Standard Seats Price</Text>
             <Input
-              placeholder="$150"
+              placeholder="150"
               style={{ width: 100 }}
               keyboardType="numeric"
+              value={standardPrice}
+              onChangeText={setStandardPrice}
             />
           </View>
         </ScrollView>
 
         <View style={styles.footer}>
-          <Button title="Create Event" onPress={handleCreate} />
+          <Button
+            title={isSubmitting ? "Creating..." : "Create Event"}
+            onPress={handleCreate}
+            disabled={isSubmitting}
+          />
         </View>
       </SafeAreaView>
     </View>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,9 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -29,11 +32,16 @@ import {
   Upload,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
-import { STORE_ITEMS } from "../../constants/mocks";
+import { foodService, merchandiseService } from "../../api/services";
 
 const AdminStoreScreen = ({ navigation }) => {
-  const [activeTab, setActiveTab] = useState("Merchandise"); // 'Merchandise', 'Food', or 'Miscellaneous'
+  const [activeTab, setActiveTab] = useState("Merchandise");
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+
+  // Form states
   const [itemName, setItemName] = useState("");
   const [itemPrice, setItemPrice] = useState("");
   const [itemStock, setItemStock] = useState("");
@@ -44,6 +52,36 @@ const AdminStoreScreen = ({ navigation }) => {
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
+
+  useEffect(() => {
+    fetchItems();
+  }, [activeTab]);
+
+  const fetchItems = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      let data;
+      if (activeTab === "Merchandise") {
+        data = await merchandiseService.getAllMerchandise();
+      } else {
+        // Fallback or use a specific restaurant ID if needed
+        data = await foodService.getAllFoodOrders(); // Note: This service name in services.js seems to return orders, need to check if there is a getFood
+      }
+      setItems(
+        Array.isArray(data) ? data : data?.items || data?.merchandise || [],
+      );
+    } catch (error) {
+      console.error(`Error fetching ${activeTab}:`, error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchItems(false);
+  };
 
   const toggleSize = (size) => {
     if (selectedSizes.includes(size)) {
@@ -73,10 +111,40 @@ const AdminStoreScreen = ({ navigation }) => {
     setSelectedSizes([]);
   };
 
-  const handleSaveItem = () => {
-    // In a real app, this would save/update the item in a database
-    setIsModalVisible(false);
-    resetForm();
+  const handleSaveItem = async () => {
+    if (!itemName || !itemPrice) {
+      Alert.alert("Error", "Please fill in all required fields.");
+      return;
+    }
+
+    try {
+      if (activeTab === "Merchandise") {
+        const itemData = {
+          name: itemName,
+          price: parseFloat(itemPrice),
+          description: itemDescription,
+          sizes: selectedSizes.join(","),
+          category: itemSubCategory,
+        };
+
+        if (isEditing) {
+          // Update logic if endpoint exists
+        } else {
+          await merchandiseService.uploadMerchandise(itemData);
+        }
+      }
+
+      Alert.alert(
+        "Success",
+        `Item ${isEditing ? "updated" : "added"} successfully!`,
+      );
+      setIsModalVisible(false);
+      resetForm();
+      fetchItems();
+    } catch (error) {
+      console.error("Error saving item:", error);
+      Alert.alert("Error", "Failed to save item. Please try again.");
+    }
   };
 
   const MerchandiseCard = ({ item }) => (
@@ -395,15 +463,26 @@ const AdminStoreScreen = ({ navigation }) => {
         </View>
 
         {/* Content List */}
-        <FlatList
-          data={STORE_ITEMS} // Using same mock data for now, ideally would separate or filter
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <MerchandiseCard item={item} />}
-          contentContainerStyle={styles.listContent}
-          numColumns={2}
-          columnWrapperStyle={styles.columnWrapper}
-          showsVerticalScrollIndicator={false}
-        />
+        {isLoading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={COLORS.brandPurple} />
+          </View>
+        ) : (
+          <FlatList
+            data={items}
+            keyExtractor={(item) =>
+              item.id?.toString() || Math.random().toString()
+            }
+            renderItem={({ item }) => <MerchandiseCard item={item} />}
+            contentContainerStyle={styles.listContent}
+            numColumns={2}
+            columnWrapperStyle={styles.columnWrapper}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            }
+          />
+        )}
       </SafeAreaView>
     </View>
   );
@@ -435,6 +514,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.brandPurple,
     alignItems: "center",
     justifyContent: "center",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   tabsContainer: {
     flexDirection: "row",

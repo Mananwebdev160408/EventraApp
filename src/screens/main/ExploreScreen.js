@@ -26,6 +26,45 @@ import { eventService, stadiumService } from "../../api/services";
 
 const { width } = Dimensions.get("window");
 
+const formatEventDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(
+      dateString.includes(" ") ? dateString.replace(" ", "T") : dateString,
+    );
+    if (isNaN(date.getTime())) return dateString;
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const dayName = days[date.getDay()];
+    const monthName = months[date.getMonth()];
+    const day = date.getDate();
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${dayName}, ${monthName} ${day} • ${hours}:${minutes} ${ampm}`;
+  } catch (e) {
+    return dateString;
+  }
+};
+
 const ExploreScreen = ({ navigation }) => {
   const [activeTab, setActiveTab] = useState("Stadiums");
   const [eventFilter, setEventFilter] = useState("upcoming"); // 'upcoming' or 'ongoing'
@@ -46,17 +85,34 @@ const ExploreScreen = ({ navigation }) => {
     try {
       const eventParams =
         activeCategory !== "All" ? { category: activeCategory } : {};
-      const [eventsData, stadiumsData] = await Promise.all([
-        eventService.getEvents(eventParams),
-        stadiumService.getAllStadiums(),
-      ]);
+      let eventsData = [];
+      let stadiumsData = [];
+
+      try {
+        eventsData = await eventService.getEvents(eventParams);
+      } catch (err) {
+        console.error("Explore - Events fetch failed:", err);
+      }
+
+      try {
+        stadiumsData = await stadiumService.getAllStadiums();
+      } catch (err) {
+        console.error("Explore - Stadiums fetch failed:", err);
+      }
+
       setAllEvents(
-        Array.isArray(eventsData) ? eventsData : eventsData?.events || [],
+        Array.isArray(eventsData.content)
+          ? eventsData.content
+          : Array.isArray(eventsData)
+            ? eventsData
+            : eventsData?.events || eventsData?.data || [],
       );
       setAllStadiums(
-        Array.isArray(stadiumsData)
-          ? stadiumsData
-          : stadiumsData?.stadiums || [],
+        Array.isArray(stadiumsData.content)
+          ? stadiumsData.content
+          : Array.isArray(stadiumsData)
+            ? stadiumsData
+            : stadiumsData?.stadiums || stadiumsData?.data || [],
       );
     } catch (error) {
       console.error("Error fetching explore data:", error);
@@ -65,21 +121,23 @@ const ExploreScreen = ({ navigation }) => {
     }
   };
 
+  const query = (searchQuery || "").toLowerCase();
+
   const filteredEvents = allEvents.filter((event) => {
     const statusMatch =
       eventFilter === "ongoing"
         ? event.status === "ongoing"
         : event.status !== "ongoing";
-    const searchMatch = event.title
+    const searchMatch = (event.name || event.title || "")
       .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+      .includes(query);
     return statusMatch && searchMatch;
   });
 
   const filteredStadiums = allStadiums.filter(
     (stadium) =>
-      stadium.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      stadium.location.toLowerCase().includes(searchQuery.toLowerCase()),
+      (stadium.name || "").toLowerCase().includes(query) ||
+      (stadium.location || "").toLowerCase().includes(query),
   );
 
   const renderStadiumItem = ({ item }) => (
@@ -96,7 +154,10 @@ const ExploreScreen = ({ navigation }) => {
         <View style={styles.stadiumMeta}>
           <View style={styles.metaItem}>
             <MapPin size={14} color={COLORS.gray500} />
-            <Text style={styles.metaText}>{item.location}</Text>
+            <Text style={styles.metaText}>
+              {item.location ||
+                `${item.city || ""}${item.city && item.state ? ", " : ""}${item.state || ""}${(item.city || item.state) && item.country ? ", " : ""}${item.country || ""}`}
+            </Text>
           </View>
           <View style={styles.metaItem}>
             <Users size={14} color={COLORS.gray500} />
@@ -115,10 +176,14 @@ const ExploreScreen = ({ navigation }) => {
     >
       <Image source={{ uri: item.image }} style={styles.eventImage} />
       <View style={styles.eventInfo}>
-        <Text style={styles.eventTitle}>{item.title}</Text>
-        <Text style={styles.eventTime}>{item.time || item.date}</Text>
+        <Text style={styles.eventTitle}>{item.name || item.title}</Text>
+        <Text style={styles.eventTime}>
+          {formatEventDate(item.dateTime || item.time || item.date)}
+        </Text>
         <View style={styles.eventFooter}>
-          <Text style={styles.eventPrice}>{item.price}</Text>
+          <Text style={styles.eventPrice}>
+            {item.minPrice ? `₹${item.minPrice}` : item.price}
+          </Text>
           {item.status === "ongoing" && (
             <View style={styles.liveBadge}>
               <Text style={styles.liveText}>LIVE</Text>

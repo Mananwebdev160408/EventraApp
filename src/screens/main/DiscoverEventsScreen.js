@@ -47,6 +47,45 @@ import {
 
 const { width } = Dimensions.get("window");
 
+const formatEventDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(
+      dateString.includes(" ") ? dateString.replace(" ", "T") : dateString,
+    );
+    if (isNaN(date.getTime())) return dateString;
+
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const dayName = days[date.getDay()];
+    const monthName = months[date.getMonth()];
+    const day = date.getDate();
+    let hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+
+    return `${dayName}, ${monthName} ${day} • ${hours}:${minutes} ${ampm}`;
+  } catch (e) {
+    return dateString;
+  }
+};
+
 const DiscoverEventsScreen = ({ navigation }) => {
   const [activeCategory, setActiveCategory] = useState("All");
   const { userInfo } = useAuth();
@@ -65,22 +104,55 @@ const DiscoverEventsScreen = ({ navigation }) => {
   const fetchInitialData = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
+      let eventsData = [];
+      let stadiumsData = [];
+      let bookingsData = [];
+
       const params =
         activeCategory !== "All" ? { category: activeCategory } : {};
 
-      const [eventsData, stadiumsData, bookingsData] = await Promise.all([
-        eventService.getEvents(params),
-        stadiumService.getAllStadiums(),
-        bookingService.getUserBookings(userInfo?.username),
-      ]);
+      console.log("Fetching Initial Data - Params:", params);
+      console.log("User Info ID:", userInfo?.id);
+
+      try {
+        const evData = await eventService.getEvents(params);
+        eventsData = evData;
+
+        console.log("Events fetched successfully");
+      } catch (err) {
+        console.error("Events fetch failed:", err);
+      }
+
+      try {
+        const stData = await stadiumService.getAllStadiums();
+        stadiumsData = stData;
+        console.log("Stadiums fetched successfully");
+      } catch (err) {
+        console.error("Stadiums fetch failed:", err);
+      }
+
+      if (userInfo?.id) {
+        try {
+          bookingsData = await bookingService.getUserBookings(userInfo.id);
+          console.log("User bookings fetched successfully");
+        } catch (err) {
+          console.error("Bookings fetch failed (non-critical):", err);
+        }
+      }
 
       setEvents(
-        Array.isArray(eventsData) ? eventsData : eventsData?.events || [],
+        Array.isArray(eventsData.content)
+          ? eventsData.content
+          : Array.isArray(eventsData)
+            ? eventsData
+            : eventsData?.events || eventsData?.data || [],
       );
       setStadiums(
-        Array.isArray(stadiumsData)
-          ? stadiumsData
-          : stadiumsData?.stadiums || [],
+        Array.isArray(stadiumsData.content)
+          ? stadiumsData.content
+          : Array.isArray(stadiumsData)
+            ? stadiumsData
+            : stadiumsData?.stadiums || stadiumsData?.data || [],
       );
 
       // Find soonest upcoming event
@@ -182,13 +254,19 @@ const DiscoverEventsScreen = ({ navigation }) => {
     { name: "Festival", icon: <Tent size={18} /> },
   ];
 
+  const searchMatchQuery = (searchQuery || "").toLowerCase();
+
   const getFilteredEvents = () => {
     let filtered = Array.isArray(events) ? events : [];
-    if (searchQuery) {
+    if (searchMatchQuery) {
       filtered = filtered.filter(
         (event) =>
-          event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          event.venue.toLowerCase().includes(searchQuery.toLowerCase()),
+          (event.name || event.title || "")
+            .toLowerCase()
+            .includes(searchMatchQuery) ||
+          (event.venue || (event.stadium && event.stadium.name) || "")
+            .toLowerCase()
+            .includes(searchMatchQuery),
       );
     }
     return filtered;
@@ -204,8 +282,8 @@ const DiscoverEventsScreen = ({ navigation }) => {
 
   const filteredStadiums = stadiums.filter(
     (stadium) =>
-      stadium.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      stadium.location.toLowerCase().includes(searchQuery.toLowerCase()),
+      (stadium.name || "").toLowerCase().includes(searchMatchQuery) ||
+      (stadium.location || "").toLowerCase().includes(searchMatchQuery),
   );
 
   const FeaturedEventCard = ({ event }) => (
@@ -221,17 +299,19 @@ const DiscoverEventsScreen = ({ navigation }) => {
       >
         <View style={styles.featuredTag}>
           <Sparkles size={12} color="#FFFFFF" />
-          <Text style={styles.featuredTagText}>{event.tag}</Text>
+          <Text style={styles.featuredTagText}>{event.tag || "FEATURED"}</Text>
         </View>
-        <Text style={styles.featuredTitle}>{event.title}</Text>
+        <Text style={styles.featuredTitle}>{event.name || event.title}</Text>
         <View style={styles.featuredMeta}>
           <View style={styles.metaItem}>
             <Calendar size={14} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.metaText}>{event.date}</Text>
+            <Text style={styles.metaText}>
+              {formatEventDate(event.dateTime || event.datetime || event.date)}
+            </Text>
           </View>
           <View style={styles.metaItem}>
             <MapPin size={14} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.metaText}>{event.venue}</Text>
+            <Text style={styles.metaText}>{event.venue || "Stadium"}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -421,9 +501,13 @@ const DiscoverEventsScreen = ({ navigation }) => {
                   />
                   <View style={styles.upcomingInfo}>
                     <Text style={styles.upcomingTitle} numberOfLines={1}>
-                      {event.title}
+                      {event.name || event.title}
                     </Text>
-                    <Text style={styles.upcomingDate}>{event.time}</Text>
+                    <Text style={styles.upcomingDate}>
+                      {formatEventDate(
+                        event.dateTime || event.datetime || event.date,
+                      )}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -463,7 +547,10 @@ const DiscoverEventsScreen = ({ navigation }) => {
                     </Text>
                     <View style={styles.stadiumMeta}>
                       <MapPin size={10} color={COLORS.gray500} />
-                      <Text style={styles.stadiumLoc}>{stadium.location}</Text>
+                      <Text style={styles.stadiumLoc}>
+                        {stadium.location ||
+                          `${stadium.city || ""}${stadium.city && stadium.state ? ", " : ""}${stadium.state || ""}${(stadium.city || stadium.state) && stadium.country ? ", " : ""}${stadium.country || ""}`}
+                      </Text>
                     </View>
                   </View>
                 </TouchableOpacity>

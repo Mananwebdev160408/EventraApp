@@ -42,7 +42,7 @@ const TicketScreen = ({ navigation, route }) => {
     }
 
     try {
-      const response = await bookingService.getUserBookings(userInfo?.username);
+      const response = await bookingService.getUserBookings(userInfo?.id);
       const bookings = Array.isArray(response)
         ? response
         : response?.bookings || [];

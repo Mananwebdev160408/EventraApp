@@ -55,7 +55,7 @@ const EventDashboardScreen = ({ navigation }) => {
     if (showLoading) setIsLoading(true);
     try {
       // In a real scenario, we check if there's a booking for today
-      const response = await bookingService.getUserBookings(userInfo?.username);
+      const response = await bookingService.getUserBookings(userInfo?.id);
       const bookings = Array.isArray(response)
         ? response
         : response?.bookings || [];

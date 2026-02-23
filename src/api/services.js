@@ -47,6 +47,7 @@ export const userService = {
 export const eventService = {
   getEvents: async (params) => {
     const response = await apiClient.get("/events", { params });
+    console.log(response.data);
     return response.data;
   },
   getEventDetails: async (eventId) => {
@@ -55,6 +56,12 @@ export const eventService = {
   },
   createEvent: async (eventData) => {
     const response = await apiClient.post("/events/create", eventData);
+    return response.data;
+  },
+  updateEventStatus: async (eventId, status) => {
+    const response = await apiClient.patch(`/events/${eventId}/status`, {
+      status,
+    });
     return response.data;
   },
 };
@@ -75,7 +82,7 @@ export const seatService = {
   },
   bulkCreateSeats: async (eventId, pricing) => {
     const response = await apiClient.post(
-      `/event-seat/bulk/event/${eventId}`,
+      `/event-seats/bulk/event/${eventId}`,
       pricing,
     );
     return response.data;

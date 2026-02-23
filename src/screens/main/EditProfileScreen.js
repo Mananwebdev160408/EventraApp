@@ -28,19 +28,60 @@ import { COLORS } from "../../constants/theme";
 import { useAuth } from "../../context/AuthContext";
 import { userService } from "../../api/services";
 
+const getUserField = (user, ...keys) => {
+  if (!user) return "";
+  const source = user.userDetails || user;
+  for (const key of keys) {
+    if (source[key]) return source[key];
+    if (user[key]) return user[key];
+  }
+  return "";
+};
+
+const InputField = ({
+  label,
+  value,
+  onChangeText,
+  icon: Icon,
+  placeholder,
+  keyboardType = "default",
+  editable = true,
+}) => (
+  <View style={styles.inputGroup}>
+    <Text style={styles.label}>{label}</Text>
+    <View style={[styles.inputWrapper, !editable && styles.disabledInput]}>
+      <View style={styles.iconBox}>
+        <Icon
+          size={18}
+          color={editable ? "#a8dadc" : "rgba(255,255,255,0.4)"}
+        />
+      </View>
+      <TextInput
+        style={[styles.input, !editable && styles.disabledText]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="rgba(255,255,255,0.4)"
+        keyboardType={keyboardType}
+        editable={editable}
+      />
+    </View>
+  </View>
+);
+
 const EditProfileScreen = ({ navigation }) => {
   const { userInfo, setUserInfo } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    firstname: userInfo?.firstname || "",
-    lastname: userInfo?.lastname || "",
-    email: userInfo?.email || "",
-    phone: userInfo?.phone || "",
+    firstName: getUserField(userInfo, "firstName", "firstname"),
+    lastName: getUserField(userInfo, "lastName", "lastname"),
+    email: getUserField(userInfo, "email"),
+    phoneNumber: getUserField(userInfo, "phoneNumber", "phone", "phonenumber"),
   });
 
   const handleUpdate = async () => {
-    if (!formData.firstname || !formData.lastname || !formData.email) {
+    if (!formData.firstName || !formData.lastName || !formData.email) {
       Alert.alert("Error", "Please fill in all required fields");
       return;
     }
@@ -66,38 +107,6 @@ const EditProfileScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
-
-  const InputField = ({
-    label,
-    value,
-    onChangeText,
-    icon: Icon,
-    placeholder,
-    keyboardType = "default",
-    editable = true,
-  }) => (
-    <View style={styles.inputGroup}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputWrapper, !editable && styles.disabledInput]}>
-        <View style={styles.iconBox}>
-          <Icon
-            size={18}
-            color={editable ? "#a8dadc" : "rgba(255,255,255,0.4)"}
-          />
-        </View>
-        <TextInput
-          style={[styles.input, !editable && styles.disabledText]}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor="rgba(255,255,255,0.4)"
-          keyboardType={keyboardType}
-          editable={editable}
-        />
-      </View>
-    </View>
-  );
-
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
@@ -154,9 +163,9 @@ const EditProfileScreen = ({ navigation }) => {
                     <View style={{ flex: 1 }}>
                       <InputField
                         label="First Name"
-                        value={formData.firstname}
+                        value={formData.firstName}
                         onChangeText={(text) =>
-                          setFormData({ ...formData, firstname: text })
+                          setFormData({ ...formData, firstName: text })
                         }
                         icon={User}
                         placeholder="First Name"
@@ -166,9 +175,9 @@ const EditProfileScreen = ({ navigation }) => {
                     <View style={{ flex: 1 }}>
                       <InputField
                         label="Last Name"
-                        value={formData.lastname}
+                        value={formData.lastName}
                         onChangeText={(text) =>
-                          setFormData({ ...formData, lastname: text })
+                          setFormData({ ...formData, lastName: text })
                         }
                         icon={User}
                         placeholder="Last Name"
@@ -189,9 +198,9 @@ const EditProfileScreen = ({ navigation }) => {
 
                   <InputField
                     label="Phone Number"
-                    value={formData.phone}
+                    value={formData.phoneNumber}
                     onChangeText={(text) =>
-                      setFormData({ ...formData, phone: text })
+                      setFormData({ ...formData, phoneNumber: text })
                     }
                     icon={Phone}
                     placeholder="Phone Number"
