@@ -52,7 +52,7 @@ export const eventService = {
   },
   getEventDetails: async (eventId) => {
     const response = await apiClient.get(`/events/${eventId}`);
-    console.log(response.data)
+    console.log(response.data);
     return response.data;
   },
   createEvent: async (eventData) => {
@@ -90,6 +90,22 @@ export const seatService = {
   },
   getAllEventSeats: async () => {
     const response = await apiClient.get("/event-seat/events");
+    return response.data;
+  },
+  importSeats: async (file, stadiumId) => {
+    const formData = new FormData();
+    formData.append("file", {
+      uri: file.uri,
+      name: file.name || "seats.csv",
+      type: "text/csv",
+    });
+
+    const response = await apiClient.post(`/seats/import`, formData, {
+      params: { stadiumId },
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   },
 };

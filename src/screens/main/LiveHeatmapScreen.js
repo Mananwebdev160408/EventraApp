@@ -19,11 +19,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { COLORS } from "../../constants/theme";
 
-// ── Stadium center (can be changed to match any real venue) ──
-const STADIUM_CENTER = { latitude: 28.6127, longitude: 77.2292 }; // Delhi region
-const STADIUM_RADIUS = 0.004; // ~400m spread around stadium
+const STADIUM_CENTER = { latitude: 28.6127, longitude: 77.2292 }; 
+const STADIUM_RADIUS = 0.004; 
 
-// ── Predefined hotspot zones within the stadium ──
 const ZONES = [
   { name: "Main Gate", lat: 28.614, lng: 77.229, baseIntensity:0 },
   { name: "South Stand", lat: 28.6115, lng: 77.2285, baseIntensity:0 },

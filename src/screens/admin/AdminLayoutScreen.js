@@ -26,33 +26,54 @@ import {
 import { COLORS } from "../../constants/theme";
 import { SEAT_MAP_DATA } from "../../constants/mocks";
 import { useUser } from "../../context/UserContext";
+import { seatService } from "../../api/services";
 
 const { width } = Dimensions.get("window");
 
 const AdminLayoutScreen = ({ navigation }) => {
-  const { stadiumLocation } = useUser();
+  const { stadiumLocation, stadiumId } = useUser();
   const [selectedSector, setSelectedSector] = useState(null);
 
   const handleImportExcel = async () => {
+    if (!stadiumId) {
+      Alert.alert(
+        "Error",
+        "Stadium information not found. Please log in again.",
+      );
+      return;
+    }
+
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: [
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          "application/vnd.ms-excel",
-        ],
+        type: ["text/comma-separated-values", "text/csv", "application/csv"],
         copyToCacheDirectory: true,
       });
 
       if (result.canceled) return;
 
       const file = result.assets[0];
-      Alert.alert(
-        "Layout Imported",
-        `Successfully loaded stadium configuration from ${file.name}.`,
-      );
+
+      // Show processing alert or loading state
+      Alert.alert("Processing", `Importing seats from ${file.name}...`);
+
+      const response = await seatService.importSeats(file, stadiumId);
+
+      if (response.success) {
+        Alert.alert(
+          "Success",
+          `Successfully imported configuration. ${response.message}`,
+        );
+      } else {
+        Alert.alert(
+          "Import Failed",
+          response.message || "Unknown error occurred",
+        );
+      }
     } catch (err) {
-      console.warn(err);
-      Alert.alert("Error", "Failed to pick file");
+      console.error("Import error:", err);
+      const errorMessage =
+        err.response?.data?.message || err.message || "Failed to upload file";
+      Alert.alert("Error", errorMessage);
     }
   };
 
