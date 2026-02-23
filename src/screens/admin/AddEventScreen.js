@@ -25,41 +25,28 @@ import Button from "../../components/Button";
 import Input from "../../components/Input";
 import { eventService, stadiumService } from "../../api/services";
 import { useAuth } from "../../context/AuthContext";
+import { useUser } from "../../context/UserContext";
 
 const AddEventScreen = ({ navigation }) => {
   const { userInfo } = useAuth();
+  const { stadiumId: contextStadiumId, stadiumLocation } = useUser();
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("2026-12-05");
   const [time, setTime] = useState("18:30");
-  const [venue, setVenue] = useState("");
+  const [venue, setVenue] = useState(stadiumLocation);
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Sports");
-  const [stadiumId, setStadiumId] = useState(null);
+  const [stadiumId, setStadiumId] = useState(contextStadiumId);
   const [vipPrice, setVipPrice] = useState("500");
   const [standardPrice, setStandardPrice] = useState("200");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    fetchAdminStadium();
-  }, []);
-
-  const fetchAdminStadium = async () => {
-    try {
-      const stadiums = await stadiumService.getAllStadiums();
-      console.log("on add event page",stadiums);
-      const myStadium = stadiums.find(
-        (s) =>
-          s.adminEmail === userInfo?.email ||
-          s.adminEmail === userInfo?.username,
-      );
-      if (myStadium) {
-        setStadiumId(myStadium.id);
-        setVenue(myStadium.name);
-      }
-    } catch (error) {
-      console.error("Error fetching stadium:", error);
+    if (contextStadiumId) {
+      setStadiumId(contextStadiumId);
+      setVenue(stadiumLocation);
     }
-  };
+  }, [contextStadiumId, stadiumLocation]);
 
   const handleCreate = async () => {
     if (!title || !date || !time || !stadiumId) {

@@ -55,6 +55,7 @@ import ManageEventDetailsScreen from "../screens/admin/ManageEventDetailsScreen"
 import AdminLayoutScreen from "../screens/admin/AdminLayoutScreen";
 import AdminStoreScreen from "../screens/admin/AdminStoreScreen";
 import AdminInventoryScreen from "../screens/admin/AdminInventoryScreen";
+import AdminProfileScreen from "../screens/admin/AdminProfileScreen";
 import MyTicketsScreen from "../screens/main/MyTicketsScreen";
 import StadiumMapScreen from "../screens/main/StadiumMapScreen";
 import StadiumDetailsScreen from "../screens/main/StadiumDetailsScreen";
@@ -201,8 +202,8 @@ function AdminTabs() {
         }}
       />
       <AdminTab.Screen
-        name="Analytics"
-        component={AdminAnalyticsScreen}
+        name="Profile"
+        component={AdminProfileScreen}
         options={{
           tabBarIcon: ({ color }) => <User size={24} color={color} />,
         }}
@@ -361,22 +362,10 @@ export default function AppNavigator() {
                 }}
               />
               <Stack.Screen name="Ticket" component={TicketScreen} />
-              <Stack.Screen name="StadiumMap" component={StadiumMapScreen} />
-              <Stack.Screen
-                name="StadiumDetails"
-                component={StadiumDetailsScreen}
-              />
-              <Stack.Screen name="Emergency" component={EmergencyScreen} />
-              <Stack.Screen
-                name="ActivityHistory"
-                component={ActivityHistoryScreen}
-              />
               <Stack.Screen
                 name="OrderHistory"
                 component={OrderHistoryScreen}
               />
-              <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-              <Stack.Screen name="LiveHeatmap" component={LiveHeatmapScreen} />
 
               {/* Commerce Flow */}
               <Stack.Screen name="Store" component={StoreScreen} />
@@ -400,6 +389,21 @@ export default function AppNavigator() {
           )}
 
           <Stack.Screen name="Notifications" component={NotificationsScreen} />
+
+          {/* Shared Screens */}
+          <Stack.Screen name="StadiumMap" component={StadiumMapScreen} />
+          <Stack.Screen
+            name="StadiumDetails"
+            component={StadiumDetailsScreen}
+          />
+          <Stack.Screen name="Emergency" component={EmergencyScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          <Stack.Screen name="LiveHeatmap" component={LiveHeatmapScreen} />
+          <Stack.Screen name="AdminProfile" component={AdminProfileScreen} />
+          <Stack.Screen
+            name="ActivityHistory"
+            component={ActivityHistoryScreen}
+          />
         </Stack.Navigator>
         <StatusBar style="dark" />
       </NavigationContainer>

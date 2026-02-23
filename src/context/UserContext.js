@@ -9,13 +9,15 @@ import * as Location from "expo-location";
 import { useAuth } from "./AuthContext";
 import { Client } from "@stomp/stompjs";
 import { API_CONFIG } from "../api/config";
+import { stadiumService } from "../api/services";
 import "text-encoding";
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [city, setCity] = useState("Detecting..."); // Default city
-  const [stadiumLocation, setStadiumLocation] = useState("Wembley, London"); // Admin's stadium location
+  const [stadiumLocation, setStadiumLocation] = useState("Stadium Name"); // Admin's stadium location
+  const [stadiumId, setStadiumId] = useState(null); // Admin's stadium ID
   const [role, setRole] = useState("fan"); // 'fan' or 'admin'
 
   const updateLocation = async () => {
@@ -69,6 +71,46 @@ export const UserProvider = ({ children }) => {
     console.log("UserProvider mounted, triggering auto-location update...");
     updateLocation();
   }, []);
+
+  // Update role and fetch stadium info if admin
+  useEffect(() => {
+    if (userInfo?.role) {
+      setRole(userInfo.role.toLowerCase());
+    } else {
+      setRole("fan");
+      setStadiumLocation("Stadium Name");
+      setStadiumId(null);
+    }
+
+    const fetchAdminStadium = async () => {
+      if (
+        userInfo &&
+        (userInfo.role === "admin" || userInfo.role === "ADMIN")
+      ) {
+        try {
+          const stadiums = await stadiumService.getAllStadiums();
+          const myStadium = stadiums.find(
+            (s) =>
+              s.adminEmail === userInfo.email ||
+              s.adminEmail === userInfo.username,
+          );
+          if (myStadium) {
+            // Update stadium location with name and city
+            const locationStr =
+              myStadium.city && myStadium.state
+                ? `${myStadium.name}, ${myStadium.city}`
+                : myStadium.name;
+            setStadiumLocation(locationStr);
+            setStadiumId(myStadium.id);
+          }
+        } catch (error) {
+          console.error("Error fetching admin stadium in UserContext:", error);
+        }
+      }
+    };
+
+    fetchAdminStadium();
+  }, [userInfo]);
 
   // Persistent location reporting for the stadium heatmap
   useEffect(() => {
@@ -144,6 +186,8 @@ export const UserProvider = ({ children }) => {
         setCity,
         stadiumLocation,
         setStadiumLocation,
+        stadiumId,
+        setStadiumId,
         role,
         setRole,
         updateLocation,

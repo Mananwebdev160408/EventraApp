@@ -20,10 +20,12 @@ import {
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
+import { useUser } from "../../context/UserContext";
 
 const { width } = Dimensions.get("window");
 
 const AdminInventoryScreen = ({ navigation }) => {
+  const { stadiumLocation } = useUser();
   const [activeCategory, setActiveCategory] = useState("Food");
   const [selectedRestaurant, setSelectedRestaurant] = useState("Burger King");
 
@@ -135,7 +137,7 @@ const AdminInventoryScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Inventory Sales</Text>
-          <Text style={styles.headerSubtitle}>Real-time commerce tracking</Text>
+          <Text style={styles.stadiumSubtitle}>{stadiumLocation}</Text>
         </View>
 
         <View style={styles.tabContainer}>
@@ -297,6 +299,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "800",
     color: "#1d3557",
+  },
+  stadiumSubtitle: {
+    fontSize: 12,
+    color: COLORS.brandPurple,
+    fontWeight: "700",
+    marginTop: 2,
+    textTransform: "uppercase",
   },
   headerSubtitle: {
     fontSize: 14,

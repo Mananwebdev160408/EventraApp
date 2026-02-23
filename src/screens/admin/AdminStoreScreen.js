@@ -33,8 +33,10 @@ import {
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
 import { foodService, merchandiseService } from "../../api/services";
+import { useUser } from "../../context/UserContext";
 
 const AdminStoreScreen = ({ navigation }) => {
+  const { stadiumLocation } = useUser();
   const [activeTab, setActiveTab] = useState("Merchandise");
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -184,7 +186,10 @@ const AdminStoreScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Store Management</Text>
+          <View>
+            <Text style={styles.headerTitle}>Store Management</Text>
+            <Text style={styles.stadiumSubtitle}>{stadiumLocation}</Text>
+          </View>
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => {
@@ -506,6 +511,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     color: COLORS.text,
+  },
+  stadiumSubtitle: {
+    fontSize: 12,
+    color: COLORS.brandPurple,
+    fontWeight: "700",
+    marginTop: 2,
+    textTransform: "uppercase",
   },
   addButton: {
     width: 40,

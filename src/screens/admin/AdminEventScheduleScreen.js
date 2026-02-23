@@ -22,19 +22,26 @@ import {
 import { COLORS } from "../../constants/theme";
 import { eventService, stadiumService } from "../../api/services";
 import { useAuth } from "../../context/AuthContext";
+import { useUser } from "../../context/UserContext";
 import { Alert } from "react-native";
 
 const AdminEventScheduleScreen = ({ navigation }) => {
   const { userInfo } = useAuth();
+  const { stadiumLocation, stadiumId: contextStadiumId } = useUser();
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [stadiumId, setStadiumId] = useState(null);
+  const [stadiumId, setStadiumId] = useState(contextStadiumId);
 
   useEffect(() => {
-    initializeData();
-  }, []);
+    if (contextStadiumId) {
+      setStadiumId(contextStadiumId);
+      fetchEvents(contextStadiumId, true);
+    } else {
+      initializeData();
+    }
+  }, [contextStadiumId]);
 
   const initializeData = async () => {
     setIsLoading(true);
@@ -235,7 +242,10 @@ const AdminEventScheduleScreen = ({ navigation }) => {
           >
             <ChevronLeft size={24} color={COLORS.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Event Schedule</Text>
+          <View style={{ alignItems: "center" }}>
+            <Text style={styles.headerTitle}>Event Schedule</Text>
+            <Text style={styles.stadiumSubtitle}>{stadiumLocation}</Text>
+          </View>
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => navigation.navigate("AddEvent")}
@@ -322,6 +332,13 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: COLORS.text,
     letterSpacing: -0.5,
+  },
+  stadiumSubtitle: {
+    fontSize: 12,
+    color: COLORS.brandPurple,
+    fontWeight: "700",
+    marginTop: 2,
+    textTransform: "uppercase",
   },
   searchContainer: {
     flexDirection: "row",

@@ -24,6 +24,7 @@ import {
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
+import { useUser } from "../../context/UserContext";
 import {
   eventService,
   bookingService,
@@ -34,6 +35,7 @@ import {
 const { width } = Dimensions.get("window");
 
 const AdminAnalyticsScreen = ({ navigation }) => {
+  const { stadiumLocation } = useUser();
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalBookings: 0,
@@ -160,7 +162,10 @@ const AdminAnalyticsScreen = ({ navigation }) => {
           >
             <ChevronLeft size={24} color="#1d3557" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Stadium Insights</Text>
+          <View style={{ alignItems: "center" }}>
+            <Text style={styles.headerTitle}>Stadium Insights</Text>
+            <Text style={styles.stadiumSubtitle}>{stadiumLocation}</Text>
+          </View>
           <TouchableOpacity style={styles.downloadButton}>
             <Download size={20} color="#1d3557" />
           </TouchableOpacity>
@@ -353,6 +358,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "800",
     color: "#1d3557",
+  },
+  stadiumSubtitle: {
+    fontSize: 12,
+    color: COLORS.brandPurple,
+    fontWeight: "700",
+    marginTop: 2,
+    textTransform: "uppercase",
   },
   content: {
     padding: 24,

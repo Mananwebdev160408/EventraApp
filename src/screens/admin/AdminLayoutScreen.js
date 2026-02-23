@@ -25,10 +25,12 @@ import {
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
 import { SEAT_MAP_DATA } from "../../constants/mocks";
+import { useUser } from "../../context/UserContext";
 
 const { width } = Dimensions.get("window");
 
 const AdminLayoutScreen = ({ navigation }) => {
+  const { stadiumLocation } = useUser();
   const [selectedSector, setSelectedSector] = useState(null);
 
   const handleImportExcel = async () => {
@@ -107,7 +109,7 @@ const AdminLayoutScreen = ({ navigation }) => {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerTitle}>Stadium Layout</Text>
+            <Text style={styles.headerTitle}>{stadiumLocation}</Text>
             <Text style={styles.headerSubtitle}>Manage zones & seating</Text>
           </View>
           <View style={styles.headerActions}>
