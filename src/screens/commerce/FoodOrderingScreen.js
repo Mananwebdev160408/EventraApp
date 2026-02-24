@@ -24,7 +24,8 @@ import {
 import { COLORS } from "../../constants/theme";
 import { restaurantService } from "../../api/services";
 
-const FoodOrderingScreen = ({ navigation }) => {
+const FoodOrderingScreen = ({ navigation, route }) => {
+  const { eventId, stadiumId } = route.params || {};
   const [activeCategory, setActiveCategory] = useState("All Items");
   const [vendors, setVendors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +95,8 @@ const FoodOrderingScreen = ({ navigation }) => {
             navigation.navigate("Menu", {
               restaurantId: item.id,
               restaurantName: item.name,
+              eventId: eventId,
+              stadiumId: stadiumId,
             })
           }
         >

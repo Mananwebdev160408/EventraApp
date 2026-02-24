@@ -31,7 +31,7 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const setTickets = (seats, eventId) => {
+  const setTickets = (seats, eventId, stadiumId) => {
     const formattedTickets = seats.map((seat) => ({
       id: seat.id,
       name: `Seat ${seat.row}${seat.number}`,
@@ -39,6 +39,7 @@ export const CartProvider = ({ children }) => {
       quantity: 1,
       type: "Ticket",
       eventId: eventId,
+      stadiumId: stadiumId,
       image:
         "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=200&auto=format&fit=crop", // Placeholder for ticket
     }));

@@ -39,7 +39,7 @@ import { eventService, bookingService, sosService } from "../../api/services";
 const { width } = Dimensions.get("window");
 
 const AdminDashboardScreen = ({ navigation }) => {
-  const { stadiumLocation } = useUser();
+  const { stadiumLocation, stadiumId } = useUser();
   const { userInfo } = useAuth();
   const [dashboardData, setDashboardData] = useState({
     liveEvent: null,
@@ -261,16 +261,31 @@ const AdminDashboardScreen = ({ navigation }) => {
         sosService.getAllSos(),
       ]);
 
-      const liveEvent = Array.isArray(events) ? events[0] : null; // Assume first event is upcoming/live
+      // Filter events by admin's stadium if available
+      const myStadiumEvents = Array.isArray(events)
+        ? events.filter((e) => e.stadiumId === stadiumId)
+        : [];
+
+      const liveEvent =
+        myStadiumEvents.find((e) => e.live) || myStadiumEvents[0] || null;
+
       const alertsCount = Array.isArray(sosAlerts) ? sosAlerts.length : 0;
       const recentSos = Array.isArray(sosAlerts) ? sosAlerts.slice(0, 3) : [];
 
+      const ticketsSold = liveEvent?.totalTicketsSold || 0;
+      const totalCapacity = liveEvent?.capacity || 1; // Avoid division by zero
+      const attendancePercent = Math.round((ticketsSold / totalCapacity) * 100);
+
       setDashboardData({
         liveEvent,
-        attendance: liveEvent ? "42,000 / 50,000" : "0 / 0",
-        capacityPercent: liveEvent ? 84 : 0,
-        storeRevenue: "$1.2M",
-        eventsCount: Array.isArray(events) ? events.length : 0,
+        attendance: liveEvent
+          ? `${ticketsSold.toLocaleString()} / ${totalCapacity.toLocaleString()}`
+          : "0 / 0",
+        capacityPercent: attendancePercent,
+        storeRevenue: liveEvent
+          ? `₹${(ticketsSold * 150).toLocaleString()}`
+          : "₹0", // Simple estimation for demo
+        eventsCount: myStadiumEvents.length,
         activeAlerts: alertsCount,
         recentActivity: recentSos.map((alert) => ({
           id: alert.id,

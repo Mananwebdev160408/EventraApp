@@ -41,7 +41,7 @@ const SeatInformationScreen = ({ navigation, route }) => {
       await bookingService.reserveSeats({ seatIdList });
 
       // 2. Add to cart
-      setTickets(seats, eventId);
+      setTickets(seats, eventId, representativeSeat?.stadiumId);
 
       // 3. Navigate to Checkout
       navigation.navigate("Checkout");

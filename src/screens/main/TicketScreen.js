@@ -130,8 +130,8 @@ const TicketScreen = ({ navigation, route }) => {
               <Image
                 source={{
                   uri:
-                    event.image ||
-                    "https://images.unsplash.com/photo-1522778119026-d647f0565c6a?auto=format&fit=crop&q=80&w=800",
+                    eventData?.image ||
+                    "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=800&auto=format&fit=crop",
                 }}
                 style={styles.eventImage}
                 resizeMode="cover"

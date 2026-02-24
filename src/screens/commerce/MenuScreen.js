@@ -35,7 +35,8 @@ const VENDOR_COLORS = {
 };
 
 const MenuScreen = ({ navigation, route }) => {
-  const { restaurantId, restaurantName } = route.params || {};
+  const { restaurantId, restaurantName, eventId, stadiumId } =
+    route.params || {};
   const [activeCategory, setActiveCategory] = useState("All");
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState(["All"]);
@@ -60,6 +61,9 @@ const MenuScreen = ({ navigation, route }) => {
         image:
           "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop", // Default placeholder
         category: item.type || "Main",
+        restaurantId: restaurantId,
+        eventId: eventId,
+        stadiumId: stadiumId,
       }));
       setMenuItems(formattedItems);
 

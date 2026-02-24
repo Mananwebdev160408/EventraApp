@@ -52,6 +52,7 @@ const SeatBlockScreen = ({ navigation, route }) => {
           availability: es.availability,
           status: es.availability ? "available" : "booked",
           seatCategory: es.seat?.category,
+          stadiumId: es.stadiumId,
         }));
 
       setSeats(filtered);

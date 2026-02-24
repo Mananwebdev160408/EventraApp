@@ -77,6 +77,7 @@ const EventDashboardScreen = ({ navigation }) => {
           section: liveBooking.event?.section || "A",
           row: liveBooking.event?.row || "05",
           seat: liveBooking.seatNumber || liveBooking.seat,
+          stadiumId: liveBooking.event?.stadium?.id || liveBooking.stadiumId,
         });
       } else {
         setActiveEvent(null);
@@ -348,7 +349,12 @@ const EventDashboardScreen = ({ navigation }) => {
               subtitle="Order snacks to your seat"
               icon={<Utensils size={24} color="#FFFFFF" />}
               color="#e63946"
-              onPress={() => navigation.navigate("FoodOrdering")}
+              onPress={() =>
+                navigation.navigate("FoodOrdering", {
+                  eventId: activeEvent.id,
+                  stadiumId: activeEvent.stadiumId,
+                })
+              }
             />
 
             <ActionCard
@@ -356,7 +362,12 @@ const EventDashboardScreen = ({ navigation }) => {
               subtitle="Exclusive event gear"
               icon={<ShoppingBag size={24} color="#FFFFFF" />}
               color="#f4a261"
-              onPress={() => navigation.navigate("Store")}
+              onPress={() =>
+                navigation.navigate("Store", {
+                  eventId: activeEvent.id,
+                  stadiumId: activeEvent.stadiumId,
+                })
+              }
             />
 
             <ActionCard

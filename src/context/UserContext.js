@@ -85,7 +85,10 @@ export const UserProvider = ({ children }) => {
     const fetchAdminStadium = async () => {
       if (
         userInfo &&
-        (userInfo.role === "admin" || userInfo.role === "ADMIN")
+        (userInfo.roles?.includes("admin") ||
+          userInfo.roles?.includes("ROLE_ADMIN") ||
+          userInfo.role === "admin" ||
+          userInfo.role === "ADMIN")
       ) {
         try {
           const stadiums = await stadiumService.getAllStadiums();

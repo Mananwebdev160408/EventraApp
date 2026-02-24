@@ -46,6 +46,7 @@ const CheckoutScreen = ({ navigation }) => {
 
       // 1. Create Food Order if there are food items
       if (foodItems.length > 0) {
+        const firstFoodItem = foodItems[0];
         const foodOrderData = {
           foodIds: foodItems.map((item) => parseInt(item.id)),
           foodNames: foodItems.map((item) => item.name),
@@ -59,14 +60,15 @@ const CheckoutScreen = ({ navigation }) => {
           ),
           status: "PENDING",
           userId: userInfo.id,
-          restaurantId: 1, // Need to handle multiple restaurants or get from item
-          eventId: 1, // Context needed
+          restaurantId: firstFoodItem.restaurantId || 1,
+          eventId: firstFoodItem.eventId || 1,
         };
         orderRequests.push(foodOrderService.placeFoodOrder(foodOrderData));
       }
 
       // 2. Create Merchandise Order if there are merch items
       if (merchandiseItems.length > 0) {
+        const firstMerchItem = merchandiseItems[0];
         const merchOrderData = {
           merchandiseIds: merchandiseItems.map((item) => parseInt(item.id)),
           merchandiseNames: merchandiseItems.map((item) => item.name),
@@ -83,26 +85,24 @@ const CheckoutScreen = ({ navigation }) => {
           ),
           status: "PENDING",
           userId: userInfo.id,
-          stadiumId: 1, // Context needed
+          stadiumId: firstMerchItem.stadiumId || 1,
         };
         orderRequests.push(
-          merchandiseOrderService.createMerchandiseOrder(merchOrderData),
+          merchandiseOrderService.placeMerchandiseOrder(merchOrderData),
         );
       }
 
       // 3. Confirm Ticket Bookings
       if (ticketItems.length > 0) {
-        // Group by event/stadium if needed, but for now we assume one event context
-        const eventId = ticketItems[0].eventId || 1;
-        const stadiumId = 1; // Default
+        const firstTicket = ticketItems[0];
         const seatIdList = ticketItems.map((item) => item.id);
 
         orderRequests.push(
           bookingService.confirmBooking({
             seatIdList,
             userId: userInfo.id,
-            eventId,
-            stadiumId,
+            eventId: firstTicket.eventId,
+            stadiumId: firstTicket.stadiumId,
           }),
         );
       }

@@ -24,7 +24,8 @@ import { COLORS, FONTS } from "../../constants/theme";
 import { merchandiseService } from "../../api/services";
 import { useCart } from "../../context/CartContext";
 
-const StoreScreen = ({ navigation }) => {
+const StoreScreen = ({ navigation, route }) => {
+  const { eventId, stadiumId } = route.params || {};
   const [activeCategory, setActiveCategory] = useState("All");
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState(["All"]);
@@ -48,6 +49,8 @@ const StoreScreen = ({ navigation }) => {
           image:
             "https://images.unsplash.com/photo-1576859958081-27ee54e57f51?w=400&h=400&fit=crop", // Default placeholder
           category: item.type || "Other",
+          eventId: eventId,
+          stadiumId: stadiumId,
         }),
       );
       setProducts(formattedProducts);
