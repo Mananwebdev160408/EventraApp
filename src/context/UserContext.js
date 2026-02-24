@@ -10,7 +10,7 @@ import { useAuth } from "./AuthContext";
 import { Client } from "@stomp/stompjs";
 import { API_CONFIG } from "../api/config";
 import { stadiumService } from "../api/services";
-import "text-encoding";
+// import "text-encoding";
 
 const UserContext = createContext();
 

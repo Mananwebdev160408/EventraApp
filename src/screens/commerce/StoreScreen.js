@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,21 +7,73 @@ import {
   Image,
   TouchableOpacity,
   TextInput,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { Search, ShoppingBag, Bell, Plus, Heart } from "lucide-react-native";
+import {
+  Search,
+  ShoppingBag,
+  Bell,
+  Plus,
+  Heart,
+  ShoppingCart,
+} from "lucide-react-native";
 import { COLORS, FONTS } from "../../constants/theme";
-import { STORE_ITEMS } from "../../constants/mocks";
+import { merchandiseService } from "../../api/services";
+import { useCart } from "../../context/CartContext";
 
 const StoreScreen = ({ navigation }) => {
   const [activeCategory, setActiveCategory] = useState("All");
-  const categories = ["All", "Jerseys", "Caps", "Accessories", "Souvenirs"];
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState(["All"]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { addToCart, itemCount } = useCart();
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const data = await merchandiseService.getAllMerchandise();
+      const formattedProducts = (Array.isArray(data) ? data : []).map(
+        (item) => ({
+          id: item.id.toString(),
+          name: item.name,
+          price: `$${(item.price || 0).toFixed(2)}`,
+          image:
+            "https://images.unsplash.com/photo-1576859958081-27ee54e57f51?w=400&h=400&fit=crop", // Default placeholder
+          category: item.type || "Other",
+        }),
+      );
+      setProducts(formattedProducts);
+
+      const uniqueCats = [
+        "All",
+        ...new Set(formattedProducts.map((p) => p.category)),
+      ];
+      setCategories(uniqueCats);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchProducts(false);
+  };
 
   const filteredItems =
     activeCategory === "All"
-      ? STORE_ITEMS
-      : STORE_ITEMS.filter((item) => item.category === activeCategory);
+      ? products
+      : products.filter((item) => item.category === activeCategory);
 
   const renderItem = ({ item }) => (
     <View style={styles.productCard}>
@@ -45,7 +97,10 @@ const StoreScreen = ({ navigation }) => {
           </Text>
           <Text style={styles.productPrice}>{item.price}</Text>
         </View>
-        <TouchableOpacity style={styles.addButton}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => addToCart(item, "Merchandise")}
+        >
           <Plus size={16} color={COLORS.white} />
         </TouchableOpacity>
       </View>
@@ -104,15 +159,33 @@ const StoreScreen = ({ navigation }) => {
         </View>
 
         {/* Product Grid */}
-        <FlatList
-          data={filteredItems}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.columnWrapper}
-          contentContainerStyle={styles.productList}
-          showsVerticalScrollIndicator={false}
-        />
+        {isLoading && !isRefreshing ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.brandPurple} />
+            <Text style={styles.loadingText}>Loading products...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredItems}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            columnWrapperStyle={styles.columnWrapper}
+            contentContainerStyle={styles.productList}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <ShoppingCart size={48} color={COLORS.gray200} />
+                <Text style={styles.emptyText}>
+                  No items found in this category
+                </Text>
+              </View>
+            }
+          />
+        )}
 
         {/* Floating Cart Button */}
         <TouchableOpacity
@@ -120,9 +193,11 @@ const StoreScreen = ({ navigation }) => {
           onPress={() => navigation.navigate("Cart")}
         >
           <ShoppingBag size={24} color={COLORS.white} />
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>3</Text>
-          </View>
+          {itemCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{itemCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </SafeAreaView>
     </View>
@@ -306,6 +381,29 @@ const styles = StyleSheet.create({
     color: COLORS.brandPurple,
     fontSize: 10,
     fontWeight: "700",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: COLORS.gray500,
+    fontWeight: "600",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 100,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: COLORS.gray500,
+    fontWeight: "500",
   },
 });
 

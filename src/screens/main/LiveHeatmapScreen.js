@@ -7,6 +7,8 @@ import {
   Animated,
 } from "react-native";
 import MapView, { Heatmap, PROVIDER_GOOGLE } from "react-native-maps";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 import {
   ChevronLeft,
   Flame,
@@ -15,22 +17,22 @@ import {
   Zap,
   Shield,
 } from "lucide-react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
+import { Client } from "@stomp/stompjs";
+import { API_CONFIG } from "../../api/config";
 import { COLORS } from "../../constants/theme";
 
-const STADIUM_CENTER = { latitude: 28.6127, longitude: 77.2292 }; 
-const STADIUM_RADIUS = 0.004; 
+const STADIUM_CENTER = { latitude: 28.6127, longitude: 77.2292 };
+const STADIUM_RADIUS = 0.004;
 
 const ZONES = [
-  { name: "Main Gate", lat: 28.614, lng: 77.229, baseIntensity:0 },
-  { name: "South Stand", lat: 28.6115, lng: 77.2285, baseIntensity:0 },
-  { name: "VIP Lounge", lat: 28.6132, lng: 77.2305, baseIntensity:0 },
-  { name: "Food Court", lat: 28.612, lng: 77.23, baseIntensity:0 },
-  { name: "North Stand", lat: 28.6145, lng: 77.2295, baseIntensity:0 },
-  { name: "Merch Zone", lat: 28.6128, lng: 77.2275, baseIntensity:0 },
-  { name: "East Wing", lat: 28.6135, lng: 77.231, baseIntensity:0 },
-  { name: "Parking A", lat: 28.615, lng: 77.228, baseIntensity:0 },
+  { name: "Main Gate", lat: 28.614, lng: 77.229, baseIntensity: 0 },
+  { name: "South Stand", lat: 28.6115, lng: 77.2285, baseIntensity: 0 },
+  { name: "VIP Lounge", lat: 28.6132, lng: 77.2305, baseIntensity: 0 },
+  { name: "Food Court", lat: 28.612, lng: 77.23, baseIntensity: 0 },
+  { name: "North Stand", lat: 28.6145, lng: 77.2295, baseIntensity: 0 },
+  { name: "Merch Zone", lat: 28.6128, lng: 77.2275, baseIntensity: 0 },
+  { name: "East Wing", lat: 28.6135, lng: 77.231, baseIntensity: 0 },
+  { name: "Parking A", lat: 28.615, lng: 77.228, baseIntensity: 0 },
 ];
 
 // ── Generate initial grid of heatmap points ──
@@ -104,11 +106,11 @@ const LiveHeatmapScreen = ({ navigation }) => {
   const [userCount, setUserCount] = useState(0);
   const [peakZone, setPeakZone] = useState("Main Gate");
   const [isLive, setIsLive] = useState(false);
-  const [heatmapKey, setHeatmapKey] = useState(0); // forces Heatmap re-mount
+  const [heatmapKey, setHeatmapKey] = useState(0);
   const frameRef = useRef(0);
   const pulseAnim = useRef(new Animated.Value(0.8)).current;
+  const stompClient = useRef(null);
 
-  // Pulsing animation for live dot
   useEffect(() => {
     const pulse = Animated.loop(
       Animated.sequence([
@@ -128,58 +130,77 @@ const LiveHeatmapScreen = ({ navigation }) => {
     return () => pulse.stop();
   }, []);
 
-  // Initialize grid
   useEffect(() => {
-    const initial = generateInitialGrid();
-    setHeatmapPoints(initial);
-    // Simulate "connecting" delay
-    const timer = setTimeout(() => setIsLive(true), 1200);
-    return () => clearTimeout(timer);
+    // Initial simulation while connecting
+    setHeatmapPoints(generateInitialGrid());
+
+    const socketUrl = API_CONFIG.BASE_URL.replace("http", "ws") + "/ws";
+    stompClient.current = new Client({
+      brokerURL: socketUrl,
+      reconnectDelay: 5000,
+      onConnect: () => {
+        console.log("Heatmap Screen Connected");
+        setIsLive(true);
+        stompClient.current.subscribe("/topic/admin/heatmap", (message) => {
+          const clusteredPoints = JSON.parse(message.body);
+          if (clusteredPoints && clusteredPoints.length > 0) {
+            updateWithRealData(clusteredPoints);
+          }
+        });
+      },
+    });
+
+    stompClient.current.activate();
+    return () => stompClient.current?.deactivate();
   }, []);
 
-  // Main animation loop — runs every 800ms
+  const updateWithRealData = (points) => {
+    setHeatmapPoints(
+      points.map((p) => ({
+        latitude: p.latitude,
+        longitude: p.longitude,
+        weight: p.weight * 5, // Amplify for better heatmap visibility
+      })),
+    );
+
+    const totalUsers = points.reduce((acc, p) => acc + p.weight, 0);
+    setUserCount(totalUsers);
+
+    // Peak zone logic
+    let maxVal = 0;
+    let maxZone = "Main Gate";
+    ZONES.forEach((zone) => {
+      const nearbyPoints = points.filter(
+        (p) =>
+          Math.hypot(p.latitude - zone.lat, p.longitude - zone.lng) < 0.0015,
+      );
+      const zoneWeight = nearbyPoints.reduce((a, p) => a + p.weight, 0);
+      if (zoneWeight > maxVal) {
+        maxVal = zoneWeight;
+        maxZone = zone.name;
+      }
+    });
+    setPeakZone(maxZone);
+    setHeatmapKey((k) => k + 1);
+  };
+
+  // Keep simulation for empty data or background movement
   useEffect(() => {
     if (!isLive) return;
 
     const interval = setInterval(() => {
       frameRef.current += 1;
-
       setHeatmapPoints((prev) => {
-        let updated = applyRandomWalk(prev, frameRef.current);
-
-        // Every ~4 ticks, add a random hotspot burst
-        if (frameRef.current % 4 === 0) {
-          updated = addRandomHotspot(updated);
+        // Only simulate if we have very few points (likely just the test user)
+        if (prev.length < 50) {
+          let updated = applyRandomWalk(prev, frameRef.current);
+          if (frameRef.current % 4 === 0) updated = addRandomHotspot(updated);
+          return updated;
         }
-
-        // Calculate live stats
-        const totalWeight = updated.reduce((acc, p) => acc + p.weight, 0);
-        const simulatedUsers = Math.floor(totalWeight * 1.8 + 120);
-        setUserCount(simulatedUsers);
-
-        // Find peak zone
-        let maxVal = 0;
-        let maxZone = "Main Gate";
-        ZONES.forEach((zone) => {
-          const nearbyPoints = updated.filter(
-            (p) =>
-              Math.hypot(p.latitude - zone.lat, p.longitude - zone.lng) <
-              0.0015,
-          );
-          const zoneWeight = nearbyPoints.reduce((a, p) => a + p.weight, 0);
-          if (zoneWeight > maxVal) {
-            maxVal = zoneWeight;
-            maxZone = zone.name;
-          }
-        });
-        setPeakZone(maxZone);
-
-        return updated;
+        return prev;
       });
-
-      // Force Heatmap component to re-mount with fresh data
       setHeatmapKey((k) => k + 1);
-    }, 1500); // slightly slower to avoid flicker from re-mount
+    }, 2000);
 
     return () => clearInterval(interval);
   }, [isLive]);

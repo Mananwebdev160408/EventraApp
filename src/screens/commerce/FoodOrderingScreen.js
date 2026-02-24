@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -17,13 +19,49 @@ import {
   Search,
   Star,
   Clock,
+  Utensils,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
-import { FOOD_VENDORS } from "../../constants/mocks";
+import { restaurantService } from "../../api/services";
 
 const FoodOrderingScreen = ({ navigation }) => {
   const [activeCategory, setActiveCategory] = useState("All Items");
+  const [vendors, setVendors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const categories = ["All Items", "Snacks", "Drinks", "Meals", "Desserts"];
+
+  useEffect(() => {
+    fetchVendors();
+  }, []);
+
+  const fetchVendors = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const data = await restaurantService.getAllRestaurants();
+      // Map backend data to UI format
+      const formattedVendors = (Array.isArray(data) ? data : []).map((v) => ({
+        id: v.id,
+        name: v.name,
+        rating: v.rating || "4.5",
+        time: "15-20 min",
+        description: "Fresh stadium food at your seat",
+        image:
+          "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop", // Default placeholder
+      }));
+      setVendors(formattedVendors);
+    } catch (error) {
+      console.error("Error fetching restaurants:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchVendors(false);
+  };
 
   const renderVendor = ({ item }) => (
     <View style={styles.vendorCard}>
@@ -52,7 +90,12 @@ const FoodOrderingScreen = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={styles.viewMenuButton}
-          onPress={() => navigation.navigate("Menu")}
+          onPress={() =>
+            navigation.navigate("Menu", {
+              restaurantId: item.id,
+              restaurantName: item.name,
+            })
+          }
         >
           <Text style={styles.viewMenuText}>View Menu</Text>
         </TouchableOpacity>
@@ -154,16 +197,34 @@ const FoodOrderingScreen = ({ navigation }) => {
           {/* Popular Vendors */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Popular Vendors</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See All</Text>
+            <TouchableOpacity onPress={onRefresh}>
+              <Text style={styles.seeAllText}>Refresh</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.vendorsList}>
-            {FOOD_VENDORS.map((vendor) => (
-              <View key={vendor.id}>{renderVendor({ item: vendor })}</View>
-            ))}
-          </View>
+          {isLoading && !isRefreshing ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.brandPurple} />
+              <Text style={styles.loadingText}>
+                Finding best food for you...
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.vendorsList}>
+              {vendors.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Utensils size={48} color="rgba(255,255,255,0.2)" />
+                  <Text style={styles.emptyText}>
+                    No vendors available right now
+                  </Text>
+                </View>
+              ) : (
+                vendors.map((vendor) => (
+                  <View key={vendor.id}>{renderVendor({ item: vendor })}</View>
+                ))
+              )}
+            </View>
+          )}
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -413,6 +474,26 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 15,
     fontWeight: "800",
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    color: "rgba(255,255,255,0.6)",
+    fontSize: 14,
+  },
+  emptyContainer: {
+    padding: 60,
+    alignItems: "center",
+    opacity: 0.5,
+  },
+  emptyText: {
+    marginTop: 16,
+    color: COLORS.white,
+    fontSize: 14,
+    textAlign: "center",
   },
 });
 

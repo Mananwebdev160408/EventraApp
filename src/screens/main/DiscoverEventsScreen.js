@@ -164,12 +164,12 @@ const DiscoverEventsScreen = ({ navigation }) => {
 
       const soonest = bookings
         .filter((b) => {
-          const eventDate = new Date(b.event?.date || b.date);
+          const eventDate = new Date(b.event?.datetime);
           return eventDate > now;
         })
         .sort((a, b) => {
-          const dateA = new Date(a.event?.date || a.date);
-          const dateB = new Date(b.event?.date || b.date);
+          const dateA = new Date(a.event?.datetime);
+          const dateB = new Date(b.event?.datetime);
           return dateA - dateB;
         })[0];
 
@@ -177,6 +177,7 @@ const DiscoverEventsScreen = ({ navigation }) => {
         setUpcomingBooking({
           ...soonest.event,
           bookingId: soonest.id,
+          date: soonest.event?.datetime, // Backwards compat for timer
         });
       } else {
         setUpcomingBooking(null);
@@ -302,17 +303,19 @@ const DiscoverEventsScreen = ({ navigation }) => {
           <Sparkles size={12} color="#FFFFFF" />
           <Text style={styles.featuredTagText}>{event.tag || "FEATURED"}</Text>
         </View>
-        <Text style={styles.featuredTitle}>{event.name || event.title}</Text>
+        <Text style={styles.featuredTitle}>{event.name}</Text>
         <View style={styles.featuredMeta}>
           <View style={styles.metaItem}>
             <Calendar size={14} color="rgba(255,255,255,0.7)" />
             <Text style={styles.metaText}>
-              {formatEventDate(event.dateTime || event.datetime || event.date)}
+              {formatEventDate(event.datetime)}
             </Text>
           </View>
           <View style={styles.metaItem}>
             <MapPin size={14} color="rgba(255,255,255,0.7)" />
-            <Text style={styles.metaText}>{event.venue || "Stadium"}</Text>
+            <Text style={styles.metaText}>
+              {event.stadiumName || "Stadium"}
+            </Text>
           </View>
         </View>
       </LinearGradient>

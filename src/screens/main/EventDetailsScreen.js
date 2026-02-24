@@ -172,7 +172,7 @@ const EventDetailsScreen = ({ route, navigation }) => {
             ))}
           </View>
 
-          <Text style={styles.title}>{event.name || event.title}</Text>
+          <Text style={styles.title}>{event.name}</Text>
 
           <View style={styles.infoGrid}>
             <View style={styles.infoItem}>
@@ -182,28 +182,23 @@ const EventDetailsScreen = ({ route, navigation }) => {
               <View>
                 <Text style={styles.infoLabel}>DATE & TIME</Text>
                 <Text style={styles.infoValue}>
-                  {formatEventDate(
-                    event.dateTime ||
-                      event.datetime ||
-                      event.date ||
-                      event.time,
-                  )}
+                  {formatEventDate(event.datetime)}
                 </Text>
               </View>
             </View>
-            {(event.venue || event.stadiumName || event.stadium?.name) && (
-              <View style={styles.infoItem}>
-                <View style={styles.infoIconBox}>
-                  <MapPin size={20} color={COLORS.brandPurple} />
-                </View>
-                <View>
-                  <Text style={styles.infoLabel}>STADIUM</Text>
-                  <Text style={styles.infoValue}>
-                    {event.venue || event.stadiumName || event.stadium?.name}
-                  </Text>
-                </View>
+            <View style={styles.infoItem}>
+              <View style={styles.infoIconBox}>
+                <MapPin size={20} color={COLORS.brandPurple} />
               </View>
-            )}
+              <View>
+                <Text style={styles.infoLabel}>STADIUM</Text>
+                <Text style={styles.infoValue}>
+                  {event.stadiumName ||
+                    (event.stadium && event.stadium.name) ||
+                    "Stadium Venue"}
+                </Text>
+              </View>
+            </View>
           </View>
 
           <View style={styles.divider} />
@@ -254,7 +249,7 @@ const EventDetailsScreen = ({ route, navigation }) => {
               { icon: "✅", text: "Valid photo ID or passport" },
               { icon: "✅", text: "Printed or digital ticket" },
               { icon: "✅", text: "Small bag (under 30x30cm)" },
-              { icon: "❌", text: "No outside food or drinks" }
+              { icon: "❌", text: "No outside food or drinks" },
             ].map((item, i) => (
               <View key={i} style={styles.checklistItem}>
                 <Text style={styles.checklistIcon}>{item.icon}</Text>

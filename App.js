@@ -5,6 +5,7 @@ import AppNavigator from "./src/navigation/AppNavigator";
 import CustomSplashScreen from "./src/screens/onboarding/SplashScreen";
 import { UserProvider } from "./src/context/UserContext";
 import { AuthProvider } from "./src/context/AuthContext";
+import { CartProvider } from "./src/context/CartContext";
 
 // Keep the native splash screen visible while we fetch resources or do setup
 SplashScreen.preventAutoHideAsync();
@@ -53,7 +54,9 @@ export default function App() {
   return (
     <AuthProvider>
       <UserProvider>
-        <AppNavigator />
+        <CartProvider>
+          <AppNavigator />
+        </CartProvider>
       </UserProvider>
     </AuthProvider>
   );

@@ -28,7 +28,7 @@ import { useUser } from "../../context/UserContext";
 import {
   eventService,
   bookingService,
-  foodService,
+  foodOrderService,
   merchandiseService,
 } from "../../api/services";
 
@@ -53,29 +53,60 @@ const AdminAnalyticsScreen = ({ navigation }) => {
   const fetchAnalytics = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
-      const [events, bookings, foodOrders] = await Promise.all([
-        eventService.getEvents(),
-        bookingService.getUserBookings("all"), // Assuming "all" or similar exists for admins
-        foodService.getAllFoodOrders(),
-      ]);
+      const [eventsResponse, bookingsResponse, foodOrdersResponse] =
+        await Promise.all([
+          eventService.getEvents(),
+          bookingService.getAllBookings(),
+          foodOrderService.getAllFoodOrders(),
+        ]);
 
-      const totalEvents = Array.isArray(events) ? events.length : 0;
-      const totalBookings = Array.isArray(bookings) ? bookings.length : 0;
+      const events = Array.isArray(eventsResponse.content)
+        ? eventsResponse.content
+        : [];
+      const bookings = Array.isArray(bookingsResponse) ? bookingsResponse : [];
+      const foodOrders = Array.isArray(foodOrdersResponse)
+        ? foodOrdersResponse
+        : [];
 
-      // Calculate revenue from food orders as an example
-      const foodRevenue = Array.isArray(foodOrders)
-        ? foodOrders.reduce((acc, order) => acc + (order.totalPrice || 0), 0)
-        : 0;
+      const totalEvents = events.length;
+      const totalBookings = bookings.length;
+
+      // Calculate real revenue from bookings (enhanced with price in DTO) + food
+      const bookingRevenue = bookings.reduce((acc, b) => {
+        const seatPrice =
+          b.seats?.reduce((sum, s) => sum + (s.price || 0), 0) || 0;
+        return acc + seatPrice;
+      }, 0);
+
+      const foodRevenue = foodOrders.reduce(
+        (acc, order) => acc + (order.totalPrice || 0),
+        0,
+      );
 
       setStats({
-        totalRevenue: foodRevenue + 2500000, // Partial hardcode for demonstration
+        totalRevenue: bookingRevenue + foodRevenue,
         totalBookings,
         activeEvents: totalEvents,
         revenueChange: "+15.2%",
         ticketsByCat: [
-          { category: "VIP", count: Math.floor(totalBookings * 0.2) },
-          { category: "Standard", count: Math.floor(totalBookings * 0.5) },
-          { category: "Early Bird", count: Math.floor(totalBookings * 0.3) },
+          {
+            category: "VIP",
+            count: bookings.filter((b) =>
+              b.seats?.some((s) => s.seatCategory === "VIP"),
+            ).length,
+          },
+          {
+            category: "Standard",
+            count: bookings.filter((b) =>
+              b.seats?.some((s) => s.seatCategory === "Standard"),
+            ).length,
+          },
+          {
+            category: "Economy",
+            count: bookings.filter((b) =>
+              b.seats?.some((s) => s.seatCategory === "Economy"),
+            ).length,
+          },
         ],
       });
     } catch (error) {

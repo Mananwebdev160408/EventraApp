@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -13,19 +15,106 @@ import {
   Ticket,
   ShoppingBag,
   Utensils,
+  History,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
-import { ACTIVITY_HISTORY } from "../../constants/mocks";
+import {
+  foodOrderService,
+  merchandiseOrderService,
+  bookingService,
+} from "../../api/services";
+import { useAuth } from "../../context/AuthContext";
 
 const ActivityHistoryScreen = ({ navigation }) => {
+  const [activities, setActivities] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { userInfo } = useAuth();
+
+  useEffect(() => {
+    if (userInfo) {
+      fetchActivities();
+    }
+  }, [userInfo]);
+
+  const fetchActivities = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const [foodOrders, merchOrders, bookings] = await Promise.all([
+        foodOrderService.getFoodOrderByUserId(userInfo.id),
+        merchandiseOrderService.getMerchandiseOrderByUserId(userInfo.id),
+        bookingService.getBookingByUserId(userInfo.id),
+      ]);
+
+      const formattedFood = (Array.isArray(foodOrders) ? foodOrders : []).map(
+        (order) => ({
+          id: `food-${order.id}`,
+          type: "food",
+          title: `Food Order #${order.id}`,
+          date: order.timeStamp
+            ? new Date(order.timeStamp).toLocaleDateString()
+            : "Recently",
+          amount: `$${(order.price || 0).toFixed(2)}`,
+          timestamp: order.timeStamp ? new Date(order.timeStamp).getTime() : 0,
+        }),
+      );
+
+      const formattedMerch = (
+        Array.isArray(merchOrders) ? merchOrders : []
+      ).map((order) => ({
+        id: `merch-${order.id}`,
+        type: "store",
+        title: `Merchandise #${order.id}`,
+        date: order.timeStamp
+          ? new Date(order.timeStamp).toLocaleDateString()
+          : "Recently",
+        amount: `$${(order.price || 0).toFixed(2)}`,
+        timestamp: order.timeStamp ? new Date(order.timeStamp).getTime() : 0,
+      }));
+
+      const formattedBookings = (Array.isArray(bookings) ? bookings : []).map(
+        (booking) => ({
+          id: `ticket-${booking.id}`,
+          type: "ticket",
+          title: `Ticket Booking #${booking.id}`,
+          date: booking.bookingDate
+            ? new Date(booking.bookingDate).toLocaleDateString()
+            : "Recently",
+          amount: `$${(booking.totalPrice || 0).toFixed(2)}`,
+          timestamp: booking.bookingDate
+            ? new Date(booking.bookingDate).getTime()
+            : 0,
+        }),
+      );
+
+      const allActivities = [
+        ...formattedFood,
+        ...formattedMerch,
+        ...formattedBookings,
+      ].sort((a, b) => b.timestamp - a.timestamp);
+
+      setActivities(allActivities);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchActivities(false);
+  };
+
   const getIcon = (type) => {
     switch (type) {
       case "ticket":
         return <Ticket size={24} color={COLORS.brandPurple} />;
       case "store":
-        return <ShoppingBag size={24} color={COLORS.secondary} />; // secondary is teal-ish
+        return <ShoppingBag size={24} color={COLORS.secondary} />;
       case "food":
-        return <Utensils size={24} color="#fbbf24" />; // amber for food
+        return <Utensils size={24} color="#fbbf24" />;
       default:
         return <Ticket size={24} color={COLORS.gray600} />;
     }
@@ -46,18 +135,37 @@ const ActivityHistoryScreen = ({ navigation }) => {
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.content}>
-          {ACTIVITY_HISTORY.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.card}>
-              <View style={styles.iconBox}>{getIcon(item.type)}</View>
-              <View style={styles.cardInfo}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardDate}>{item.date}</Text>
+        {isLoading && !isRefreshing ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={COLORS.brandPurple} />
+            <Text style={styles.loadingText}>Fetching activity history...</Text>
+          </View>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.content}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            }
+          >
+            {activities.length > 0 ? (
+              activities.map((item) => (
+                <TouchableOpacity key={item.id} style={styles.card}>
+                  <View style={styles.iconBox}>{getIcon(item.type)}</View>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardTitle}>{item.title}</Text>
+                    <Text style={styles.cardDate}>{item.date}</Text>
+                  </View>
+                  <Text style={styles.cardAmount}>{item.amount}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <History size={64} color={COLORS.gray200} />
+                <Text style={styles.emptyText}>No activity history found</Text>
               </View>
-              <Text style={styles.cardAmount}>{item.amount}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            )}
+          </ScrollView>
+        )}
       </SafeAreaView>
     </View>
   );
@@ -141,6 +249,29 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontWeight: "900",
     fontSize: 17,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: COLORS.gray600,
+    fontWeight: "600",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 100,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: COLORS.gray500,
+    fontWeight: "500",
   },
 });
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   ScrollView,
   Image,
   Linking,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -19,37 +21,74 @@ import {
   AlertCircle,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
+import { foodOrderService, merchandiseOrderService } from "../../api/services";
+import { useAuth } from "../../context/AuthContext";
 
 const OrderHistoryScreen = ({ navigation }) => {
-  const [orders, setOrders] = useState([
-    {
-      id: "ORD001",
-      title: "Stadium Burger & Fries",
-      type: "Food",
-      date: "Today, 2:30 PM",
-      status: "In Progress",
-      amount: "$18.50",
-      venue: "The Stadium Grill",
-    },
-    {
-      id: "ORD002",
-      title: "Home Match Jersey 2024",
-      type: "Merchandise",
-      date: "Today, 1:15 PM",
-      status: "Delivered",
-      amount: "$85.00",
-      venue: "Official Store",
-    },
-    {
-      id: "ORD003",
-      title: "Classic Hot Dog",
-      type: "Food",
-      date: "Today, 12:45 PM",
-      status: "In Progress",
-      amount: "$8.00",
-      venue: "Arena Dogs & Co.",
-    },
-  ]);
+  const { userInfo } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
+    try {
+      const userId = userInfo?.id;
+      if (!userId) {
+        setOrders([]);
+        return;
+      }
+
+      const [foodOrders, merchOrders] = await Promise.all([
+        foodOrderService.getFoodOrderByUserId(userId).catch(() => []),
+        merchandiseOrderService
+          .getMerchandiseOrderByUserId(userId)
+          .catch(() => []),
+      ]);
+
+      const formattedFoodOrders = (
+        Array.isArray(foodOrders) ? foodOrders : []
+      ).map((order) => ({
+        id: `FO-${order.id}`,
+        title: order.foodNames?.join(", ") || `Food Order #${order.id}`,
+        type: "Food",
+        date: order.orderTime || "Recent",
+        status: order.status || "In Progress",
+        amount: `$${(order.price || 0).toFixed(2)}`,
+        venue: order.restaurantName || "Restaurant",
+      }));
+
+      const formattedMerchOrders = (
+        Array.isArray(merchOrders) ? merchOrders : []
+      ).map((order) => ({
+        id: `MO-${order.id}`,
+        title:
+          order.merchandiseNames?.join(", ") ||
+          `Merchandise Order #${order.id}`,
+        type: "Merchandise",
+        date: order.orderTime || "Recent",
+        status: order.status || "In Progress",
+        amount: `$${(order.price || 0).toFixed(2)}`,
+        venue: order.stadiumName || "Stadium Store",
+      }));
+
+      setOrders([...formattedFoodOrders, ...formattedMerchOrders]);
+    } catch (error) {
+      console.error("Error fetching order history:", error);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchOrders(false);
+  };
 
   const handleMarkDelivered = (id) => {
     setOrders(
@@ -84,101 +123,124 @@ const OrderHistoryScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {orders.map((order) => (
-            <View key={order.id} style={styles.orderCard}>
-              <View style={styles.orderHeader}>
-                <View
-                  style={[
-                    styles.typeBadge,
-                    {
-                      backgroundColor:
-                        order.type === "Food"
-                          ? "rgba(230, 57, 70, 0.1)"
-                          : "rgba(244, 162, 97, 0.1)",
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.typeText,
-                      { color: order.type === "Food" ? "#e63946" : "#f4a261" },
-                    ]}
-                  >
-                    {order.type}
-                  </Text>
-                </View>
-                <Text style={styles.orderId}>#{order.id}</Text>
-              </View>
-
-              <View style={styles.orderBody}>
-                <View style={styles.orderMainInfo}>
-                  <Text style={styles.orderTitle}>{order.title}</Text>
-                  <Text style={styles.orderVenue}>{order.venue}</Text>
-                  <Text style={styles.orderDate}>{order.date}</Text>
-                </View>
-                <Text style={styles.orderAmount}>{order.amount}</Text>
-              </View>
-
-              <View style={styles.orderFooter}>
-                <View style={styles.statusRow}>
-                  {order.status === "Delivered" ? (
-                    <View style={styles.deliveredLabel}>
-                      <CheckCircle2 size={16} color="#059669" />
-                      <Text style={styles.deliveredText}>Delivered</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.pendingLabel}>
-                      <AlertCircle size={16} color="#f59e0b" />
-                      <Text style={styles.pendingText}>In Progress</Text>
-                    </View>
-                  )}
-                </View>
-
-                {order.status !== "Delivered" && (
-                  <View style={styles.actionRow}>
-                    <TouchableOpacity
-                      style={styles.deliveredBtn}
-                      onPress={() => handleMarkDelivered(order.id)}
-                    >
-                      <Text style={styles.deliveredBtnText}>
-                        Mark as Delivered
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.supportBtn}
-                      onPress={handleCallSupport}
-                    >
-                      <Phone size={14} color={COLORS.gray500} />
-                      <Text style={styles.supportBtnText}>Help</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            </View>
-          ))}
-
-          {/* Help Section */}
-          <View style={styles.helpSection}>
-            <View style={styles.helpCard}>
-              <View style={styles.helpIconBox}>
-                <Phone size={24} color={COLORS.brandPurple} />
-              </View>
-              <View style={styles.helpInfo}>
-                <Text style={styles.helpTitle}>Need Immediate Help?</Text>
-                <Text style={styles.helpSubtitle}>
-                  Call our 24/7 stadium support line
-                </Text>
-                <TouchableOpacity onPress={handleCallSupport}>
-                  <Text style={styles.phoneNumber}>+1 (800) EVENTRA</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+        {isLoading && !isRefreshing ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={COLORS.brandPurple} />
+            <Text style={styles.loaderText}>Fetching your orders...</Text>
           </View>
-        </ScrollView>
+        ) : (
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+            }
+          >
+            {orders.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Package size={64} color={COLORS.gray200} />
+                <Text style={styles.emptyTitle}>No Orders Yet</Text>
+                <Text style={styles.emptySubtitle}>
+                  Your food and merchandise orders will appear here.
+                </Text>
+              </View>
+            ) : (
+              orders.map((order) => (
+                <View key={order.id} style={styles.orderCard}>
+                  <View style={styles.orderHeader}>
+                    <View
+                      style={[
+                        styles.typeBadge,
+                        {
+                          backgroundColor:
+                            order.type === "Food"
+                              ? "rgba(230, 57, 70, 0.1)"
+                              : "rgba(244, 162, 97, 0.1)",
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.typeText,
+                          {
+                            color:
+                              order.type === "Food" ? "#e63946" : "#f4a261",
+                          },
+                        ]}
+                      >
+                        {order.type}
+                      </Text>
+                    </View>
+                    <Text style={styles.orderId}>#{order.id}</Text>
+                  </View>
+
+                  <View style={styles.orderBody}>
+                    <View style={styles.orderMainInfo}>
+                      <Text style={styles.orderTitle}>{order.title}</Text>
+                      <Text style={styles.orderVenue}>{order.venue}</Text>
+                      <Text style={styles.orderDate}>{order.date}</Text>
+                    </View>
+                    <Text style={styles.orderAmount}>{order.amount}</Text>
+                  </View>
+
+                  <View style={styles.orderFooter}>
+                    <View style={styles.statusRow}>
+                      {order.status === "Delivered" ? (
+                        <View style={styles.deliveredLabel}>
+                          <CheckCircle2 size={16} color="#059669" />
+                          <Text style={styles.deliveredText}>Delivered</Text>
+                        </View>
+                      ) : (
+                        <View style={styles.pendingLabel}>
+                          <AlertCircle size={16} color="#f59e0b" />
+                          <Text style={styles.pendingText}>In Progress</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    {order.status !== "Delivered" && (
+                      <View style={styles.actionRow}>
+                        <TouchableOpacity
+                          style={styles.deliveredBtn}
+                          onPress={() => handleMarkDelivered(order.id)}
+                        >
+                          <Text style={styles.deliveredBtnText}>
+                            Mark as Delivered
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.supportBtn}
+                          onPress={handleCallSupport}
+                        >
+                          <Phone size={14} color={COLORS.gray500} />
+                          <Text style={styles.supportBtnText}>Help</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              ))
+            )}
+
+            {/* Help Section */}
+            <View style={styles.helpSection}>
+              <View style={styles.helpCard}>
+                <View style={styles.helpIconBox}>
+                  <Phone size={24} color={COLORS.brandPurple} />
+                </View>
+                <View style={styles.helpInfo}>
+                  <Text style={styles.helpTitle}>Need Immediate Help?</Text>
+                  <Text style={styles.helpSubtitle}>
+                    Call our 24/7 stadium support line
+                  </Text>
+                  <TouchableOpacity onPress={handleCallSupport}>
+                    <Text style={styles.phoneNumber}>+1 (800) EVENTRA</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        )}
       </SafeAreaView>
     </View>
   );
@@ -191,6 +253,37 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 100,
+  },
+  loaderText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: COLORS.gray500,
+    fontWeight: "600",
+  },
+  emptyContainer: {
+    paddingTop: 80,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 40,
+  },
+  emptyTitle: {
+    marginTop: 20,
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1d3557",
+  },
+  emptySubtitle: {
+    marginTop: 8,
+    fontSize: 14,
+    color: COLORS.gray500,
+    textAlign: "center",
+    lineHeight: 20,
   },
   header: {
     flexDirection: "row",

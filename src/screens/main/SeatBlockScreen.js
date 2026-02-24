@@ -34,7 +34,27 @@ const SeatBlockScreen = ({ navigation, route }) => {
     setIsLoading(true);
     try {
       const data = await seatService.getEventSeats(eventId);
-      setSeats(Array.isArray(data) ? data : data?.seats || []);
+      const allEventSeats = Array.isArray(data) ? data : data?.seats || [];
+
+      // Filter seats by category/sector name
+      const filtered = allEventSeats
+        .filter(
+          (es) =>
+            (es.seat?.category || "Regular").toLowerCase() ===
+            (sector?.name || "Regular").toLowerCase(),
+        )
+        .map((es) => ({
+          id: es.id,
+          seatId: es.seat?.id,
+          row: es.seat?.row,
+          number: es.seat?.seatNo,
+          price: es.price,
+          availability: es.availability,
+          status: es.availability ? "available" : "booked",
+          seatCategory: es.seat?.category,
+        }));
+
+      setSeats(filtered);
     } catch (error) {
       console.error("Error fetching seats:", error);
     } finally {
@@ -54,7 +74,7 @@ const SeatBlockScreen = ({ navigation, route }) => {
   const toggleSeat = (id) => {
     if (isViewMode) return;
     if (selectedSeats.includes(id)) {
-      setSelectedSeats(selectedSeats.filter((s) => s !== id));
+      setSelectedSeats(selectedSeats.filter((sId) => sId !== id));
     } else {
       setSelectedSeats([...selectedSeats, id]);
     }
@@ -63,12 +83,7 @@ const SeatBlockScreen = ({ navigation, route }) => {
   const getSeatColor = (seat) => {
     if (selectedSeats.includes(seat.id)) return COLORS.brandPurple;
     if (seat.status === "user" && showUser) return "#e63946";
-    if (
-      seat.availability === false ||
-      seat.bookingId !== null ||
-      seat.status === "booked"
-    )
-      return COLORS.gray300;
+    if (seat.status === "booked") return COLORS.gray300;
 
     // Categorized colors
     switch (seat.seatCategory) {
@@ -84,7 +99,8 @@ const SeatBlockScreen = ({ navigation, route }) => {
   };
 
   const currentSectorName = sector?.name || "Section Layout";
-  const currentSectorPrice = sector?.price || 50;
+  const currentSectorPrice =
+    seats.length > 0 ? seats[0].price : sector?.price || 0;
 
   if (isLoading) {
     return (
@@ -144,12 +160,7 @@ const SeatBlockScreen = ({ navigation, route }) => {
                   {groupedSeats[rowLabel].map((seat) => (
                     <TouchableOpacity
                       key={seat.id}
-                      disabled={
-                        seat.availability === false ||
-                        seat.bookingId !== null ||
-                        seat.status === "booked" ||
-                        isViewMode
-                      }
+                      disabled={seat.status === "booked" || isViewMode}
                       onPress={() => toggleSeat(seat.id)}
                       style={[
                         styles.seat,

@@ -16,16 +16,45 @@ import {
 import { COLORS } from "../../constants/theme";
 import Button from "../../components/Button";
 
+import { useCart } from "../../context/CartContext";
+import { bookingService } from "../../api/services";
+import { Alert, ActivityIndicator } from "react-native";
+
 const SeatInformationScreen = ({ navigation, route }) => {
   const { seats, eventId } = route.params || {};
+  const { setTickets } = useCart();
+  const [isReserving, setIsReserving] = React.useState(false);
 
   const representativeSeat = seats && seats.length > 0 ? seats[0] : null;
   const totalPrice = seats
     ? seats.reduce((sum, s) => sum + (s.price || 0), 0)
     : 0;
   const seatNames = seats
-    ? seats.map((s) => `${s.row}${s.seatNumber}`).join(", ")
+    ? seats.map((s) => `${s.row}${s.number}`).join(", ")
     : "";
+
+  const handleConfirm = async () => {
+    setIsReserving(true);
+    try {
+      // 1. Reserve seats in backend
+      const seatIdList = seats.map((s) => s.id);
+      await bookingService.reserveSeats({ seatIdList });
+
+      // 2. Add to cart
+      setTickets(seats, eventId);
+
+      // 3. Navigate to Checkout
+      navigation.navigate("Checkout");
+    } catch (error) {
+      console.error("Reservation error:", error);
+      Alert.alert(
+        "Reservation Failed",
+        "Could not reserve those seats. They might have been taken.",
+      );
+    } finally {
+      setIsReserving(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -166,17 +195,18 @@ const SeatInformationScreen = ({ navigation, route }) => {
           </View>
 
           <TouchableOpacity
-            style={styles.confirmButton}
-            onPress={() =>
-              navigation.navigate("Checkout", {
-                seats,
-                eventId,
-                totalAmount: totalPrice,
-              })
-            }
+            style={[styles.confirmButton, isReserving && { opacity: 0.7 }]}
+            onPress={handleConfirm}
+            disabled={isReserving}
           >
-            <Text style={styles.confirmText}>Proceed to Checkout</Text>
-            <ArrowRight size={20} color={COLORS.white} />
+            {isReserving ? (
+              <ActivityIndicator color={COLORS.white} />
+            ) : (
+              <>
+                <Text style={styles.confirmText}>Proceed to Checkout</Text>
+                <ArrowRight size={20} color={COLORS.white} />
+              </>
+            )}
           </TouchableOpacity>
         </View>
       </View>

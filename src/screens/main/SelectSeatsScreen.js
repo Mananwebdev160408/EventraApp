@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -14,20 +15,58 @@ import {
   Plus,
   Minus,
   Crosshair,
+  MapPin,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
-import { SEAT_MAP_DATA } from "../../constants/mocks";
+import { seatService } from "../../api/services";
 
 const { width } = Dimensions.get("window");
 
 const SelectSeatsScreen = ({ navigation, route }) => {
-  const { mode, showUser } = route.params || {};
+  const { mode, showUser, eventId } = route.params || {};
   const isViewMode = mode === "view";
+  const [sectors, setSectors] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (eventId) {
+      fetchEventZones();
+    }
+  }, [eventId]);
+
+  const fetchEventZones = async () => {
+    setIsLoading(true);
+    try {
+      const seats = await seatService.getEventSeats(eventId);
+      if (Array.isArray(seats)) {
+        // Extract unique zones from seats
+        const zonesMap = seats.reduce((acc, es) => {
+          const category = es.seat?.category || "Regular";
+          if (!acc[category]) {
+            acc[category] = {
+              id: category.toLowerCase(),
+              name: category,
+              price: es.price,
+              count: 0,
+            };
+          }
+          acc[category].count++;
+          return acc;
+        }, {});
+
+        setSectors(Object.values(zonesMap));
+      }
+    } catch (error) {
+      console.error("Error fetching event zones:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const renderSectorBlock = (sector) => {
     // Basic positioning logic based on sector id, represented as blocks
     let sectorStyle = {};
-    if (sector.id === "north")
+    if (sector.id.includes("north"))
       sectorStyle = {
         top: "10%",
         alignSelf: "center",
@@ -36,7 +75,7 @@ const SelectSeatsScreen = ({ navigation, route }) => {
         height: 80,
         borderRadius: 20,
       };
-    if (sector.id === "south")
+    else if (sector.id.includes("south"))
       sectorStyle = {
         bottom: "20%",
         alignSelf: "center",
@@ -45,7 +84,7 @@ const SelectSeatsScreen = ({ navigation, route }) => {
         height: 80,
         borderRadius: 20,
       };
-    if (sector.id === "vip")
+    else if (sector.id.includes("vip") || sector.id.includes("premium"))
       sectorStyle = {
         top: "40%",
         right: "10%",
@@ -54,9 +93,18 @@ const SelectSeatsScreen = ({ navigation, route }) => {
         height: 60,
         borderRadius: 16,
       };
+    else
+      sectorStyle = {
+        top: "40%",
+        left: "10%",
+        backgroundColor: "#10b981",
+        width: 80,
+        height: 60,
+        borderRadius: 16,
+      };
 
     // Highlight user's active sector in view mode ONLY if showUser is true
-    const isUserSector = isViewMode && showUser && sector.id === "north";
+    const isUserSector = isViewMode && showUser && sector.id.includes("north");
 
     return (
       <TouchableOpacity
@@ -67,12 +115,17 @@ const SelectSeatsScreen = ({ navigation, route }) => {
           isUserSector && styles.userSectorGlow,
         ]}
         onPress={() =>
-          navigation.navigate("SeatBlock", { sector, mode, showUser })
+          navigation.navigate("SeatBlock", {
+            sector,
+            mode,
+            showUser,
+            eventId,
+          })
         }
         activeOpacity={0.8}
       >
         <Text style={styles.sectorName}>{sector.name}</Text>
-        {!isViewMode && <Text style={styles.sectorPrice}>${sector.price}</Text>}
+        {!isViewMode && <Text style={styles.sectorPrice}>₹{sector.price}</Text>}
         {isUserSector && (
           <View style={styles.userPresence}>
             <Text style={styles.userPresenceText}>YOUR BLOCK</Text>
@@ -98,9 +151,7 @@ const SelectSeatsScreen = ({ navigation, route }) => {
           <Text style={styles.title}>
             {isViewMode ? "Stadium Overview" : "Select Zone"}
           </Text>
-          <Text style={styles.subtitle}>
-            Finals: Phoenix vs. Titans • Oct 24
-          </Text>
+          <Text style={styles.subtitle}>Choose a section to view seats</Text>
         </View>
         <TouchableOpacity style={styles.circleButton}>
           <Info size={20} color={COLORS.text} />
@@ -109,51 +160,58 @@ const SelectSeatsScreen = ({ navigation, route }) => {
 
       {/* Main Map Area */}
       <View style={styles.mapArea}>
-        {/* Smart Recommendation - Hide in view mode */}
-        {!isViewMode && (
-          <TouchableOpacity style={styles.smartButton}>
-            <Sparkles size={16} color={COLORS.white} />
-            <Text style={styles.smartButtonText}>Smart Recommendation</Text>
-          </TouchableOpacity>
+        {isLoading ? (
+          <ActivityIndicator size="large" color={COLORS.brandPurple} />
+        ) : (
+          <>
+            {/* Smart Recommendation - Hide in view mode */}
+            {!isViewMode && (
+              <TouchableOpacity style={styles.smartButton}>
+                <Sparkles size={16} color={COLORS.white} />
+                <Text style={styles.smartButtonText}>Smart Recommendation</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Legend */}
+            <View style={styles.legend}>
+              <LegendItem color="#3b82f6" label="North" />
+              <LegendItem color="#ef4444" label="South" />
+              <LegendItem color="#fbbf24" label="VIP/Premium" />
+              <LegendItem color="#10b981" label="Regular" />
+            </View>
+
+            {/* Map Container */}
+            <View style={styles.mapContainer}>
+              <View style={styles.stadiumOval}>
+                {/* Play Zone */}
+                <View style={styles.playZone}>
+                  <Text style={styles.playZoneText}>PITCH</Text>
+                </View>
+
+                {/* Rings */}
+                <View style={styles.ringOuter} pointerEvents="none" />
+
+                {/* Sectors (Rendered dynamically) */}
+                <View style={styles.seatCtn}>
+                  {sectors.map(renderSectorBlock)}
+                </View>
+              </View>
+            </View>
+
+            {/* Zoom Controls */}
+            <View style={styles.zoomControls}>
+              <TouchableOpacity style={styles.zoomButton}>
+                <Plus size={20} color={COLORS.text} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.zoomButton}>
+                <Minus size={20} color={COLORS.text} />
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.zoomButton, { marginTop: 8 }]}>
+                <Crosshair size={20} color={COLORS.text} />
+              </TouchableOpacity>
+            </View>
+          </>
         )}
-
-        {/* Legend */}
-        <View style={styles.legend}>
-          <LegendItem color="#3b82f6" label="North" />
-          <LegendItem color="#ef4444" label="South" />
-          <LegendItem color="#fbbf24" label="VIP" />
-        </View>
-
-        {/* Map Container */}
-        <View style={styles.mapContainer}>
-          <View style={styles.stadiumOval}>
-            {/* Play Zone */}
-            <View style={styles.playZone}>
-              <Text style={styles.playZoneText}>PITCH</Text>
-            </View>
-
-            {/* Rings */}
-            <View style={styles.ringOuter} pointerEvents="none" />
-
-            {/* Sectors (Rendered as Blocks) */}
-            <View style={styles.seatCtn}>
-              {SEAT_MAP_DATA.sectors.map(renderSectorBlock)}
-            </View>
-          </View>
-        </View>
-
-        {/* Zoom Controls */}
-        <View style={styles.zoomControls}>
-          <TouchableOpacity style={styles.zoomButton}>
-            <Plus size={20} color={COLORS.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.zoomButton}>
-            <Minus size={20} color={COLORS.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.zoomButton, { marginTop: 8 }]}>
-            <Crosshair size={20} color={COLORS.text} />
-          </TouchableOpacity>
-        </View>
       </View>
     </View>
   );

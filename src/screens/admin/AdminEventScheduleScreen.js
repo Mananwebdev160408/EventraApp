@@ -88,7 +88,7 @@ const AdminEventScheduleScreen = ({ navigation }) => {
 
   const handleGoLive = async (eventId) => {
     try {
-      await eventService.updateEventStatus(eventId, "LIVE");
+      await eventService.goEventLive(eventId);
       Alert.alert("Success", "Event is now LIVE!");
       fetchEvents(stadiumId, false);
     } catch (error) {

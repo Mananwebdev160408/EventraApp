@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView, FlatList } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft, ShoppingCart, MapPin, Plus, ShoppingBag } from 'lucide-react-native';
-import { COLORS } from '../../constants/theme';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import {
+  ChevronLeft,
+  ShoppingCart,
+  MapPin,
+  Plus,
+  ShoppingBag,
+  Utensils,
+} from "lucide-react-native";
+import { COLORS } from "../../constants/theme";
+import { LinearGradient } from "expo-linear-gradient";
+import { restaurantService } from "../../api/services";
+import { useCart } from "../../context/CartContext";
 
 const VENDOR_COLORS = {
   primary: "#e73642",
@@ -16,59 +34,77 @@ const VENDOR_COLORS = {
   slate100: "#f1f5f9",
 };
 
-const CATEGORIES = ['Burgers', 'Drinks', 'Snacks', 'Combos'];
+const MenuScreen = ({ navigation, route }) => {
+  const { restaurantId, restaurantName } = route.params || {};
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [menuItems, setMenuItems] = useState([]);
+  const [categories, setCategories] = useState(["All"]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { addToCart, itemCount, cartTotal } = useCart();
 
-const MENU_ITEMS = [
-  {
-    id: '1',
-    name: 'Classic Stadium Burger',
-    description: 'Angus beef, cheddar, house sauce, brioche bun.',
-    price: '$12.50',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDvimNeSVgm13vetW_W70g9it1n7T338eeCEPV1qCfxASl9eHNLsAaipVIfqLsY2tcnHmpJFCJYWNa-tAPc1rM32_YxAbVeyJJNESgjPEovKm1LSl-EtOzF273Wo4DVI3QXObPB_bAD6_WxIeMRYnpuN646AANWsbyk6IZZDjtGanrhGf1iU92gaVLhiksed_W3iT2Irj9ff9r2bsRh4KmSX6pHDdZeBB6axIs46MViUZ8g5mxkW75A9ixZrIQn0tuAt4BokIoFYVU',
-    category: 'Burgers'
-  },
-  {
-    id: '2',
-    name: 'Double Meat Master',
-    description: 'Two patties, double cheese, caramelized onions.',
-    price: '$15.00',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAvOW409INJPw_uljKOXUM-kW1b687zuBGFy0LKtstn7YyIOI2l-tcpB5OavECkaDt-tSNFYZnH2TfoAP9LdXC_qlE0B9G3D17bZXYiUep_vbTtv8D5lmO_8s-9JwZaqE-_98KtomurZt78OA0aU8qx1i56S1WZqe6Ux2mSX-YBCkEkU0kYT9PY2GaDqOhkq2okkt2FyrlZ9BI-E3NFJ09Wf77JwyU6f3HLbaYx9l6-Jqmw_xzO9RePWNfJ3sy6__nPTK2hGE015Ec',
-    category: 'Burgers'
-  },
-  {
-    id: '3',
-    name: 'Bacon BBQ Special',
-    description: 'Smoked bacon, spicy BBQ sauce, onion rings.',
-    price: '$14.25',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDGk0kkq6mutth_9ePs-Brht5L-HuoWSSdUPexyAqLM1f4zFW8qgf57SyBIZWQy8ChIxGI7qwBTSxcdZEsqvRrtY_Yx5LTL_aMNP_TH8f-TSiYPDZ0eMLjzSSyLndr2D38bnGyJCA7Zmw5VNEnCDvFteNBwbgmKW08Wi7LF1ORDbNR0mBqOJj0R6HO-EoZzzoi3dp4sH_Axgj-EznG8Xq-91kmJVwceEajqxtpdcrwjWe-qVAOsUsjBvSVyWEfBjrWwkbHCQ6mL3EU',
-    category: 'Burgers'
-  },
-  {
-    id: '4',
-    name: 'Stadium Plant Burger',
-    description: 'Plant-based patty, avocado, sprouts, vegan mayo.',
-    price: '$13.50',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC6oS9ldkpuOrblCZ8JupCL1QkpNZ3DHd7gW743CDNxIywEyCy-cN2Yo3S1kPdRw4kXmA3pyzU3HRy77GyzMljkrSy26efsVbRSNAdLEIB_TqwjBnLWq5cF4cDmYkk5NL0zFC5T8JpHLhjeUH2tA4ojxfWJG0McQmfNCKRmcP2JOuXZbigjhPfCldK4jWkN4LkXwUALqHEgzfwdN2RaRSRMaeYlez7gnCEqlCkzdjP-X63BgHt70MxQBKqsjRv2wNWebjpJ2tg-kv4',
-    category: 'Burgers'
-  },
-];
+  useEffect(() => {
+    if (restaurantId) {
+      fetchMenu();
+    }
+  }, [restaurantId]);
 
-const MenuScreen = ({ navigation }) => {
-  const [activeCategory, setActiveCategory] = useState('Burgers');
+  const fetchMenu = async () => {
+    setIsLoading(true);
+    try {
+      const data = await restaurantService.getRestaurantMenu(restaurantId);
+      const formattedItems = (Array.isArray(data) ? data : []).map((item) => ({
+        id: item.id.toString(),
+        name: item.name,
+        description: item.type || "Delicious stadium snack",
+        price: `$${(item.price || 0).toFixed(2)}`,
+        image:
+          "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200&h=200&fit=crop", // Default placeholder
+        category: item.type || "Main",
+      }));
+      setMenuItems(formattedItems);
+
+      const uniqueCats = [
+        "All",
+        ...new Set(formattedItems.map((i) => i.category)),
+      ];
+      setCategories(uniqueCats);
+    } catch (error) {
+      console.error("Error fetching menu:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredItems =
+    activeCategory === "All"
+      ? menuItems
+      : menuItems.filter((item) => item.category === activeCategory);
 
   const renderMenuItem = ({ item }) => (
     <View style={styles.menuItemCard}>
       <View style={styles.itemImageContainer}>
-        <Image source={{ uri: item.image }} style={styles.itemImage} resizeMode="cover" />
+        <Image
+          source={{ uri: item.image }}
+          style={styles.itemImage}
+          resizeMode="cover"
+        />
       </View>
       <View style={styles.itemContent}>
         <View style={styles.itemTextContainer}>
-          <Text style={styles.itemName} numberOfLines={2}>{item.name}</Text>
-          <Text style={styles.itemDesc} numberOfLines={2}>{item.description}</Text>
+          <Text style={styles.itemName} numberOfLines={2}>
+            {item.name}
+          </Text>
+          <Text style={styles.itemDesc} numberOfLines={2}>
+            {item.description}
+          </Text>
         </View>
         <Text style={styles.itemPrice}>{item.price}</Text>
       </View>
-      <TouchableOpacity style={styles.addButton} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={styles.addButton}
+        activeOpacity={0.8}
+        onPress={() => addToCart(item, "Food")}
+      >
         <Plus size={20} color={VENDOR_COLORS.white} />
       </TouchableOpacity>
     </View>
@@ -80,46 +116,64 @@ const MenuScreen = ({ navigation }) => {
       <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => navigation.goBack()}
+          >
             <ChevronLeft size={24} color={VENDOR_COLORS.navy} />
           </TouchableOpacity>
           <View style={styles.cartContainer}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
+            <TouchableOpacity
+              style={styles.iconButton}
+              onPress={() => navigation.navigate("Cart")}
+            >
               <ShoppingCart size={24} color={VENDOR_COLORS.navy} />
             </TouchableOpacity>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>2</Text>
-            </View>
+            {itemCount > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{itemCount}</Text>
+              </View>
+            )}
           </View>
         </View>
 
         {/* Vendor Header */}
         <View style={styles.vendorHeader}>
-          <Text style={styles.vendorName}>Grizzly Burgers</Text>
+          <Text style={styles.vendorName}>{restaurantName || "Menu"}</Text>
           <View style={styles.locationContainer}>
             <MapPin size={16} color={VENDOR_COLORS.blueMuted} />
-            <Text style={styles.locationText}>Stadium Section 112 • Level 2</Text>
+            <Text style={styles.locationText}>Section 112 • Level 2</Text>
           </View>
         </View>
 
         {/* Categories */}
         <View style={styles.categoriesWrapper}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesContent}>
-            {CATEGORIES.map((cat) => {
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesContent}
+          >
+            {categories.map((cat) => {
               const isActive = activeCategory === cat;
               return (
                 <TouchableOpacity
                   key={cat}
                   style={[
                     styles.categoryChip,
-                    isActive ? styles.categoryChipActive : styles.categoryChipInactive
+                    isActive
+                      ? styles.categoryChipActive
+                      : styles.categoryChipInactive,
                   ]}
                   onPress={() => setActiveCategory(cat)}
                 >
-                  <Text style={[
-                      styles.categoryText, 
-                      isActive ? styles.categoryTextActive : styles.categoryTextInactive
-                  ]}>
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      isActive
+                        ? styles.categoryTextActive
+                        : styles.categoryTextInactive,
+                    ]}
+                  >
                     {cat}
                   </Text>
                 </TouchableOpacity>
@@ -127,40 +181,65 @@ const MenuScreen = ({ navigation }) => {
             })}
           </ScrollView>
         </View>
-        
-        {/* Menu Items */}
-        <FlatList
-          data={MENU_ITEMS}
-          keyExtractor={item => item.id}
-          renderItem={renderMenuItem}
-          contentContainerStyle={styles.menuList}
-          showsVerticalScrollIndicator={false}
-        />
 
+        {/* Menu Items */}
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={VENDOR_COLORS.navy} />
+            <Text style={styles.loadingText}>Fetching menu...</Text>
+          </View>
+        ) : filteredItems.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Utensils size={48} color={VENDOR_COLORS.tealLight} />
+            <Text style={styles.emptyText}>
+              No items available in this category
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredItems}
+            keyExtractor={(item) => item.id}
+            renderItem={renderMenuItem}
+            contentContainerStyle={styles.menuList}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
       </SafeAreaView>
 
       {/* Floating Bottom Bar */}
-      <View style={styles.floatingBarContainer}>
-        <LinearGradient
-            colors={[VENDOR_COLORS.backgroundLight, VENDOR_COLORS.backgroundLight, 'transparent']}
+      {itemCount > 0 && (
+        <View style={styles.floatingBarContainer}>
+          <LinearGradient
+            colors={[
+              VENDOR_COLORS.backgroundLight,
+              VENDOR_COLORS.backgroundLight,
+              "transparent",
+            ]}
             start={{ x: 0, y: 1 }}
             end={{ x: 0, y: 0 }}
             style={styles.gradientOverlay}
             pointerEvents="none"
-        />
-        <TouchableOpacity style={styles.viewCartButton} onPress={() => navigation.navigate('Cart')} activeOpacity={0.9}>
-           <View style={styles.viewCartLeft}>
-             <View style={styles.cartIconBox}>
+          />
+          <TouchableOpacity
+            style={styles.viewCartButton}
+            onPress={() => navigation.navigate("Cart")}
+            activeOpacity={0.9}
+          >
+            <View style={styles.viewCartLeft}>
+              <View style={styles.cartIconBox}>
                 <ShoppingBag size={20} color={VENDOR_COLORS.white} />
-             </View>
-             <View>
-                <Text style={styles.cartItemCount}>2 Items</Text>
+              </View>
+              <View>
+                <Text style={styles.cartItemCount}>
+                  {itemCount} {itemCount === 1 ? "Item" : "Items"}
+                </Text>
                 <Text style={styles.viewCartText}>View Cart</Text>
-             </View>
-           </View>
-           <Text style={styles.cartTotal}>$27.50</Text>
-        </TouchableOpacity>
-      </View>
+              </View>
+            </View>
+            <Text style={styles.cartTotal}>${cartTotal.toFixed(2)}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
@@ -174,9 +253,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
@@ -184,9 +263,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: VENDOR_COLORS.blueMuted,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -194,23 +273,23 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   cartContainer: {
-    position: 'relative',
+    position: "relative",
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: -4,
     right: -4,
     width: 20,
     height: 20,
     borderRadius: 10,
     backgroundColor: VENDOR_COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   badgeText: {
     color: VENDOR_COLORS.white,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   vendorHeader: {
     paddingHorizontal: 24,
@@ -218,19 +297,19 @@ const styles = StyleSheet.create({
   },
   vendorName: {
     fontSize: 28, // text-3xl approx
-    fontWeight: '700',
+    fontWeight: "700",
     color: VENDOR_COLORS.navy,
     letterSpacing: -0.5,
   },
   locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     marginTop: 4,
   },
   locationText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     color: VENDOR_COLORS.blueMuted,
   },
   categoriesWrapper: {
@@ -245,8 +324,8 @@ const styles = StyleSheet.create({
     height: 40,
     paddingHorizontal: 20,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   categoryChipActive: {
     backgroundColor: VENDOR_COLORS.navy,
@@ -256,7 +335,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   categoryTextActive: {
     color: VENDOR_COLORS.white,
@@ -271,8 +350,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   menuItemCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: VENDOR_COLORS.white,
     padding: 12,
     borderRadius: 12,
@@ -289,17 +368,17 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: VENDOR_COLORS.slate100,
   },
   itemImage: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   itemContent: {
     flex: 1,
     height: 96,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
     paddingVertical: 4,
   },
   itemTextContainer: {
@@ -307,7 +386,7 @@ const styles = StyleSheet.create({
   },
   itemName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: VENDOR_COLORS.navy,
     lineHeight: 20,
   },
@@ -318,7 +397,7 @@ const styles = StyleSheet.create({
   },
   itemPrice: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: VENDOR_COLORS.navy,
   },
   addButton: {
@@ -326,8 +405,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 8,
     backgroundColor: VENDOR_COLORS.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: VENDOR_COLORS.navy,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -335,7 +414,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   floatingBarContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
@@ -349,9 +428,9 @@ const styles = StyleSheet.create({
     top: -40,
   },
   viewCartButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: VENDOR_COLORS.navy,
     borderRadius: 16,
     paddingHorizontal: 20,
@@ -363,35 +442,59 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   viewCartLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
   },
   cartIconBox: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   cartItemCount: {
     fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: "600",
+    color: "rgba(255, 255, 255, 0.7)",
     marginBottom: 2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   viewCartText: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: VENDOR_COLORS.white,
   },
   cartTotal: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     color: VENDOR_COLORS.white,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 100,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: VENDOR_COLORS.navy,
+    fontWeight: "600",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 100,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 14,
+    color: VENDOR_COLORS.blueMuted,
+    fontWeight: "500",
   },
 });
 

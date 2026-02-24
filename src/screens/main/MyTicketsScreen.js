@@ -48,8 +48,36 @@ const MyTicketsScreen = ({ navigation }) => {
     }
   };
 
+  const formatEventDate = (dateString) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const formatEventTime = (dateString) => {
+    if (!dateString) return "20:00";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (e) {
+      return "20:00";
+    }
+  };
+
   const filteredTickets = bookings.filter((t) => {
-    const isPast = new Date(t.eventDate || t.event?.date) < new Date();
+    const isPast = new Date(t.event?.datetime) < new Date();
     return activeTab === "upcoming" ? !isPast : isPast;
   });
 
@@ -77,12 +105,12 @@ const MyTicketsScreen = ({ navigation }) => {
         </View>
         <View style={styles.cardHeaderContent}>
           <Text style={styles.eventTitle}>
-            {item.event?.title || item.eventTitle}
+            {item.event?.name || "Event Title"}
           </Text>
           <View style={styles.venueRow}>
             <MapPin size={14} color={COLORS.gray300} />
             <Text style={styles.venueText}>
-              {item.event?.venue || item.venue}
+              {item.event?.stadiumName || "Stadium"}
             </Text>
           </View>
         </View>
@@ -99,7 +127,7 @@ const MyTicketsScreen = ({ navigation }) => {
             <View>
               <Text style={styles.infoLabel}>Date</Text>
               <Text style={styles.infoValue}>
-                {item.event?.date || item.date}
+                {formatEventDate(item.event?.datetime)}
               </Text>
             </View>
           </View>
@@ -113,7 +141,7 @@ const MyTicketsScreen = ({ navigation }) => {
             <View>
               <Text style={styles.infoLabel}>Time</Text>
               <Text style={styles.infoValue}>
-                {item.event?.time || item.time || "20:00"}
+                {formatEventTime(item.event?.datetime)}
               </Text>
             </View>
           </View>
@@ -122,7 +150,11 @@ const MyTicketsScreen = ({ navigation }) => {
         <View style={styles.seatContainer}>
           <Text style={styles.seatLabel}>Seat Location</Text>
           <Text style={styles.seatValue}>
-            {item.seatNumber || item.seat || "Assigned at entry"}
+            {item.seats && item.seats.length > 0
+              ? item.seats
+                  .map((s) => `Row ${s.row} - Seat ${s.seatNumber}`)
+                  .join(", ")
+              : "Assigned at entry"}
           </Text>
         </View>
 

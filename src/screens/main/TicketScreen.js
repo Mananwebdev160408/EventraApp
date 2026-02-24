@@ -42,16 +42,9 @@ const TicketScreen = ({ navigation, route }) => {
     }
 
     try {
-      const response = await bookingService.getUserBookings(userInfo?.id);
-      const bookings = Array.isArray(response)
-        ? response
-        : response?.bookings || [];
-      const booking = bookings.find(
-        (b) => b.id === bookingId || b._id === bookingId,
-      );
-
-      if (booking) {
-        setTicketData(booking);
+      const data = await bookingService.getBookingById(bookingId);
+      if (data) {
+        setTicketData(data);
       }
     } catch (error) {
       console.error("Error fetching ticket details:", error);
@@ -60,14 +53,38 @@ const TicketScreen = ({ navigation, route }) => {
     }
   };
 
-  const event = ticketData?.event || EVENT_DETAILS;
-  const seatInfo = ticketData
-    ? {
-        section: ticketData.section || ticketData.event?.section || "A",
-        row: ticketData.row || ticketData.event?.row || "05",
-        seat: ticketData.seatNumber || ticketData.seat || "--",
+  const formatEventDate = (dateString, type = "date") => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      if (type === "time") {
+        return date.toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
       }
-    : { section: "A", row: "5", seat: "12" };
+      return date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const eventData = ticketData?.event || {};
+  const primarySeat =
+    ticketData?.seats && ticketData.seats.length > 0
+      ? ticketData.seats[0]
+      : null;
+
+  const seatInfo = {
+    section: primarySeat?.seatCategory || "Stadium",
+    row: primarySeat?.row || "--",
+    seat: primarySeat?.seatNumber || "--",
+  };
 
   return (
     <View style={styles.container}>
@@ -121,21 +138,27 @@ const TicketScreen = ({ navigation, route }) => {
               />
               <View style={styles.eventOverlay} />
               <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
+                <Text style={styles.eventTitle}>
+                  {eventData.name || "Event Title"}
+                </Text>
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
                     <Calendar size={14} color={COLORS.gray300} />
-                    <Text style={styles.metaText}>{event.date}</Text>
+                    <Text style={styles.metaText}>
+                      {formatEventDate(eventData.datetime)}
+                    </Text>
                   </View>
                   <View style={styles.metaItem}>
                     <Clock size={14} color={COLORS.gray300} />
-                    <Text style={styles.metaText}>{event.time || "20:00"}</Text>
+                    <Text style={styles.metaText}>
+                      {formatEventDate(eventData.datetime, "time")}
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.metaItem}>
                   <MapPin size={14} color={COLORS.gray300} />
                   <Text style={styles.metaText}>
-                    {event.venue || event.location}
+                    {eventData.stadiumName || "Stadium Venue"}
                   </Text>
                 </View>
               </View>

@@ -129,9 +129,7 @@ const ExploreScreen = ({ navigation }) => {
       eventFilter === "ongoing"
         ? event.status === "ongoing"
         : event.status !== "ongoing";
-    const searchMatch = (event.name || event.title || "")
-      .toLowerCase()
-      .includes(query);
+    const searchMatch = (event.name || "").toLowerCase().includes(query);
     return statusMatch && searchMatch;
   });
 
@@ -177,10 +175,8 @@ const ExploreScreen = ({ navigation }) => {
     >
       <Image source={getEventImage(item.id)} style={styles.eventImage} />
       <View style={styles.eventInfo}>
-        <Text style={styles.eventTitle}>{item.name || item.title}</Text>
-        <Text style={styles.eventTime}>
-          {formatEventDate(item.dateTime || item.time || item.date)}
-        </Text>
+        <Text style={styles.eventTitle}>{item.name}</Text>
+        <Text style={styles.eventTime}>{formatEventDate(item.datetime)}</Text>
         <View style={styles.eventFooter}>
           <Text style={styles.eventPrice}>
             {item.minPrice ? `₹${item.minPrice}` : item.price}
