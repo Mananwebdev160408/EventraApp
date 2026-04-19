@@ -44,6 +44,33 @@ const MyTicketsScreen = ({ navigation }) => {
     } catch (error) {
       console.error("Error fetching bookings:", error);
     } finally {
+      // Mock fallback for demonstration
+      setBookings((current) => {
+        const mockTicket = {
+          id: "MOCK-TKT-789",
+          ticketType: "VIP GOLD",
+          event: {
+            id: "mock-event-123",
+            name: "IPL 2026: MI vs CSK",
+            datetime: new Date().toISOString(),
+            image:
+              "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=800&auto=format&fit=crop",
+            stadiumName: "Wankhede Stadium",
+          },
+          seats: [
+            {
+              row: "12",
+              seatNumber: "45",
+            },
+          ],
+        };
+
+        // Add if not already there
+        if (!current.find((b) => b.id === mockTicket.id)) {
+          return [mockTicket, ...current];
+        }
+        return current;
+      });
       setIsLoading(false);
     }
   };

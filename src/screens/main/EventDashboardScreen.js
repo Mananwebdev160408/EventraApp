@@ -80,7 +80,16 @@ const EventDashboardScreen = ({ navigation }) => {
           stadiumId: liveBooking.event?.stadium?.id || liveBooking.stadiumId,
         });
       } else {
-        setActiveEvent(null);
+        // Mock fallback for demonstration
+        setActiveEvent({
+          id: "mock-event-123",
+          title: "IPL 2026: MI vs CSK",
+          gate: "B3",
+          section: "Level 1 - East",
+          row: "12",
+          seat: "45",
+          stadiumId: "s1",
+        });
       }
     } catch (error) {
       console.error("Error checking live event:", error);
@@ -425,9 +434,10 @@ const EventDashboardScreen = ({ navigation }) => {
                 </View>
                 <View style={styles.botBubble}>
                   <Text style={styles.botText}>
-                    Hi {userInfo?.firstname || "Alex"}! I'm your event
-                    assistant. Ask me anything about concessions, toilets, or
-                    the event schedule!
+                    Hi {userInfo?.firstname || "Alex"}! Welcome to the Wankhede
+                    Stadium! 🏟️ Excited for the MI vs CSK clash? I'm here to
+                    help you find your seat (Level 1 - East), order snacks, or
+                    locate the nearest amenities. What can I help you with?
                   </Text>
                 </View>
               </View>
@@ -463,11 +473,22 @@ const EventDashboardScreen = ({ navigation }) => {
             <View style={styles.updateCard}>
               <View style={styles.updateHeader}>
                 <View style={styles.liveDot} />
-                <Text style={styles.updateTime}>82' - Goal!</Text>
+                <Text style={styles.updateTime}>15.4 Overs - WICKET!</Text>
               </View>
               <Text style={styles.updateMessage}>
-                Home team scores! The crowd is going wild. Noise levels reaching
-                110dB.
+                Bumrah strikes! A perfect yorker clean bowls the batter. The
+                stadium is erupting! ⚡ Noise: 112dB
+              </Text>
+            </View>
+            <View style={[styles.updateCard, { marginTop: 12 }]}>
+              <View style={styles.updateHeader}>
+                <View
+                  style={[styles.liveDot, { backgroundColor: COLORS.gray400 }]}
+                />
+                <Text style={styles.updateTime}>12.2 Overs - Boundary</Text>
+              </View>
+              <Text style={styles.updateMessage}>
+                Lovely cover drive for four! The momentum is shifting.
               </Text>
             </View>
           </View>

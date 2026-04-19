@@ -49,6 +49,28 @@ const TicketScreen = ({ navigation, route }) => {
     } catch (error) {
       console.error("Error fetching ticket details:", error);
     } finally {
+      // Mock fallback for demonstration
+      if (!ticketData && (!bookingId || bookingId === "MOCK-TKT-789")) {
+        setTicketData({
+          id: "MOCK-TKT-789",
+          event: {
+            id: "mock-event-123",
+            name: "IPL 2026: MI vs CSK",
+            datetime: new Date().toISOString(),
+            image:
+              "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=800&auto=format&fit=crop",
+            stadiumName: "Wankhede Stadium",
+            gate: "Gate B3",
+          },
+          seats: [
+            {
+              seatCategory: "Level 1 - East",
+              row: "12",
+              seatNumber: "45",
+            },
+          ],
+        });
+      }
       setLoading(false);
     }
   };
@@ -85,6 +107,8 @@ const TicketScreen = ({ navigation, route }) => {
     row: primarySeat?.row || "--",
     seat: primarySeat?.seatNumber || "--",
   };
+
+  const isMockEvent = eventData?.id === "mock-event-123" || !bookingId;
 
   return (
     <View style={styles.container}>
@@ -141,6 +165,23 @@ const TicketScreen = ({ navigation, route }) => {
                 <Text style={styles.eventTitle}>
                   {eventData.name || "Event Title"}
                 </Text>
+
+                {isMockEvent && (
+                  <View style={styles.matchupRow}>
+                    <View style={styles.teamBadge}>
+                      <Text style={styles.teamText}>MI</Text>
+                    </View>
+                    <Text style={styles.vsText}>VS</Text>
+                    <View
+                      style={[styles.teamBadge, { backgroundColor: "#FFD700" }]}
+                    >
+                      <Text style={[styles.teamText, { color: "#000" }]}>
+                        CSK
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
                     <Calendar size={14} color={COLORS.gray300} />
@@ -155,11 +196,25 @@ const TicketScreen = ({ navigation, route }) => {
                     </Text>
                   </View>
                 </View>
-                <View style={styles.metaItem}>
-                  <MapPin size={14} color={COLORS.gray300} />
-                  <Text style={styles.metaText}>
-                    {eventData.stadiumName || "Stadium Venue"}
-                  </Text>
+                <View style={[styles.metaRow, { marginTop: 4 }]}>
+                  <View style={styles.metaItem}>
+                    <MapPin size={14} color={COLORS.gray300} />
+                    <Text style={styles.metaText}>
+                      {eventData.stadiumName || "Stadium Venue"}
+                    </Text>
+                  </View>
+                  {eventData.gate && (
+                    <View style={[styles.metaItem, { marginLeft: 12 }]}>
+                      <Text
+                        style={[
+                          styles.metaText,
+                          { color: COLORS.brandPurple, fontWeight: "800" },
+                        ]}
+                      >
+                        {eventData.gate}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
@@ -482,6 +537,32 @@ const styles = StyleSheet.create({
   backBtnText: {
     color: COLORS.white,
     fontWeight: "700",
+  },
+  matchupRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  teamBadge: {
+    backgroundColor: "#004BA0", // MI Blue
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+  teamText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: "900",
+  },
+  vsText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: "800",
+    opacity: 0.8,
   },
 });
 

@@ -266,8 +266,21 @@ const AdminDashboardScreen = ({ navigation }) => {
         ? events.filter((e) => e.stadiumId === stadiumId)
         : [];
 
-      const liveEvent =
+      let liveEvent =
         myStadiumEvents.find((e) => e.live) || myStadiumEvents[0] || null;
+
+      // Mock fallback for demonstration
+      if (!liveEvent) {
+        liveEvent = {
+          id: "mock-live-1",
+          title: "IPL 2026: Mumbai Indians vs CSK",
+          venue: "Wankhede Stadium",
+          live: true,
+          totalTicketsSold: 32450,
+          capacity: 35000,
+          stadiumId: stadiumId || "s1",
+        };
+      }
 
       const alertsCount = Array.isArray(sosAlerts) ? sosAlerts.length : 0;
       const recentSos = Array.isArray(sosAlerts) ? sosAlerts.slice(0, 3) : [];

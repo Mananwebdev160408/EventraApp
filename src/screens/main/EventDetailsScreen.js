@@ -80,6 +80,23 @@ const EventDetailsScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error("Error fetching event details:", error);
     } finally {
+      // Mock fallback for demonstration
+      if (!event && eventId === "mock-event-123") {
+        setEvent({
+          id: "mock-event-123",
+          name: "IPL 2026: MI vs CSK",
+          datetime: new Date().toISOString(),
+          stadiumName: "Wankhede Stadium",
+          description:
+            "Witness the greatest rivalry in cricket history at the iconic Wankhede Stadium. Mumbai Indians take on Chennai Super Kings in this high-voltage IPL 2026 clash. Expect a packed house, electrifying atmosphere, and world-class cricketing action.",
+          image:
+            "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=800&auto=format&fit=crop",
+          category: "Cricket",
+          tags: ["High Voltage", "El Clasico"],
+          minPrice: 800,
+          price: 1500,
+        });
+      }
       setIsLoading(false);
     }
   };

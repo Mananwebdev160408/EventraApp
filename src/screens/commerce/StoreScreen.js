@@ -63,6 +63,53 @@ const StoreScreen = ({ navigation, route }) => {
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
+      // Mock fallback for demonstration
+      if (products.length === 0) {
+        const mockProducts = [
+          {
+            id: "m-prod-1",
+            name: "MI Official Jersey 2026",
+            price: "₹1,999",
+            image:
+              "https://images.unsplash.com/photo-1576859958081-27ee54e57f51?w=400&h=400&fit=crop",
+            category: "Apparel",
+          },
+          {
+            id: "m-prod-2",
+            name: "CSK Captain's Cap",
+            price: "₹499",
+            image:
+              "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&h=400&fit=crop",
+            category: "Headwear",
+          },
+          {
+            id: "m-prod-3",
+            name: "Eventra Hoodie (Limited Ed.)",
+            price: "₹2,499",
+            image:
+              "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=400&fit=crop",
+            category: "Apparel",
+          },
+          {
+            id: "m-prod-4",
+            name: "MI Matchday Scarf",
+            price: "₹349",
+            image:
+              "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=400&h=400&fit=crop",
+            category: "Accessories",
+          },
+          {
+            id: "m-prod-5",
+            name: "CSK Double Wall Bottle",
+            price: "₹899",
+            image:
+              "https://images.unsplash.com/photo-1602143399827-bd95967c7c40?w=400&h=400&fit=crop",
+            category: "Accessories",
+          },
+        ];
+        setProducts(mockProducts);
+        setCategories(["All", "Apparel", "Headwear", "Accessories"]);
+      }
       setIsLoading(false);
       setIsRefreshing(false);
     }

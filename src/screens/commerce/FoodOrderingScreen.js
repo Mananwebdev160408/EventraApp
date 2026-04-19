@@ -54,6 +54,41 @@ const FoodOrderingScreen = ({ navigation, route }) => {
     } catch (error) {
       console.error("Error fetching restaurants:", error);
     } finally {
+      // Mock fallback for demonstration
+      setVendors((current) => {
+        if (current.length === 0) {
+          return [
+            {
+              id: "m-food-1",
+              name: "Wankhede Snacks Corner",
+              rating: "4.8",
+              time: "10-15 min",
+              description: "Classic Vada Pav, Samosas and Chai",
+              image:
+                "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&h=300&fit=crop",
+            },
+            {
+              id: "m-food-2",
+              name: "Pizza Arena",
+              rating: "4.2",
+              time: "20-25 min",
+              description: "Hot wood-fired pizzas delivered to seat",
+              image:
+                "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=300&fit=crop",
+            },
+            {
+              id: "m-food-3",
+              name: "Cool sips & More",
+              rating: "4.5",
+              time: "5-10 min",
+              description: "Chilled beverages and soft drinks",
+              image:
+                "https://images.unsplash.com/photo-1544145945-f904253db0ad?w=400&h=300&fit=crop",
+            },
+          ];
+        }
+        return current;
+      });
       setIsLoading(false);
       setIsRefreshing(false);
     }
