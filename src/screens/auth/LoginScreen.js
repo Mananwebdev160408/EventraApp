@@ -29,97 +29,40 @@ import {
   User,
 } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
-import { authService } from "../../api/services";
+import { AuthRepository } from "../../repositories/AuthRepository";
 
 const { width, height } = Dimensions.get("window");
 
 const LoginScreen = ({ navigation }) => {
   const { login } = useAuth();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      Alert.alert("Error", "Please enter both username and password");
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter your email and password");
       return;
     }
 
     setErrorMessage("");
     setIsLoading(true);
     try {
-      console.log("Attempting login for:", username);
-
-      const response = await authService.login({
-        username: username,
-        password: password,
-      });
-
-      console.log(
-        "Login full response body:",
-        JSON.stringify(response, null, 2),
-      );
-
-      // Check for token in common property names
-      const token =
-        response?.accessToken ||
-        response?.token ||
-        response?.data?.accessToken ||
-        response?.data?.token;
-
-      if (token) {
-        // ... (rest of the logic remains the same)
-        let userData =
-          response.user || response.data?.user || response.data || response;
-
-        // Handle double-nesting if it exists (some APIs return { data: { data: ... } })
-        if (userData?.data && !userData.username && !userData.firstname) {
-          userData = userData.data;
-        }
-
-        // If user info is not in login response or missing name, fetch it
-        if (
-          !userData ||
-          (!userData.firstName &&
-            !userData.lastName &&
-            !userData.name &&
-            !userData.username)
-        ) {
-          try {
-            console.log("User info missing, fetching profile...");
-            // First save the token so getCurrentUser can use it
-            await login(token, userData || { username: username });
-            const profile = await authService.getCurrentUser();
-            if (profile) {
-              userData = profile;
-            }
-          } catch (e) {
-            console.log("Could not fetch user profile, using fallback", e);
-            userData = userData || { username: username };
-          }
-        }
-
-        // Store final token and user data globally
-        await login(token, userData);
-
-        console.log("Login successful with user:", userData.username);
-
-        // Check user roles for redirection
-        const userRoles = userData.roles || userData.role || [];
-        const isAdmin = Array.isArray(userRoles)
-          ? userRoles.includes("admin") || userRoles.includes("ADMIN")
-          : userRoles === "admin" || userRoles === "ADMIN";
-
-        console.log(`User type identified as: ${isAdmin ? "ADMIN" : "USER"}`);
-      } else {
-        console.warn("No token found in response body");
-        setErrorMessage("Invalid credentials or user doesn't exist");
-      }
+      const { user, userProfile } = await AuthRepository.login({ email, password });
+      // Update the AuthContext — onAuthStateChanged will also fire but this
+      // provides instant UI feedback without waiting for the observer.
+      await login(user.uid, userProfile);
     } catch (error) {
-      console.error("Login detailed error:", error);
-      setErrorMessage("Invalid credentials or user doesn't exist");
+      console.error("Login error:", error);
+      const msg =
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/wrong-password"
+          ? "Invalid email or password."
+          : error.message || "Login failed. Please try again.";
+      setErrorMessage(msg);
     } finally {
       setIsLoading(false);
     }
@@ -165,25 +108,26 @@ const LoginScreen = ({ navigation }) => {
               </Text>
             </View>
 
-            {/* Username Field */}
+            {/* Email Field */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>USERNAME</Text>
+              <Text style={styles.label}>EMAIL</Text>
               <View
                 style={[
                   styles.inputContainer,
                   {
-                    borderColor: username ? COLORS.brandPurple : COLORS.border,
+                    borderColor: email ? COLORS.brandPurple : COLORS.border,
                   },
                 ]}
               >
-                <User size={20} color={COLORS.gray400} />
+                <Mail size={20} color={COLORS.gray400} />
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter your username"
+                  placeholder="Enter your email"
                   placeholderTextColor={COLORS.gray400}
-                  value={username}
-                  onChangeText={setUsername}
+                  value={email}
+                  onChangeText={setEmail}
                   autoCapitalize="none"
+                  keyboardType="email-address"
                 />
               </View>
             </View>

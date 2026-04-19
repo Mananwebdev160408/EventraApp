@@ -1,10 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Dimensions,
   ImageBackground,
 } from "react-native";
@@ -16,12 +15,30 @@ import {
   UserPlus,
   LogIn,
   Warehouse,
+  KeyRound,
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import DemoCredentialsModal from "../../components/DemoCredentialsModal";
+import { seedDemoUsers } from "../../utils/seedDemoUsers";
 
 const { width, height } = Dimensions.get("window");
 
 const AuthLandingScreen = ({ navigation }) => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  // Seed demo users on mount and immediately show the dialog
+  useEffect(() => {
+    const init = async () => {
+      setIsSeeding(true);
+      await seedDemoUsers();
+      setIsSeeding(false);
+      // Auto-show the demo credentials dialog after seeding
+      setModalVisible(true);
+    };
+    init();
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.topArea}>
@@ -104,8 +121,25 @@ const AuthLandingScreen = ({ navigation }) => {
             </View>
             <ArrowRight size={18} color="#457b9d" />
           </TouchableOpacity>
+
+          {/* Demo credentials shortcut */}
+          <TouchableOpacity
+            style={styles.demoButton}
+            onPress={() => setModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <KeyRound size={16} color="#7c3aed" />
+            <Text style={styles.demoButtonText}>
+              {isSeeding ? "Preparing demo accounts…" : "View Demo Credentials"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
+
+      <DemoCredentialsModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      />
     </View>
   );
 };
@@ -178,10 +212,10 @@ const styles = StyleSheet.create({
     color: "#64748b",
     lineHeight: 22,
     fontWeight: "500",
-    marginBottom: 40,
+    marginBottom: 32,
   },
   buttonContainer: {
-    gap: 16,
+    gap: 14,
   },
   primaryButton: {
     borderRadius: 18,
@@ -223,7 +257,6 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 10,
     gap: 16,
   },
   line: {
@@ -245,7 +278,6 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 1,
     borderColor: "rgba(69, 123, 157, 0.1)",
-    marginTop: 8,
   },
   stadiumIconBox: {
     width: 48,
@@ -273,6 +305,23 @@ const styles = StyleSheet.create({
     color: "#457b9d",
     fontWeight: "600",
     marginTop: 2,
+  },
+  demoButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: "rgba(124, 58, 237, 0.06)",
+    borderWidth: 1.5,
+    borderColor: "rgba(124, 58, 237, 0.15)",
+    gap: 8,
+  },
+  demoButtonText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: "#7c3aed",
+    letterSpacing: 0.2,
   },
 });
 

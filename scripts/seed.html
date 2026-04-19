@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Eventra — Firebase Demo Seed</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 24px;
+      padding: 40px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+    }
+    .logo { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: -1px; margin-bottom: 6px; }
+    .subtitle { font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 32px; }
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, #e63946, #d62828);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:hover:not(:disabled) { opacity: 0.9; }
+    .log {
+      margin-top: 24px;
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      min-height: 100px;
+      display: none;
+      border: 1px solid #1e293b;
+    }
+    .log.visible { display: block; }
+    .line { padding: 4px 0; line-height: 1.6; }
+    .line.ok   { color: #4ade80; }
+    .line.err  { color: #f87171; }
+    .line.info { color: #60a5fa; }
+    .line.warn { color: #fbbf24; }
+    .done-banner {
+      margin-top: 24px;
+      background: rgba(74, 222, 128, 0.08);
+      border: 1px solid rgba(74, 222, 128, 0.2);
+      border-radius: 14px;
+      padding: 20px;
+      display: none;
+    }
+    .done-banner.visible { display: block; }
+    .done-banner h3 { color: #4ade80; font-size: 14px; font-weight: 800; margin-bottom: 12px; }
+    .cred-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .cred-row:last-child { border-bottom: none; }
+    .cred-label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 1px; }
+    .cred-value { font-size: 13px; font-weight: 700; color: #e2e8f0; font-family: monospace; }
+    .role-title { font-size: 11px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 1.5px; margin: 12px 0 4px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🏟️ Eventra</div>
+    <div class="subtitle">Firebase Demo Account Seeder — run once to provision demo credentials</div>
+
+    <button class="btn" id="seedBtn" onclick="runSeed()">🚀 Seed Demo Accounts to Firebase</button>
+
+    <div class="log" id="log"></div>
+
+    <div class="done-banner" id="doneBanner">
+      <h3>✅ Seeding Complete — Use These Credentials</h3>
+      <div class="role-title">🎟️ Fan Account</div>
+      <div class="cred-row"><span class="cred-label">Email</span><span class="cred-value">demo.fan@eventra.app</span></div>
+      <div class="cred-row"><span class="cred-label">Password</span><span class="cred-value">Fan@1234</span></div>
+      <div class="role-title">🏟️ Admin Account</div>
+      <div class="cred-row"><span class="cred-label">Email</span><span class="cred-value">demo.admin@eventra.app</span></div>
+      <div class="cred-row"><span class="cred-label">Password</span><span class="cred-value">Admin@1234</span></div>
+    </div>
+  </div>
+
+  <!-- Firebase JS SDK v9 (compat mode for simplicity in a single HTML file) -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ── Firebase config (matches src/firebase/config.js) ──────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyCplYt7wlhNlCh-fiH6nmCynszl06GZNS0",
+      authDomain: "eventra-3d1ff.firebaseapp.com",
+      projectId: "eventra-3d1ff",
+      storageBucket: "eventra-3d1ff.firebasestorage.app",
+      messagingSenderId: "873161731526",
+      appId: "1:873161731526:web:0817942e69fae3de83d6c7",
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    // ── Demo accounts to seed ─────────────────────────────────────────────────
+    const DEMO_USERS = [
+      {
+        email: "demo.fan@eventra.app",
+        password: "Fan@1234",
+        firstName: "Demo", lastName: "Fan",
+        username: "demo_fan",
+        phoneNumber: "+91 9000000001",
+        gender: "Other",
+        role: "user", roles: ["user"], isDemo: true,
+      },
+      {
+        email: "demo.admin@eventra.app",
+        password: "Admin@1234",
+        firstName: "Demo", lastName: "Admin",
+        username: "demo_admin",
+        phoneNumber: "+91 9000000002",
+        gender: "Other",
+        role: "admin", roles: ["admin"], isDemo: true,
+      },
+    ];
+
+    // ── Logging ───────────────────────────────────────────────────────────────
+    const logEl = document.getElementById('log');
+    function log(msg, type = 'info') {
+      logEl.classList.add('visible');
+      const line = document.createElement('div');
+      line.className = `line ${type}`;
+      line.textContent = msg;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // ── Seed a single user ────────────────────────────────────────────────────
+    async function seedUser(user) {
+      const displayName = `${user.firstName} ${user.lastName}`;
+      let uid;
+
+      // 1. Try sign-in first (already exists)
+      try {
+        const cred = await auth.signInWithEmailAndPassword(user.email, user.password);
+        uid = cred.user.uid;
+        log(`  ✓ Auth account already exists for ${user.email}`, 'warn');
+      } catch (signInErr) {
+        if (
+          signInErr.code === 'auth/user-not-found' ||
+          signInErr.code === 'auth/invalid-credential' ||
+          signInErr.code === 'auth/wrong-password'
+        ) {
+          // 2. Create it
+          try {
+            const cred = await auth.createUserWithEmailAndPassword(user.email, user.password);
+            uid = cred.user.uid;
+            await cred.user.updateProfile({ displayName });
+            log(`  ✓ Created Auth account → ${user.email}`, 'ok');
+          } catch (createErr) {
+            log(`  ✗ Failed to create ${user.email}: ${createErr.message}`, 'err');
+            return;
+          }
+        } else {
+          log(`  ✗ Sign-in error for ${user.email}: ${signInErr.code}`, 'err');
+          return;
+        }
+      }
+
+      // 3. Write Firestore profile (merge so existing fields aren't wiped)
+      const { password, ...profileData } = user;
+      try {
+        await db.collection('users').doc(uid).set(
+          {
+            uid,
+            ...profileData,
+            displayName,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          },
+          { merge: true }
+        );
+        log(`  ✓ Firestore profile written (uid: ${uid})`, 'ok');
+      } catch (fsErr) {
+        log(`  ✗ Firestore write failed: ${fsErr.message}`, 'err');
+      }
+
+      // 4. Sign out so next user can be created cleanly
+      await auth.signOut();
+    }
+
+    // ── Main ──────────────────────────────────────────────────────────────────
+    async function runSeed() {
+      const btn = document.getElementById('seedBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Seeding...';
+
+      log('🚀 Starting Eventra demo seed…', 'info');
+      log(`   Project: ${firebaseConfig.projectId}`, 'info');
+      log('', 'info');
+
+      let allOk = true;
+      for (const user of DEMO_USERS) {
+        log(`→ [${user.role.toUpperCase()}] ${user.email}`, 'info');
+        try {
+          await seedUser(user);
+        } catch (e) {
+          log(`  ✗ Unexpected error: ${e.message}`, 'err');
+          allOk = false;
+        }
+        log('', 'info');
+      }
+
+      if (allOk) {
+        log('✅ All done! You can close this tab.', 'ok');
+        document.getElementById('doneBanner').classList.add('visible');
+        btn.textContent = '✅ Seeding Complete';
+      } else {
+        log('⚠️  Some accounts may not have seeded. Check errors above.', 'warn');
+        btn.disabled = false;
+        btn.textContent = 'Retry Seed';
+      }
+    }
+  </script>
+</body>
+</html>

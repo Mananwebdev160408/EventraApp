@@ -18,7 +18,6 @@ import {
   Shield,
 } from "lucide-react-native";
 import { Client } from "@stomp/stompjs";
-import { API_CONFIG } from "../../api/config";
 import { COLORS } from "../../constants/theme";
 
 const STADIUM_CENTER = { latitude: 28.6127, longitude: 77.2292 };
@@ -133,25 +132,10 @@ const LiveHeatmapScreen = ({ navigation }) => {
   useEffect(() => {
     // Initial simulation while connecting
     setHeatmapPoints(generateInitialGrid());
-
-    const socketUrl = API_CONFIG.BASE_URL.replace("http", "ws") + "/ws";
-    stompClient.current = new Client({
-      brokerURL: socketUrl,
-      reconnectDelay: 5000,
-      onConnect: () => {
-        console.log("Heatmap Screen Connected");
-        setIsLive(true);
-        stompClient.current.subscribe("/topic/admin/heatmap", (message) => {
-          const clusteredPoints = JSON.parse(message.body);
-          if (clusteredPoints && clusteredPoints.length > 0) {
-            updateWithRealData(clusteredPoints);
-          }
-        });
-      },
-    });
-
-    stompClient.current.activate();
-    return () => stompClient.current?.deactivate();
+    // Firebase backend: heatmap data comes from Firestore/Realtime Database.
+    // Until real-time listeners are wired, start simulation mode immediately.
+    setIsLive(true);
+    return () => {};
   }, []);
 
   const updateWithRealData = (points) => {

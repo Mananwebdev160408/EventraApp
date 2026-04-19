@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { COLORS } from "../../constants/theme";
 import { ChevronLeft, Check } from "lucide-react-native";
-import { authService } from "../../api/services";
+import { AuthRepository } from "../../repositories/AuthRepository";
 import { Alert } from "react-native";
 
 const SignupScreen = ({ navigation }) => {
@@ -30,14 +30,7 @@ const SignupScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignup = async () => {
-    if (
-      !firstName ||
-      !lastName ||
-      !email ||
-      !password ||
-      !username ||
-      !phoneNumber
-    ) {
+    if (!firstName || !lastName || !email || !password || !username || !phoneNumber) {
       Alert.alert("Error", "Please fill in all required fields.");
       return;
     }
@@ -54,32 +47,27 @@ const SignupScreen = ({ navigation }) => {
 
     setIsLoading(true);
     try {
-      const userData = {
-        username: username,
-        gender: gender,
-        email: email,
-        password: password,
+      await AuthRepository.register({
+        email,
+        password,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
+        username: username.trim(),
         phoneNumber: phoneNumber.trim(),
-        roles: ["user"],
-      };
+        gender,
+        role: "user",
+      });
 
-      console.log("Sending registration data:", userData);
-      const response = await authService.register(userData);
-
-      if (response) {
-        Alert.alert("Success", "Account created successfully! Please login.", [
-          { text: "OK", onPress: () => navigation.navigate("Login") },
-        ]);
-      }
+      Alert.alert("Success", "Account created successfully! Please login.", [
+        { text: "OK", onPress: () => navigation.navigate("Login") },
+      ]);
     } catch (error) {
       console.error("Signup error:", error);
-      Alert.alert(
-        "Signup Failed",
-        error.response?.data?.message ||
-          "Registration failed. Please check your details or try again later.",
-      );
+      const msg =
+        error.code === "auth/email-already-in-use"
+          ? "This email is already registered. Try logging in."
+          : error.message || "Registration failed. Please try again later.";
+      Alert.alert("Signup Failed", msg);
     } finally {
       setIsLoading(false);
     }

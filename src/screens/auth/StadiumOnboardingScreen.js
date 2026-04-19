@@ -29,8 +29,8 @@ import {
   ShieldCheck,
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { authService, stadiumService } from "../../api/services";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthRepository } from "../../repositories/AuthRepository";
+import { StadiumRepository } from "../../repositories/StadiumRepository";
 import { useAuth } from "../../context/AuthContext";
 
 const { width } = Dimensions.get("window");
@@ -122,85 +122,43 @@ const StadiumOnboardingScreen = ({ navigation }) => {
 
   const performRegistration = async () => {
     try {
-      // 1. Prepare Admin User Data
-      const adminData = {
-        username: formData.username.trim(),
+      // 1. Register admin user in Firebase Auth + create Firestore profile
+      const { user, userProfile } = await AuthRepository.register({
         email: formData.adminEmail.trim(),
         password: formData.password,
         firstName: formData.firstname.trim(),
         lastName: formData.lastname.trim(),
+        username: formData.username.trim(),
         phoneNumber: formData.phone.trim(),
-        roles: ["admin"], // Explicitly sending admin role
-      };
+        role: "admin",
+      });
 
-      console.log("Registering Admin:", adminData.username);
-      const userResult = await authService.register(adminData);
+      // 2. Create stadium document in Firestore, linked to the admin's UID
+      await StadiumRepository.create({
+        name: formData.stadiumName.trim(),
+        city: formData.city.trim(),
+        state: formData.state.trim(),
+        country: formData.country.trim(),
+        capacity: parseInt(formData.capacity) || 0,
+        adminUid: user.uid,
+        adminEmail: formData.adminEmail.trim(),
+      });
 
-      if (userResult) {
-        // 2. NEW: Automatic login to get token for stadium upload
-        console.log("Auto-logging in to acquire session token...");
-        const loginResponse = await authService.login({
-          username: adminData.username,
-          password: adminData.password,
-        });
+      // 3. Update AuthContext — onAuthStateChanged will handle navigation
+      await login(user.uid, userProfile);
 
-        const token =
-          loginResponse?.accessToken ||
-          loginResponse?.token ||
-          loginResponse?.data?.accessToken ||
-          loginResponse?.data?.token;
-
-        if (!token) {
-          throw new Error(
-            "Could not acquire session token after registration.",
-          );
-        }
-
-        // 3. Manually save token to storage so apiClient interceptor picks it up
-        await AsyncStorage.setItem("userToken", token);
-
-        // 4. Prepare Stadium Data - Ordering matches backend constructor to improve deserialization reliability
-        const stadiumData = {
-          city: formData.city.trim(),
-          state: formData.state.trim(),
-          country: formData.country.trim(),
-          capacity: parseInt(formData.capacity) || 0,
-          name: formData.stadiumName.trim(),
-        };
-
-        console.log("Uploading Stadium Profile:", stadiumData.name);
-        try {
-          await stadiumService.uploadStadium(stadiumData);
-        } catch (stadiumErr) {
-          console.warn("User created but stadium upload failed:", stadiumErr);
-        }
-
-        // 5. Finalize login via context to update app state and redirect to dashboard
-        const userData =
-          loginResponse.user ||
-          loginResponse.data?.user ||
-          loginResponse.data ||
-          adminData;
-        await login(token, userData);
-
-        Alert.alert(
-          "Success",
-          "Your Venue Partner account and stadium profile have been created successfully.",
-          [
-            {
-              text: "GO TO DASHBOARD",
-              onPress: () => {}, // login() call above will handle navigation via AppNavigator
-            },
-          ],
-        );
-      }
+      Alert.alert(
+        "Success",
+        "Your Venue Partner account and stadium profile have been created successfully.",
+        [{ text: "GO TO DASHBOARD" }],
+      );
     } catch (error) {
       console.error("Registration Error:", error);
-      Alert.alert(
-        "Registration Failed",
-        error.response?.data?.message ||
-          "Could not complete registration. Please check your network or try a different username.",
-      );
+      const msg =
+        error.code === "auth/email-already-in-use"
+          ? "This email is already registered."
+          : error.message || "Could not complete registration. Please try again.";
+      Alert.alert("Registration Failed", msg);
     } finally {
       setIsLoading(false);
     }
