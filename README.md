@@ -103,6 +103,34 @@ npm start
 - Press `i` for iOS Simulator.
 - Press `w` for Web.
 
+### Seed Firebase Demo Data
+Seed linked demo accounts and inter-connected Firestore data:
+
+```bash
+npm run seed:firebase
+```
+
+Collections seeded:
+- `users`
+- `stadiums`
+- `events`
+- `seats`
+- `bookings`
+- `restaurants`
+- `foodItems`
+- `foodOrders`
+- `merchandise`
+- `merchandiseOrders`
+- `feedback`
+- `sos`
+
+Demo login credentials:
+- `demo.fan@eventra.app` / `Fan@1234`
+- `demo.admin@eventra.app` / `Admin@1234`
+- `demo.fan2@eventra.app` / `Fan2@1234`
+- `demo.fan3@eventra.app` / `Fan3@1234`
+- `demo.fan4@eventra.app` / `Fan4@1234`
+
 ---
 
 ## 🛡️ License

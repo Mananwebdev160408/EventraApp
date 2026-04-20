@@ -10,44 +10,27 @@ import {
   TouchableOpacity,
   Modal,
   Animated,
-  Clipboard,
   ScrollView,
   Dimensions,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { X, Copy, Check, Zap, Shield, ChevronRight } from "lucide-react-native";
+import { X, Zap, Shield, ChevronRight } from "lucide-react-native";
 import { DEMO_CREDENTIALS } from "../utils/seedDemoUsers";
 
 const { height } = Dimensions.get("window");
 
 const CredentialRow = ({ label, value }) => {
-  const [copied, setCopied] = React.useState(false);
-
-  const handleCopy = () => {
-    Clipboard.setString(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
-    <TouchableOpacity style={styles.credRow} onPress={handleCopy} activeOpacity={0.7}>
+    <View style={styles.credRow}>
       <View style={styles.credLeft}>
         <Text style={styles.credLabel}>{label}</Text>
         <Text style={styles.credValue}>{value}</Text>
       </View>
-      <View style={[styles.copyBtn, copied && styles.copyBtnDone]}>
-        {copied ? (
-          <Check size={13} color="#10b981" />
-        ) : (
-          <Copy size={13} color="#94a3b8" />
-        )}
-      </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
-const RoleCard = ({ cred, isLast }) => {
+const RoleCard = ({ cred, isLast, onSelectCredential }) => {
   const isAdmin = cred.roleKey === "admin";
   return (
     <View style={[styles.roleCard, !isLast && styles.roleCardGap]}>
@@ -78,12 +61,21 @@ const RoleCard = ({ cred, isLast }) => {
         <CredentialRow label="EMAIL" value={cred.email} />
         <View style={styles.credDivider} />
         <CredentialRow label="PASSWORD" value={cred.password} />
+
+        <TouchableOpacity
+          style={styles.useAccountBtn}
+          onPress={() => onSelectCredential?.(cred)}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.useAccountBtnText}>Use This Account</Text>
+          <ChevronRight size={16} color="#fff" />
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-const DemoCredentialsModal = ({ visible, onClose }) => {
+const DemoCredentialsModal = ({ visible, onClose, onSelectCredential }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
 
@@ -139,7 +131,7 @@ const DemoCredentialsModal = ({ visible, onClose }) => {
           <View>
             <Text style={styles.sheetTitle}>Demo Credentials</Text>
             <Text style={styles.sheetSubtitle}>
-              Tap any field to copy • Seeded in Firebase
+              Pick an account to auto-fill login
             </Text>
           </View>
           <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
@@ -151,7 +143,7 @@ const DemoCredentialsModal = ({ visible, onClose }) => {
         <View style={styles.infoBanner}>
           <View style={styles.infoDot} />
           <Text style={styles.infoText}>
-            These accounts are automatically created in your Firebase project on first launch.
+            Run npm run seed:firebase once, then tap Use This Account.
           </Text>
         </View>
 
@@ -161,6 +153,7 @@ const DemoCredentialsModal = ({ visible, onClose }) => {
               key={cred.roleKey}
               cred={cred}
               isLast={i === DEMO_CREDENTIALS.length - 1}
+              onSelectCredential={onSelectCredential}
             />
           ))}
 
@@ -348,20 +341,25 @@ const styles = StyleSheet.create({
     color: "#0f172a",
     letterSpacing: 0.2,
   },
-  copyBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: "#f1f5f9",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  copyBtnDone: {
-    backgroundColor: "rgba(16, 185, 129, 0.1)",
-  },
   credDivider: {
     height: 1,
     backgroundColor: "#f1f5f9",
+  },
+  useAccountBtn: {
+    marginTop: 10,
+    backgroundColor: "#1d3557",
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+  },
+  useAccountBtnText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.2,
   },
   footer: {
     marginTop: 8,

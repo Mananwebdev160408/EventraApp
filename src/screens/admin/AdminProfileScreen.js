@@ -8,6 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
@@ -62,6 +63,24 @@ const AdminProfileScreen = ({ navigation }) => {
   };
 
   const handleLogout = () => {
+    const performLogout = async () => {
+      try {
+        await logout();
+      } catch (error) {
+        Alert.alert("Sign Out Failed", error?.message || "Could not sign out right now.");
+      }
+    };
+
+    if (Platform.OS === "web") {
+      if (
+        typeof window !== "undefined" &&
+        window.confirm("Are you sure you want to sign out of your admin account?")
+      ) {
+        performLogout();
+      }
+      return;
+    }
+
     Alert.alert(
       "Sign Out",
       "Are you sure you want to sign out of your admin account?",
@@ -70,9 +89,7 @@ const AdminProfileScreen = ({ navigation }) => {
         {
           text: "Sign Out",
           style: "destructive",
-          onPress: async () => {
-            await logout();
-          },
+          onPress: performLogout,
         },
       ],
     );

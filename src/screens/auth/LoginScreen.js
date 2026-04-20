@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -30,6 +30,7 @@ import {
 } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 import { AuthRepository } from "../../repositories/AuthRepository";
+import DemoCredentialsModal from "../../components/DemoCredentialsModal";
 
 const { width, height } = Dimensions.get("window");
 
@@ -40,6 +41,18 @@ const LoginScreen = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isDemoModalVisible, setIsDemoModalVisible] = useState(false);
+
+  useEffect(() => {
+    setIsDemoModalVisible(true);
+  }, []);
+
+  const handleSelectDemoCredential = (cred) => {
+    setEmail(cred.email);
+    setPassword(cred.password);
+    setErrorMessage("");
+    setIsDemoModalVisible(false);
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -189,6 +202,14 @@ const LoginScreen = ({ navigation }) => {
               {!isLoading && <ArrowRight size={20} color={COLORS.white} />}
             </TouchableOpacity>
 
+            <TouchableOpacity
+              style={styles.demoCtaBtn}
+              onPress={() => setIsDemoModalVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.demoCtaText}>Use Test Credentials</Text>
+            </TouchableOpacity>
+
             <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account? </Text>
               <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
@@ -203,6 +224,12 @@ const LoginScreen = ({ navigation }) => {
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
+
+      <DemoCredentialsModal
+        visible={isDemoModalVisible}
+        onClose={() => setIsDemoModalVisible(false)}
+        onSelectCredential={handleSelectDemoCredential}
+      />
     </View>
   );
 };
@@ -350,6 +377,17 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "800",
+  },
+  demoCtaBtn: {
+    alignSelf: "center",
+    marginTop: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  demoCtaText: {
+    color: "#457b9d",
+    fontSize: 13,
+    fontWeight: "700",
   },
   footer: {
     marginTop: 48,

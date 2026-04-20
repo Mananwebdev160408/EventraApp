@@ -63,10 +63,21 @@ export const AuthProvider = ({ children }) => {
    * The onAuthStateChanged observer will automatically clear state.
    */
   const logout = async () => {
+    const prevToken = userToken;
+    const prevUserInfo = userInfo;
+
+    // Optimistic local state clear for immediate navigation back to auth flow.
+    setUserToken(null);
+    setUserInfo(null);
     try {
       await AuthRepository.logout();
+      return true;
     } catch (error) {
       console.error("AuthContext: Logout failed", error);
+      // Restore state if logout failed to avoid leaving UI in inconsistent state.
+      setUserToken(prevToken);
+      setUserInfo(prevUserInfo);
+      throw error;
     }
   };
 

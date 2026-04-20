@@ -92,12 +92,13 @@ const EmergencyScreen = ({ navigation, route }) => {
     if (isSubmitting || isSosActive) return;
     setIsSubmitting(true);
     try {
+      const userId = userInfo?.uid || userInfo?.id || null;
       const sosData = {
         alertType: "EMERGENCY",
         message: "Emergency SOS alert raised by user",
         isActive: true,
         timeStamp: new Date().toISOString(),
-        userId: userInfo?.id || null,
+        userId,
         eventId: eventId,
         stadiumId: stadiumId,
       };

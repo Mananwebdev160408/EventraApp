@@ -111,9 +111,10 @@ const DiscoverEventsScreen = ({ navigation }) => {
 
       const params =
         activeCategory !== "All" ? { category: activeCategory } : {};
+      const userId = userInfo?.uid || userInfo?.id;
 
       console.log("Fetching Initial Data - Params:", params);
-      console.log("User Info ID:", userInfo?.id);
+      console.log("User Info ID:", userId);
 
       try {
         const evData = await eventService.getEvents(params);
@@ -132,9 +133,9 @@ const DiscoverEventsScreen = ({ navigation }) => {
         console.error("Stadiums fetch failed:", err);
       }
 
-      if (userInfo?.id) {
+      if (userId) {
         try {
-          bookingsData = await bookingService.getUserBookings(userInfo.id);
+          bookingsData = await bookingService.getUserBookings(userId);
           console.log("User bookings fetched successfully");
         } catch (err) {
           console.error("Bookings fetch failed (non-critical):", err);

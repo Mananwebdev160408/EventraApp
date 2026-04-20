@@ -40,6 +40,12 @@ const CheckoutScreen = ({ navigation }) => {
       return;
     }
 
+    const userId = userInfo?.uid || userInfo?.id;
+    if (!userId) {
+      Alert.alert("Error", "Unable to identify your account. Please sign in again.");
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const orderRequests = [];
@@ -59,7 +65,7 @@ const CheckoutScreen = ({ navigation }) => {
             0,
           ),
           status: "PENDING",
-          userId: userInfo.id,
+          userId,
           restaurantId: firstFoodItem.restaurantId || 1,
           eventId: firstFoodItem.eventId || 1,
         };
@@ -84,7 +90,7 @@ const CheckoutScreen = ({ navigation }) => {
             0,
           ),
           status: "PENDING",
-          userId: userInfo.id,
+          userId,
           stadiumId: firstMerchItem.stadiumId || 1,
         };
         orderRequests.push(
@@ -95,12 +101,15 @@ const CheckoutScreen = ({ navigation }) => {
       // 3. Confirm Ticket Bookings
       if (ticketItems.length > 0) {
         const firstTicket = ticketItems[0];
-        const seatIdList = ticketItems.map((item) => item.id);
+        const seats = ticketItems.map((item) => ({
+          id: item.id,
+          price: parseFloat(String(item.price || "0").replace("₹", "").replace("$", "")) || 0,
+        }));
 
         orderRequests.push(
           bookingService.confirmBooking({
-            seatIdList,
-            userId: userInfo.id,
+            seats,
+            userId,
             eventId: firstTicket.eventId,
             stadiumId: firstTicket.stadiumId,
           }),

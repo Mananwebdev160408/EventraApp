@@ -54,8 +54,14 @@ const EventDashboardScreen = ({ navigation }) => {
   const checkLiveEvent = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
+      const userId = userInfo?.uid || userInfo?.id;
+      if (!userId) {
+        setActiveEvent(null);
+        return;
+      }
+
       // In a real scenario, we check if there's a booking for today
-      const response = await bookingService.getUserBookings(userInfo?.id);
+      const response = await bookingService.getUserBookings(userId);
       const bookings = Array.isArray(response)
         ? response
         : response?.bookings || [];

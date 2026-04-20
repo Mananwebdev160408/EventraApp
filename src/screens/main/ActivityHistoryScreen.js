@@ -40,10 +40,16 @@ const ActivityHistoryScreen = ({ navigation }) => {
   const fetchActivities = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
+      const userId = userInfo?.uid || userInfo?.id;
+      if (!userId) {
+        setActivities([]);
+        return;
+      }
+
       const [foodOrders, merchOrders, bookings] = await Promise.all([
-        foodOrderService.getFoodOrderByUserId(userInfo.id),
-        merchandiseOrderService.getMerchandiseOrderByUserId(userInfo.id),
-        bookingService.getBookingByUserId(userInfo.id),
+        foodOrderService.getFoodOrderByUserId(userId),
+        merchandiseOrderService.getMerchandiseOrderByUserId(userId),
+        bookingService.getBookingByUserId(userId),
       ]);
 
       const formattedFood = (Array.isArray(foodOrders) ? foodOrders : []).map(

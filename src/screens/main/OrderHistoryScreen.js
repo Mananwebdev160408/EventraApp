@@ -37,7 +37,7 @@ const OrderHistoryScreen = ({ navigation }) => {
   const fetchOrders = async (showLoading = true) => {
     if (showLoading) setIsLoading(true);
     try {
-      const userId = userInfo?.id;
+      const userId = userInfo?.uid || userInfo?.id;
       if (!userId) {
         setOrders([]);
         return;

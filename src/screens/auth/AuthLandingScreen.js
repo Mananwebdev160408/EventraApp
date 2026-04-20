@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -15,30 +15,12 @@ import {
   UserPlus,
   LogIn,
   Warehouse,
-  KeyRound,
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import DemoCredentialsModal from "../../components/DemoCredentialsModal";
-import { seedDemoUsers } from "../../utils/seedDemoUsers";
 
 const { width, height } = Dimensions.get("window");
 
 const AuthLandingScreen = ({ navigation }) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [isSeeding, setIsSeeding] = useState(false);
-
-  // Seed demo users on mount and immediately show the dialog
-  useEffect(() => {
-    const init = async () => {
-      setIsSeeding(true);
-      await seedDemoUsers();
-      setIsSeeding(false);
-      // Auto-show the demo credentials dialog after seeding
-      setModalVisible(true);
-    };
-    init();
-  }, []);
-
   return (
     <View style={styles.container}>
       <View style={styles.topArea}>
@@ -122,24 +104,8 @@ const AuthLandingScreen = ({ navigation }) => {
             <ArrowRight size={18} color="#457b9d" />
           </TouchableOpacity>
 
-          {/* Demo credentials shortcut */}
-          <TouchableOpacity
-            style={styles.demoButton}
-            onPress={() => setModalVisible(true)}
-            activeOpacity={0.8}
-          >
-            <KeyRound size={16} color="#7c3aed" />
-            <Text style={styles.demoButtonText}>
-              {isSeeding ? "Preparing demo accounts…" : "View Demo Credentials"}
-            </Text>
-          </TouchableOpacity>
         </View>
       </View>
-
-      <DemoCredentialsModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-      />
     </View>
   );
 };

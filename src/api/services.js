@@ -76,6 +76,8 @@ export const bookingService = {
   /** Confirm booking (same as reserve in Firebase — transaction ensures atomicity). */
   confirmBooking: (bookingData) => BookingRepository.confirmBooking(bookingData),
   getUserBookings: (userId) => BookingRepository.getByUserId(userId),
+  // Backward-compatible alias used by some screens.
+  getBookingByUserId: (userId) => BookingRepository.getByUserId(userId),
   getBookingsByEvent: (eventId) => BookingRepository.getByEventId(eventId),
   getAllBookings: () => BookingRepository.getAll(),
   getBookingById: (id) => BookingRepository.getById(id),

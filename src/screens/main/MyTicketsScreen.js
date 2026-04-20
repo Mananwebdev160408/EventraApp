@@ -39,7 +39,8 @@ const MyTicketsScreen = ({ navigation }) => {
   const fetchBookings = async () => {
     setIsLoading(true);
     try {
-      const data = await bookingService.getUserBookings(userInfo?.id);
+      const userId = userInfo?.uid || userInfo?.id;
+      const data = userId ? await bookingService.getUserBookings(userId) : [];
       setBookings(Array.isArray(data) ? data : data?.bookings || []);
     } catch (error) {
       console.error("Error fetching bookings:", error);

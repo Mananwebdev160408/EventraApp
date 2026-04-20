@@ -88,7 +88,11 @@ const EditProfileScreen = ({ navigation }) => {
 
     setLoading(true);
     try {
-      await userService.updateUser(userInfo.id || userInfo.username, formData);
+      const userId = userInfo?.uid || userInfo?.id;
+      if (!userId) {
+        throw new Error("Missing user id for profile update");
+      }
+      await userService.updateUser(userId, formData);
 
       // Update local state and context
       const updatedUser = { ...userInfo, ...formData };

@@ -1,8 +1,10 @@
-import React, { createContext, useState, useContext, useMemo } from "react";
+import React, { createContext, useState, useContext, useMemo, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
+  const { userToken } = useAuth();
   const [foodItems, setFoodItems] = useState([]);
   const [merchandiseItems, setMerchandiseItems] = useState([]);
   const [ticketItems, setTicketItems] = useState([]);
@@ -77,6 +79,12 @@ export const CartProvider = ({ children }) => {
     setMerchandiseItems([]);
     setTicketItems([]);
   };
+
+  useEffect(() => {
+    if (!userToken) {
+      clearCart();
+    }
+  }, [userToken]);
 
   const cartItems = useMemo(
     () => [...foodItems, ...merchandiseItems, ...ticketItems],

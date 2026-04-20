@@ -14,6 +14,9 @@ expo-env.d.ts
 *.orig.*
 *.jks
 *.p8
+.agents/
+.claude/
+.qoder/
 *.p12
 *.key
 *.mobileprovision
@@ -40,3 +43,4 @@ yarn-error.*
 /ios
 /android
 Eventra_API_Collection.postman_collection.json
+skills-lock.json
