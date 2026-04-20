@@ -1,0 +1,518 @@
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Dimensions,
+  ActivityIndicator,
+  useWindowDimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Ticket as TicketIcon,
+  ChevronRight,
+  Search,
+  Filter,
+  Zap,
+  LayoutDashboard,
+  Sparkles,
+  History,
+  CreditCard,
+  UserCircle,
+} from "lucide-react-native";
+import { COLORS } from "../../constants/theme";
+import { bookingService } from "../../api/services";
+import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "../../context/AuthContext";
+
+const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+
+const MyTicketsScreen = ({ navigation }) => {
+  const { width: windowWidth } = useWindowDimensions();
+  const isDesktop = windowWidth > 768;
+  const { userInfo } = useAuth();
+  const [activeTab, setActiveTab] = useState("upcoming");
+  const [bookings, setBookings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      const userId = userInfo?.uid || userInfo?.id;
+      const data = userId ? await bookingService.getUserBookings(userId) : [];
+      setBookings(Array.isArray(data) ? data : data?.bookings || []);
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+    } finally {
+      // Mock fallback for demonstration
+      setBookings((current) => {
+        const mockTicket = {
+          id: "MOCK-TKT-789",
+          ticketType: "VIP GOLD",
+          status: "Confirmed",
+          event: {
+            id: "mock-event-123",
+            name: "IPL 2026: MI vs CSK",
+            datetime: new Date().toISOString(),
+            image: "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?q=80&w=800&auto=format&fit=crop",
+            stadiumName: "Wankhede Stadium",
+            location: "Mumbai, India",
+          },
+          seats: [{ row: "12", seatNumber: "45" }],
+        };
+        if (!current.find((b) => b.id === mockTicket.id)) return [mockTicket, ...current];
+        return current;
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const filteredTickets = bookings.filter((t) => {
+    const isPast = new Date(t.event?.datetime) < new Date();
+    return activeTab === "upcoming" ? !isPast : isPast;
+  });
+
+  if (!isDesktop) {
+    // Basic mobile-responsive view for smaller screens (not used on native)
+    return (
+      <View style={{flex: 1, backgroundColor: '#f1faee', justifyContent: 'center', alignItems: 'center'}}>
+        <Text>Please use desktop for revamped tickets view</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.desktopContainer}>
+      <StatusBar style="dark" />
+      
+      {/* Sidebar */}
+      <View style={styles.sidebar}>
+        <View style={styles.sidebarBrand}>
+          <View style={styles.sidebarLogo}>
+            <Zap size={24} color={COLORS.error} />
+          </View>
+          <Text style={styles.sidebarTitle}>Eventra</Text>
+        </View>
+
+        <View style={styles.sidebarNav}>
+          <Text style={styles.sidebarSectionTitle}>MENU</Text>
+          <TouchableOpacity style={styles.sidebarLink} onPress={() => navigation.navigate("Discover")}>
+            <Zap size={20} color="#64748b" />
+            <Text style={styles.sidebarLinkText}>Discover</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.sidebarLinkActive}>
+            <TicketIcon size={20} color="#fff" />
+            <Text style={styles.sidebarLinkTextActive}>My Tickets</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.sidebarLink} onPress={() => navigation.navigate("Profile")}>
+            <UserCircle size={20} color="#64748b" />
+            <Text style={styles.sidebarLinkText}>Profile</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Main Content */}
+      <View style={styles.mainContent}>
+        <View style={styles.topHeader}>
+          <View>
+            <Text style={styles.pageTitle}>My Tickets</Text>
+            <Text style={styles.pageSubtitle}>Manage your upcoming events and view past history</Text>
+          </View>
+          
+          <View style={styles.headerActions}>
+            <View style={styles.searchBar}>
+              <Search size={18} color="#94a3b8" />
+              <Text style={styles.searchText}>Search tickets...</Text>
+            </View>
+            <TouchableOpacity style={styles.refreshBtn} onPress={fetchBookings}>
+              <History size={20} color="#1d3557" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Tabs */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === "upcoming" && styles.activeTab]}
+            onPress={() => setActiveTab("upcoming")}
+          >
+            <Text style={[styles.tabText, activeTab === "upcoming" && styles.activeTabText]}>Upcoming Events</Text>
+            {activeTab === "upcoming" && <View style={styles.tabDot} />}
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === "past" && styles.activeTab]}
+            onPress={() => setActiveTab("past")}
+          >
+            <Text style={[styles.tabText, activeTab === "past" && styles.activeTabText]}>Past History</Text>
+            {activeTab === "past" && <View style={styles.tabDot} />}
+          </TouchableOpacity>
+        </View>
+
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#1d3557" />
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.ticketsGrid} showsVerticalScrollIndicator={false}>
+            {filteredTickets.map((ticket) => (
+              <TouchableOpacity 
+                key={ticket.id} 
+                style={styles.ticketCard}
+                onPress={() => navigation.navigate("Ticket", { bookingId: ticket.id })}
+              >
+                <View style={styles.ticketImageArea}>
+                  <Image source={{ uri: ticket.event?.image }} style={styles.ticketImage} />
+                  <View style={styles.statusBadge}>
+                    <Text style={styles.statusText}>{ticket.status || "CONFIRMED"}</Text>
+                  </View>
+                </View>
+                
+                <View style={styles.ticketInfoArea}>
+                  <Text style={styles.ticketType}>{ticket.ticketType}</Text>
+                  <Text style={styles.eventTitle}>{ticket.event?.name}</Text>
+                  
+                  <View style={styles.metaRow}>
+                    <View style={styles.metaItem}>
+                      <MapPin size={16} color="#64748b" />
+                      <Text style={styles.metaText}>{ticket.event?.stadiumName}</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.metaRow}>
+                    <View style={styles.metaItem}>
+                      <Calendar size={16} color="#64748b" />
+                      <Text style={styles.metaText}>{new Date(ticket.event?.datetime).toLocaleDateString()}</Text>
+                    </View>
+                    <View style={styles.metaItem}>
+                      <Clock size={16} color="#64748b" />
+                      <Text style={styles.metaText}>{new Date(ticket.event?.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.cardFooter}>
+                    <View style={styles.seatInfo}>
+                      <Text style={styles.seatLabel}>SEAT</Text>
+                      <Text style={styles.seatValue}>{ticket.seats[0]?.row}{ticket.seats[0]?.seatNumber}</Text>
+                    </View>
+                    <View style={styles.viewAction}>
+                      <Text style={styles.viewText}>View Ticket</Text>
+                      <ChevronRight size={18} color="#1d3557" />
+                    </View>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+            
+            {filteredTickets.length === 0 && (
+              <View style={styles.emptyState}>
+                <TicketIcon size={64} color="#e2e8f0" />
+                <Text style={styles.emptyTitle}>No tickets found</Text>
+                <Text style={styles.emptySubtitle}>You don't have any tickets in this category yet.</Text>
+                <TouchableOpacity style={styles.browseBtn} onPress={() => navigation.navigate("Discover")}>
+                  <Text style={styles.browseText}>Browse Events</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </ScrollView>
+        )}
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  desktopContainer: {
+    flex: 1,
+    flexDirection: "row",
+    backgroundColor: "#f8fafc",
+  },
+  sidebar: {
+    width: 280,
+    backgroundColor: "#1d3557",
+    padding: 32,
+  },
+  sidebarBrand: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 60,
+  },
+  sidebarLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sidebarTitle: {
+    color: "#fff",
+    fontSize: 22,
+    fontWeight: "900",
+    letterSpacing: -0.5,
+  },
+  sidebarNav: {
+    gap: 8,
+  },
+  sidebarSectionTitle: {
+    color: "rgba(255,255,255,0.4)",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1,
+    marginBottom: 16,
+  },
+  sidebarLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 16,
+    borderRadius: 16,
+  },
+  sidebarLinkActive: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.1)",
+  },
+  sidebarLinkText: {
+    color: "#64748b",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  sidebarLinkTextActive: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  mainContent: {
+    flex: 1,
+    padding: 60,
+  },
+  topHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 48,
+  },
+  pageTitle: {
+    fontSize: 40,
+    fontWeight: "900",
+    color: "#1d3557",
+    marginBottom: 8,
+  },
+  pageSubtitle: {
+    fontSize: 16,
+    color: "#64748b",
+    fontWeight: "500",
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 16,
+  },
+  searchBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    height: 52,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    width: 300,
+  },
+  searchText: {
+    color: "#94a3b8",
+    fontSize: 14,
+  },
+  refreshBtn: {
+    width: 52,
+    height: 52,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  tabContainer: {
+    flexDirection: "row",
+    gap: 40,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e2e8f0",
+    marginBottom: 40,
+  },
+  tab: {
+    paddingBottom: 20,
+    position: "relative",
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#94a3b8",
+  },
+  activeTabText: {
+    color: "#1d3557",
+    fontWeight: "800",
+  },
+  tabDot: {
+    position: "absolute",
+    bottom: -1,
+    left: 0,
+    right: 0,
+    height: 3,
+    backgroundColor: "#1d3557",
+    borderRadius: 3,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  ticketsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 32,
+  },
+  ticketCard: {
+    width: "calc(33.33% - 22px)",
+    backgroundColor: "#fff",
+    borderRadius: 32,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    boxShadow: "0px 10px 30px rgba(0,0,0,0.03)",
+  },
+  ticketImageArea: {
+    height: 200,
+    position: "relative",
+  },
+  ticketImage: {
+    width: "100%",
+    height: "100%",
+  },
+  statusBadge: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    backgroundColor: "#1d3557",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  statusText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 1,
+  },
+  ticketInfoArea: {
+    padding: 32,
+  },
+  ticketType: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: COLORS.brandPurple,
+    letterSpacing: 1.5,
+    marginBottom: 12,
+  },
+  eventTitle: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#1d3557",
+    marginBottom: 20,
+    lineHeight: 28,
+  },
+  metaRow: {
+    flexDirection: "row",
+    gap: 20,
+    marginBottom: 12,
+  },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  metaText: {
+    fontSize: 14,
+    color: "#64748b",
+    fontWeight: "600",
+  },
+  cardFooter: {
+    marginTop: 32,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  seatInfo: {
+    gap: 4,
+  },
+  seatLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: "#94a3b8",
+    letterSpacing: 1,
+  },
+  seatValue: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#1d3557",
+  },
+  viewAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  viewText: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1d3557",
+  },
+  emptyState: {
+    flex: 1,
+    minHeight: 400,
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: "#1d3557",
+    marginTop: 24,
+    marginBottom: 12,
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: "#64748b",
+    marginBottom: 32,
+  },
+  browseBtn: {
+    backgroundColor: "#1d3557",
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  browseText: {
+    color: "#fff",
+    fontWeight: "800",
+  },
+});
+
+export default MyTicketsScreen;

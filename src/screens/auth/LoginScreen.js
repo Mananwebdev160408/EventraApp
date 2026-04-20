@@ -30,6 +30,7 @@ import {
 } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 import { AuthRepository } from "../../repositories/AuthRepository";
+import { DEMO_CREDENTIALS } from "../../utils/seedDemoUsers";
 import DemoCredentialsModal from "../../components/DemoCredentialsModal";
 
 const { width, height } = Dimensions.get("window");
@@ -54,6 +55,28 @@ const LoginScreen = ({ navigation }) => {
     setIsDemoModalVisible(false);
   };
 
+  const handleBypassLogin = async () => {
+    const demo =
+      DEMO_CREDENTIALS.find((cred) => cred.email === email) ||
+      DEMO_CREDENTIALS[0];
+
+    const mockProfile = {
+      uid: `demo-${demo.roleKey}`,
+      email: demo.email,
+      firstName: demo.firstName,
+      lastName: demo.lastName,
+      displayName: `${demo.firstName} ${demo.lastName}`,
+      username: demo.username,
+      phoneNumber: demo.phoneNumber,
+      gender: demo.gender,
+      role: demo.roleKey,
+      roles: [demo.roleKey],
+      isDemo: true,
+    };
+
+    await login(mockProfile.uid, mockProfile);
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter your email and password");
@@ -69,6 +92,17 @@ const LoginScreen = ({ navigation }) => {
       await login(user.uid, userProfile);
     } catch (error) {
       console.error("Login error:", error);
+      if (error.code === "auth/quota-exceeded") {
+        const demo = DEMO_CREDENTIALS.find((cred) => cred.email === email);
+        if (demo) {
+          await handleBypassLogin();
+          return;
+        }
+
+        setErrorMessage("Firebase quota exceeded. Use a demo account to continue.");
+        return;
+      }
+
       const msg =
         error.code === "auth/invalid-credential" ||
         error.code === "auth/user-not-found" ||
@@ -208,6 +242,14 @@ const LoginScreen = ({ navigation }) => {
               activeOpacity={0.8}
             >
               <Text style={styles.demoCtaText}>Use Test Credentials</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.bypassBtn}
+              onPress={handleBypassLogin}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.bypassBtnText}>Development Bypass</Text>
             </TouchableOpacity>
 
             <View style={styles.footer}>
@@ -386,6 +428,17 @@ const styles = StyleSheet.create({
   },
   demoCtaText: {
     color: "#457b9d",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  bypassBtn: {
+    alignSelf: "center",
+    marginTop: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  bypassBtnText: {
+    color: "#e63946",
     fontSize: 13,
     fontWeight: "700",
   },

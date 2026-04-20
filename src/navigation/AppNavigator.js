@@ -84,12 +84,18 @@ const AdminTab = createBottomTabNavigator();
 // In a real app, this would be managed by a Context or Redux
 const isInEvent = true;
 
+import { Platform, Dimensions } from "react-native";
+
+const { width: windowWidth } = Dimensions.get("window");
+const isDesktopWeb = Platform.OS === "web" && windowWidth > 1024;
+
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
+          display: isDesktopWeb ? "none" : "flex",
           backgroundColor: COLORS.card,
           borderTopColor: COLORS.border,
           height: 70,
@@ -154,6 +160,7 @@ function AdminTabs() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
+          display: isDesktopWeb ? "none" : "flex",
           backgroundColor: COLORS.card,
           borderTopColor: COLORS.border,
           height: 60,
