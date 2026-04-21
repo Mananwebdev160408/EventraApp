@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View } from "react-native";
+import { View, Platform } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import AppNavigator from "./src/navigation/AppNavigator";
 import CustomSplashScreen from "./src/screens/onboarding/SplashScreen";
@@ -12,7 +12,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
-  const [showCustomSplash, setShowCustomSplash] = useState(true);
+  const [showCustomSplash, setShowCustomSplash] = useState(Platform.OS !== "web");
 
   useEffect(() => {
     async function prepare() {
@@ -55,7 +55,9 @@ export default function App() {
     <AuthProvider>
       <UserProvider>
         <CartProvider>
-          <AppNavigator />
+          <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <AppNavigator />
+          </View>
         </CartProvider>
       </UserProvider>
     </AuthProvider>

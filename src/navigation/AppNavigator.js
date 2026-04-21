@@ -23,6 +23,7 @@ import AuthLandingScreen from "../screens/auth/AuthLandingScreen";
 import LoginScreen from "../screens/auth/LoginScreen";
 import SignupScreen from "../screens/auth/SignupScreen";
 import StadiumOnboardingScreen from "../screens/auth/StadiumOnboardingScreen";
+import LandingScreen from "../screens/public/LandingScreen";
 
 // User Screens
 import DiscoverEventsScreen from "../screens/main/DiscoverEventsScreen";
@@ -95,7 +96,7 @@ function MainTabs() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          display: isDesktopWeb ? "none" : "flex",
+          display: Platform.OS === "web" ? "none" : "flex",
           backgroundColor: COLORS.card,
           borderTopColor: COLORS.border,
           height: 70,
@@ -160,7 +161,7 @@ function AdminTabs() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          display: isDesktopWeb ? "none" : "flex",
+          display: Platform.OS === "web" ? "none" : "flex",
           backgroundColor: COLORS.card,
           borderTopColor: COLORS.border,
           height: 60,
@@ -225,12 +226,13 @@ const linking = {
   ],
   config: {
     screens: {
+      Landing: "",
       AuthLanding: "welcome",
       Login: "login",
       Signup: "register",
       StadiumOnboarding: "onboarding",
       MainTabs: {
-        path: "",
+        path: "app",
         screens: {
           Discover: "discover",
           Dashboard: "live",
@@ -365,6 +367,10 @@ export default function AppNavigator() {
             contentStyle: { backgroundColor: COLORS.background },
           }}
         >
+          {Platform.OS === "web" && (
+            <Stack.Screen name="Landing" component={LandingScreen} />
+          )}
+
           {!userToken ? (
             <>
               <Stack.Screen name="AuthLanding" component={AuthLandingScreen} />

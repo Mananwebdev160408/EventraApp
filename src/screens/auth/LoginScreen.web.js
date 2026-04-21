@@ -32,7 +32,7 @@ import DemoCredentialsModal from "../../components/DemoCredentialsModal";
 
 const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, route }) => {
   const { width: windowWidth } = useWindowDimensions();
   const isDesktop = windowWidth > 768;
   const { login } = useAuth();
@@ -44,8 +44,12 @@ const LoginScreen = ({ navigation }) => {
   const [isDemoModalVisible, setIsDemoModalVisible] = useState(false);
 
   useEffect(() => {
-    setIsDemoModalVisible(true);
-  }, []);
+    if (route.params?.autoEmail && route.params?.autoPassword) {
+      setEmail(route.params.autoEmail);
+      setPassword(route.params.autoPassword);
+      setIsDemoModalVisible(false);
+    }
+  }, [route.params]);
 
   const handleSelectDemoCredential = (cred) => {
     setEmail(cred.email);
