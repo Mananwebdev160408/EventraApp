@@ -6,11 +6,9 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  Dimensions,
   ActivityIndicator,
   useWindowDimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import {
   Calendar,
@@ -19,20 +17,12 @@ import {
   Ticket as TicketIcon,
   ChevronRight,
   Search,
-  Filter,
-  Zap,
-  LayoutDashboard,
-  Sparkles,
   History,
-  CreditCard,
-  UserCircle,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
 import { bookingService } from "../../api/services";
-import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../context/AuthContext";
-
-const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+import WebUserSidebar from "../../components/WebUserSidebar";
 
 const MyTicketsScreen = ({ navigation }) => {
   const { width: windowWidth } = useWindowDimensions();
@@ -83,46 +73,11 @@ const MyTicketsScreen = ({ navigation }) => {
     return activeTab === "upcoming" ? !isPast : isPast;
   });
 
-  if (!isDesktop) {
-    // Basic mobile-responsive view for smaller screens (not used on native)
-    return (
-      <View style={{flex: 1, backgroundColor: '#f1faee', justifyContent: 'center', alignItems: 'center'}}>
-        <Text>Please use desktop for revamped tickets view</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.desktopContainer}>
       <StatusBar style="dark" />
-      
-      {/* Sidebar */}
-      <View style={styles.sidebar}>
-        <View style={styles.sidebarBrand}>
-          <View style={styles.sidebarLogo}>
-            <Zap size={24} color={COLORS.error} />
-          </View>
-          <Text style={styles.sidebarTitle}>Eventra</Text>
-        </View>
+      <WebUserSidebar navigation={navigation} activeNav="MyEvents" />
 
-        <View style={styles.sidebarNav}>
-          <Text style={styles.sidebarSectionTitle}>MENU</Text>
-          <TouchableOpacity style={styles.sidebarLink} onPress={() => navigation.navigate("Discover")}>
-            <Zap size={20} color="#64748b" />
-            <Text style={styles.sidebarLinkText}>Discover</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarLinkActive}>
-            <TicketIcon size={20} color="#fff" />
-            <Text style={styles.sidebarLinkTextActive}>My Tickets</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarLink} onPress={() => navigation.navigate("Profile")}>
-            <UserCircle size={20} color="#64748b" />
-            <Text style={styles.sidebarLinkText}>Profile</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Main Content */}
       <View style={styles.mainContent}>
         <View style={styles.topHeader}>
           <View>
@@ -161,7 +116,7 @@ const MyTicketsScreen = ({ navigation }) => {
 
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#1d3557" />
+            <ActivityIndicator size="large" color={COLORS.brandPurple} />
           </View>
         ) : (
           <ScrollView contentContainerStyle={styles.ticketsGrid} showsVerticalScrollIndicator={false}>
@@ -178,7 +133,7 @@ const MyTicketsScreen = ({ navigation }) => {
                   </View>
                 </View>
                 
-                <View style={styles.ticketInfoArea}>
+                <div style={styles.ticketInfoArea}>
                   <Text style={styles.ticketType}>{ticket.ticketType}</Text>
                   <Text style={styles.eventTitle}>{ticket.event?.name}</Text>
                   
@@ -210,7 +165,7 @@ const MyTicketsScreen = ({ navigation }) => {
                       <ChevronRight size={18} color="#1d3557" />
                     </View>
                   </View>
-                </View>
+                </div>
               </TouchableOpacity>
             ))}
             
@@ -236,66 +191,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     backgroundColor: "#f8fafc",
-  },
-  sidebar: {
-    width: 280,
-    backgroundColor: "#1d3557",
-    padding: 32,
-  },
-  sidebarBrand: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 60,
-  },
-  sidebarLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sidebarTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "900",
-    letterSpacing: -0.5,
-  },
-  sidebarNav: {
-    gap: 8,
-  },
-  sidebarSectionTitle: {
-    color: "rgba(255,255,255,0.4)",
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 1,
-    marginBottom: 16,
-  },
-  sidebarLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 16,
-    borderRadius: 16,
-  },
-  sidebarLinkActive: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: "rgba(255,255,255,0.1)",
-  },
-  sidebarLinkText: {
-    color: "#64748b",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  sidebarLinkTextActive: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
   },
   mainContent: {
     flex: 1,
@@ -388,12 +283,12 @@ const styles = StyleSheet.create({
     gap: 32,
   },
   ticketCard: {
-    width: "calc(33.33% - 22px)",
+    width: "31%",
     backgroundColor: "#fff",
     borderRadius: 32,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#f1f5f9",
     boxShadow: "0px 10px 30px rgba(0,0,0,0.03)",
   },
   ticketImageArea: {

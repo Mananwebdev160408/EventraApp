@@ -42,6 +42,7 @@ import {
   bookingService,
 } from "../../api/services";
 import { getEventImage, getStadiumImage } from "../../constants/assets";
+import WebUserSidebar from "../../components/WebUserSidebar";
 
 const DiscoverEventsScreen = ({ navigation }) => {
   const { width: windowWidth } = useWindowDimensions();
@@ -180,55 +181,7 @@ const DiscoverEventsScreen = ({ navigation }) => {
       <StatusBar style="dark" />
       
       {/* Sidebar - Desktop Only */}
-      <View style={styles.sidebar}>
-        <View style={styles.sidebarBrand}>
-          <View style={styles.sidebarLogo}>
-            <Zap size={24} color={COLORS.error} />
-          </View>
-          <Text style={styles.sidebarTitle}>Eventra</Text>
-        </View>
-
-        <View style={styles.sidebarNav}>
-          <Text style={styles.sidebarSectionTitle}>MENU</Text>
-          <TouchableOpacity style={styles.sidebarLinkActive}>
-            <Zap size={20} color="#fff" />
-            <Text style={styles.sidebarLinkTextActive}>Discover</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarLink}>
-            <Sparkles size={20} color="#64748b" />
-            <Text style={styles.sidebarLinkText}>Explore</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarLink}>
-            <Bell size={20} color="#64748b" />
-            <Text style={styles.sidebarLinkText}>Notifications</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.sidebarCategories}>
-          <Text style={styles.sidebarSectionTitle}>CATEGORIES</Text>
-          {categories.map((cat) => (
-            <TouchableOpacity 
-              key={cat.name} 
-              style={[styles.sidebarLink, activeCategory === cat.name && styles.sidebarCategoryActive]}
-              onPress={() => setActiveCategory(cat.name)}
-            >
-              {React.cloneElement(cat.icon, { color: activeCategory === cat.name ? COLORS.brandPurple : "#64748b" })}
-              <Text style={[styles.sidebarLinkText, activeCategory === cat.name && styles.sidebarCategoryTextActive]}>{cat.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <TouchableOpacity 
-            style={styles.sidebarProfile}
-            onPress={() => navigation.navigate("Profile")}
-        >
-          <UserCircle size={40} color="#1d3557" />
-          <View>
-            <Text style={styles.profileName}>{userInfo?.firstname || "Fan"}</Text>
-            <Text style={styles.profileRole}>Gold Member</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      <WebUserSidebar navigation={navigation} activeNav="Discover" />
 
       {/* Main Content Area */}
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>

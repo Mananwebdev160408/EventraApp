@@ -36,6 +36,7 @@ import { COLORS } from "../../constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../context/AuthContext";
 import { bookingService } from "../../api/services";
+import WebUserSidebar from "../../components/WebUserSidebar";
 
 const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
 
@@ -116,32 +117,7 @@ const EventDashboardScreen = ({ navigation }) => {
   return (
     <View style={styles.desktopLayout}>
       {/* Left Sidebar for Desktop Context */}
-      <View style={styles.desktopSideMenu}>
-        <View style={styles.brandBox}>
-          <LayoutDashboard size={28} color={COLORS.brandPurple} />
-          <Text style={styles.brandName}>Eventra</Text>
-        </View>
-        
-        <View style={styles.navGroup}>
-          <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-            <LayoutDashboard size={20} color={COLORS.brandPurple} />
-            <Text style={[styles.navText, styles.navTextActive]}>Live Dashboard</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Discover")}>
-            <MapIcon size={20} color="#64748b" />
-            <Text style={styles.navText}>Discover Events</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Profile")}>
-            <UserCircle size={20} color="#64748b" />
-            <Text style={styles.navText}>My Profile</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.sosButton} onPress={() => navigation.navigate("Emergency")}>
-           <ShieldAlert size={20} color="#fff" />
-           <Text style={styles.sosText}>Emergency SOS</Text>
-        </TouchableOpacity>
-      </View>
+      <WebUserSidebar navigation={navigation} activeNav="Dashboard" />
 
       {/* Main Content Area */}
       <ScrollView style={styles.mainContent} contentContainerStyle={styles.mainContentInner} showsVerticalScrollIndicator={false}>

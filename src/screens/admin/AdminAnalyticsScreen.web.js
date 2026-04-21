@@ -42,6 +42,7 @@ import {
   bookingService,
   foodOrderService,
 } from "../../api/services";
+import AdminSidebar from "../../components/AdminSidebar.web";
 
 const AdminAnalyticsScreen = ({ navigation }) => {
   const { width: windowWidth } = useWindowDimensions();
@@ -117,44 +118,8 @@ const AdminAnalyticsScreen = ({ navigation }) => {
     <View style={styles.desktopWrapper}>
       <StatusBar style="light" />
       
-      {/* Sidebar - Same as Dashboard */}
-      <View style={styles.sidebar}>
-        <View style={styles.sidebarHeader}>
-          <View style={styles.logoContainer}>
-            <ShieldCheck size={28} color={COLORS.error} />
-          </View>
-          <View>
-            <Text style={styles.logoText}>EVENTRA</Text>
-            <Text style={styles.logoSub}>SHIELD ADMIN</Text>
-          </View>
-        </View>
-
-        <View style={styles.navGroup}>
-          <Text style={styles.navSectionLabel}>CORE CONTROL</Text>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("AdminDashboard")}>
-            <LayoutDashboard size={20} color="#94a3b8" />
-            <Text style={styles.navItemText}>Command Center</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-            <BarChart3 size={20} color="#fff" />
-            <Text style={[styles.navItemText, styles.navItemTextActive]}>Deep Analytics</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("LiveHeatmap")}>
-            <Flame size={20} color="#94a3b8" />
-            <Text style={styles.navItemText}>Live Heatmap</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.sidebarFooter}>
-          <TouchableOpacity style={styles.userProfile}>
-            <Image source={{ uri: userInfo?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" }} style={styles.avatar} />
-            <View>
-              <Text style={styles.userName}>{userInfo?.name || "System Admin"}</Text>
-              <Text style={styles.userRole}>Super Admin</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      </View>
+      {/* Sidebar - Reusable Component */}
+      <AdminSidebar navigation={navigation} activeNav="Analytics" />
 
       {/* Main Content */}
       <View style={styles.mainContent}>

@@ -5,13 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
   useWindowDimensions,
-  Alert,
-  Platform,
   ActivityIndicator,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import {
   LogOut,
@@ -21,23 +17,22 @@ import {
   Edit3,
   AtSign,
   UserCircle,
-  ShieldCheck,
+  ChevronRight,
+  Shield,
   Settings,
   Bell,
   CreditCard,
-  ChevronRight,
+  ChevronLeft,
 } from "lucide-react-native";
 import { COLORS } from "../../constants/theme";
 import { useAuth } from "../../context/AuthContext";
 import { authService } from "../../api/services";
-
-const { width: windowWidth, height: windowHeight } = Dimensions.get("window");
+import WebUserSidebar from "../../components/WebUserSidebar";
 
 const ProfileScreen = ({ navigation }) => {
-  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const isDesktop = windowWidth > 768;
   const { userInfo, setUserInfo, logout } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { width: windowWidth } = useWindowDimensions();
 
   useEffect(() => {
     fetchProfile();
@@ -58,111 +53,142 @@ const ProfileScreen = ({ navigation }) => {
   };
 
   const handleLogout = async () => {
-    if (typeof window !== "undefined" && window.confirm("Are you sure you want to sign out?")) {
+    if (window.confirm("Are you sure you want to sign out?")) {
       try {
         await logout();
       } catch (error) {
-        console.error("Logout error:", error);
+        console.error("Logout failed:", error);
       }
     }
   };
 
-  const SidebarItem = ({ icon: Icon, label, active }) => (
-    <TouchableOpacity style={[styles.sidebarItem, active && styles.sidebarItemActive]}>
-      <Icon size={20} color={active ? COLORS.brandPurple : "#64748b"} />
-      <Text style={[styles.sidebarItemText, active && styles.sidebarItemTextActive]}>{label}</Text>
-    </TouchableOpacity>
-  );
+  const getUserField = (user, ...keys) => {
+    if (!user) return "";
+    const source = user.userDetails || user;
+    for (const key of keys) {
+      if (source[key]) return source[key];
+      if (user[key]) return user[key];
+    }
+    return "";
+  };
 
-  const InfoCard = ({ label, value, icon: Icon }) => (
-    <View style={styles.infoCard}>
-      <View style={styles.infoIconBox}>
-        <Icon size={20} color={COLORS.brandPurple} />
+  const DetailRow = ({ icon: Icon, label, value }) => (
+    <View style={styles.detailRow}>
+      <View style={styles.detailIconBox}>
+        <Icon size={18} color="#457b9d" />
       </View>
-      <View>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value || "Not set"}</Text>
+      <View style={styles.detailText}>
+        <Text style={styles.detailLabel}>{label}</Text>
+        <Text style={styles.detailValue}>{value || "Not provided"}</Text>
       </View>
     </View>
+  );
+
+  const MenuLink = ({ icon: Icon, label, sub }) => (
+    <TouchableOpacity style={styles.menuLink}>
+       <View style={styles.menuLinkLeft}>
+          <View style={styles.menuIconCircle}>
+             <Icon size={20} color="#1d3557" />
+          </View>
+          <View>
+             <Text style={styles.menuLinkLabel}>{label}</Text>
+             <Text style={styles.menuLinkSub}>{sub}</Text>
+          </View>
+       </View>
+       <ChevronRight size={18} color="#cbd5e1" />
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.desktopContainer}>
       <StatusBar style="dark" />
-      
-      {/* Profile Sidebar */}
-      <View style={styles.profileSidebar}>
-        <View style={styles.sidebarTop}>
-          <View style={styles.avatarContainer}>
-            <UserCircle size={100} color="#1d3557" strokeWidth={1} />
-            <TouchableOpacity style={styles.editAvatarBtn}>
-              <Edit3 size={16} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.profileName}>{userInfo?.firstname || "User"} {userInfo?.lastname || ""}</Text>
-          <Text style={styles.profileEmail}>{userInfo?.email}</Text>
-        </View>
+      <WebUserSidebar navigation={navigation} activeNav="Profile" />
 
-        <View style={styles.sidebarNav}>
-          <SidebarItem icon={User} label="Personal Information" active />
-          <SidebarItem icon={Bell} label="Notifications" />
-          <SidebarItem icon={CreditCard} label="Payment Methods" />
-          <SidebarItem icon={Settings} label="Account Settings" />
-        </View>
-
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <LogOut size={20} color="#ef4444" />
-          <Text style={styles.logoutBtnText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Profile Content */}
-      <ScrollView style={styles.profileMain} contentContainerStyle={styles.profileMainContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.contentHeader}>
-           <Text style={styles.contentTitle}>Personal Information</Text>
-           <TouchableOpacity style={styles.editProfileBtn} onPress={() => navigation.navigate("EditProfile")}>
-              <Edit3 size={18} color="#fff" />
-              <Text style={styles.editProfileBtnText}>Edit Profile</Text>
-           </TouchableOpacity>
-        </View>
-
-        <View style={styles.infoGrid}>
-          <InfoCard label="First Name" value={userInfo?.firstname || userInfo?.firstName} icon={User} />
-          <InfoCard label="Last Name" value={userInfo?.lastname || userInfo?.lastName} icon={User} />
-          <InfoCard label="Email Address" value={userInfo?.email} icon={Mail} />
-          <InfoCard label="Phone Number" value={userInfo?.phoneNumber} icon={Phone} />
-          <InfoCard label="Username" value={userInfo?.username} icon={AtSign} />
-          <InfoCard label="Account Status" value="Verified Member" icon={ShieldCheck} />
-        </View>
-
-        <View style={styles.settingsSection}>
-           <Text style={styles.sectionTitle}>Preferences</Text>
-           <View style={styles.settingsCard}>
-              <TouchableOpacity style={styles.settingRow}>
-                 <View style={styles.settingLabelGroup}>
-                    <Text style={styles.settingLabel}>Email Notifications</Text>
-                    <Text style={styles.settingSub}>Receive updates about upcoming events</Text>
-                 </View>
-                 <ChevronRight size={20} color="#94a3b8" />
+      <View style={styles.mainContent}>
+        <View style={styles.topHeader}>
+           <View style={styles.headerTitleRow}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                 <ChevronLeft size={20} color="#1d3557" />
               </TouchableOpacity>
-              <View style={styles.settingDivider} />
-              <TouchableOpacity style={styles.settingRow}>
-                 <View style={styles.settingLabelGroup}>
-                    <Text style={styles.settingLabel}>Language</Text>
-                    <Text style={styles.settingSub}>English (United States)</Text>
-                 </View>
-                 <ChevronRight size={20} color="#94a3b8" />
-              </TouchableOpacity>
+              <View>
+                 <Text style={styles.headerTitle}>Account Settings</Text>
+                 <Text style={styles.headerSub}>Manage your profile and security preferences</Text>
+              </View>
            </View>
-        </View>
-
-        <View style={styles.dangerZone}>
-           <Text style={styles.dangerTitle}>Security</Text>
-           <TouchableOpacity style={styles.changePasswordBtn}>
-              <Text style={styles.changePasswordText}>Change Password</Text>
+           
+           <TouchableOpacity style={styles.headerEditBtn} onPress={() => navigation.navigate("EditProfile")}>
+              <Edit3 size={18} color="#fff" />
+              <Text style={styles.headerEditBtnText}>Edit Profile</Text>
            </TouchableOpacity>
         </View>
-      </ScrollView>
+
+        <ScrollView style={styles.scrollArea}>
+           <View style={styles.contentPadding}>
+              {loading ? (
+                <View style={styles.loaderContainer}>
+                   <ActivityIndicator size="large" color={COLORS.brandPurple} />
+                </View>
+              ) : (
+                <View style={styles.profileGrid}>
+                   {/* Left Col: Info Card */}
+                   <View style={styles.infoCol}>
+                      <View style={styles.profileCard}>
+                         <View style={styles.avatarWrapper}>
+                            <View style={styles.avatarCircle}>
+                               <UserCircle size={100} color="#1d3557" strokeWidth={1} />
+                            </View>
+                            <TouchableOpacity style={styles.cameraBtn}>
+                               <Edit3 size={16} color="#fff" />
+                            </TouchableOpacity>
+                         </View>
+                         
+                         <Text style={styles.userName}>
+                            {`${getUserField(userInfo, "firstName", "firstname") || "Eventra"} ${getUserField(userInfo, "lastName", "lastname") || "User"}`}
+                         </Text>
+                         <Text style={styles.userRole}>Premium Member</Text>
+                         
+                         <View style={styles.infoDivider} />
+                         
+                         <View style={styles.detailsList}>
+                            <DetailRow icon={Mail} label="Email" value={getUserField(userInfo, "email")} />
+                            <DetailRow icon={Phone} label="Phone" value={getUserField(userInfo, "phoneNumber", "phone") || "+91 98XXX XXXXX"} />
+                            <DetailRow icon={AtSign} label="Username" value={`@${getUserField(userInfo, "username") || "user"}`} />
+                         </View>
+                         
+                         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+                            <LogOut size={18} color="#ef4444" />
+                            <Text style={styles.logoutBtnText}>Sign Out Account</Text>
+                         </TouchableOpacity>
+                      </View>
+                   </View>
+
+                   {/* Right Col: Settings & Links */}
+                   <View style={styles.settingsCol}>
+                      <View style={styles.settingsSection}>
+                         <Text style={styles.sectionTitle}>Account & Security</Text>
+                         <View style={styles.menuLinks}>
+                            <MenuLink icon={Shield} label="Security" sub="Change password and 2FA" />
+                            <MenuLink icon={CreditCard} label="Billing" sub="Manage payment methods" />
+                            <MenuLink icon={Bell} label="Notifications" sub="Configure alert preferences" />
+                            <MenuLink icon={Settings} label="General" sub="App language and region" />
+                         </View>
+                      </View>
+                      
+                      <View style={styles.settingsSection}>
+                         <Text style={styles.sectionTitle}>Support & Legal</Text>
+                         <View style={styles.menuLinks}>
+                            <MenuLink icon={User} label="Help Center" sub="FAQs and support chat" />
+                            <MenuLink icon={Shield} label="Privacy Policy" sub="How we handle your data" />
+                         </View>
+                      </View>
+                      
+                      <Text style={styles.versionText}>Eventra Web v1.0.0 • Build 2026.04</Text>
+                   </View>
+                </View>
+              )}
+           </View>
+        </ScrollView>
+      </View>
     </View>
   );
 };
@@ -173,216 +199,242 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: "#f8fafc",
   },
-  profileSidebar: {
-    width: 360,
+  mainContent: {
+    flex: 1,
+  },
+  topHeader: {
+    paddingHorizontal: 60,
+    paddingVertical: 32,
     backgroundColor: "#fff",
-    borderRightWidth: 1,
-    borderRightColor: "#f1f5f9",
-    padding: 48,
+    flexDirection: "row",
     justifyContent: "space-between",
-  },
-  sidebarTop: {
     alignItems: "center",
-    marginBottom: 60,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f5f9",
   },
-  avatarContainer: {
-    position: "relative",
-    marginBottom: 24,
+  headerTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 20,
   },
-  editAvatarBtn: {
-    position: "absolute",
-    bottom: 4,
-    right: 4,
-    backgroundColor: COLORS.brandPurple,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  backBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#f8fafc",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 3,
-    borderColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
   },
-  profileName: {
+  headerTitle: {
     fontSize: 24,
     fontWeight: "900",
     color: "#1d3557",
-    marginBottom: 4,
   },
-  profileEmail: {
+  headerSub: {
     fontSize: 14,
     color: "#64748b",
-    fontWeight: "500",
-  },
-  sidebarNav: {
-    flex: 1,
-  },
-  sidebarItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  sidebarItemActive: {
-    backgroundColor: "rgba(230, 57, 70, 0.05)",
-  },
-  sidebarItemText: {
-    fontSize: 16,
     fontWeight: "600",
-    color: "#64748b",
   },
-  sidebarItemTextActive: {
-    color: COLORS.brandPurple,
-    fontWeight: "700",
-  },
-  logoutBtn: {
+  headerEditBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    marginTop: 40,
-  },
-  logoutBtnText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#ef4444",
-  },
-  profileMain: {
-    flex: 1,
-  },
-  profileMainContent: {
-    padding: 80,
-    maxWidth: 1200,
-  },
-  contentHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 60,
-  },
-  contentTitle: {
-    fontSize: 36,
-    fontWeight: "900",
-    color: "#1d3557",
-    letterSpacing: -1,
-  },
-  editProfileBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    gap: 10,
     backgroundColor: "#1d3557",
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 14,
   },
-  editProfileBtnText: {
+  headerEditBtnText: {
     color: "#fff",
-    fontSize: 16,
     fontWeight: "700",
+    fontSize: 15,
   },
-  infoGrid: {
+  scrollArea: {
+    flex: 1,
+  },
+  contentPadding: {
+    padding: 60,
+  },
+  profileGrid: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    marginHorizontal: -12,
-    marginBottom: 60,
+    gap: 48,
+    maxWidth: 1200,
+    alignSelf: "center",
+    width: "100%",
   },
-  infoCard: {
-    width: "33.33%",
-    padding: 12,
+  infoCol: {
+    flex: 1,
+  },
+  profileCard: {
+    backgroundColor: "#fff",
+    borderRadius: 32,
+    padding: 48,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+    boxShadow: "0px 10px 40px rgba(0,0,0,0.03)",
+  },
+  avatarWrapper: {
+    position: "relative",
+    marginBottom: 32,
+  },
+  avatarCircle: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: "#f8fafc",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#f1f5f9",
+  },
+  cameraBtn: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    backgroundColor: COLORS.brandPurple,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 4,
+    borderColor: "#fff",
+  },
+  userName: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#1d3557",
+    marginBottom: 8,
+  },
+  userRole: {
+    fontSize: 16,
+    color: COLORS.brandPurple,
+    fontWeight: "700",
+    marginBottom: 40,
+  },
+  infoDivider: {
+    width: "100%",
+    height: 1,
+    backgroundColor: "#f1f5f9",
+    marginBottom: 40,
+  },
+  detailsList: {
+    width: "100%",
+    gap: 24,
+    marginBottom: 48,
+  },
+  detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    marginBottom: 12,
+    gap: 20,
   },
-  infoIconBox: {
-    width: 48,
-    height: 48,
+  detailIconBox: {
+    width: 44,
+    height: 44,
     borderRadius: 14,
-    backgroundColor: "rgba(230, 57, 70, 0.05)",
+    backgroundColor: "#f8fafc",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+  },
+  detailText: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: "#94a3b8",
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 2,
+  },
+  detailValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1d3557",
+  },
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    width: "100%",
+    paddingVertical: 18,
+    borderRadius: 16,
+    backgroundColor: "#fff1f2",
+  },
+  logoutBtnText: {
+    color: "#ef4444",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  settingsCol: {
+    flex: 1.5,
+    gap: 40,
+  },
+  settingsSection: {
+    backgroundColor: "#fff",
+    borderRadius: 32,
+    padding: 32,
+    borderWidth: 1,
+    borderColor: "#f1f5f9",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: "#1d3557",
+    marginBottom: 24,
+    paddingLeft: 8,
+  },
+  menuLinks: {
+    gap: 8,
+  },
+  menuLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: "#fff",
+  },
+  menuLinkLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 20,
+  },
+  menuIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#f8fafc",
     alignItems: "center",
     justifyContent: "center",
   },
-  infoLabel: {
-    fontSize: 12,
-    color: "#94a3b8",
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  infoValue: {
+  menuLinkLabel: {
     fontSize: 16,
-    color: "#1d3557",
-    fontWeight: "700",
-  },
-  settingsSection: {
-    marginBottom: 60,
-  },
-  sectionTitle: {
-    fontSize: 24,
     fontWeight: "800",
     color: "#1d3557",
-    marginBottom: 24,
   },
-  settingsCard: {
-    backgroundColor: "#fff",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "#f1f5f9",
-    overflow: "hidden",
-  },
-  settingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 24,
-  },
-  settingLabelGroup: {
-    gap: 4,
-  },
-  settingLabel: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1d3557",
-  },
-  settingSub: {
-    fontSize: 14,
+  menuLinkSub: {
+    fontSize: 13,
     color: "#94a3b8",
     fontWeight: "500",
   },
-  settingDivider: {
-    height: 1,
-    backgroundColor: "#f1f5f9",
-    marginHorizontal: 24,
+  versionText: {
+    textAlign: "center",
+    fontSize: 13,
+    color: "#cbd5e1",
+    fontWeight: "600",
+    marginTop: 20,
   },
-  dangerZone: {
-    marginTop: 40,
-    paddingTop: 40,
-    borderTopWidth: 1,
-    borderTopColor: "#f1f5f9",
-  },
-  dangerTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#1d3557",
-    marginBottom: 20,
-  },
-  changePasswordBtn: {
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#e2e8f0",
-    alignSelf: "flex-start",
-  },
-  changePasswordText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#1d3557",
-  },
+  loaderContainer: {
+    paddingVertical: 100,
+    alignItems: "center",
+  }
 });
 
 export default ProfileScreen;

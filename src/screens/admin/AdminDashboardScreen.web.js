@@ -43,6 +43,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useUser } from "../../context/UserContext";
 import { useAuth } from "../../context/AuthContext";
 import { eventService, bookingService, sosService } from "../../api/services";
+import AdminSidebar from "../../components/AdminSidebar.web";
 
 const AdminDashboardScreen = ({ navigation }) => {
   const { width: windowWidth } = useWindowDimensions();
@@ -146,60 +147,7 @@ const AdminDashboardScreen = ({ navigation }) => {
       <StatusBar style="light" />
       
       {/* 1. Sidebar Navigation */}
-      <View style={styles.sidebar}>
-        <View style={styles.sidebarHeader}>
-          <View style={styles.logoContainer}>
-            <ShieldCheck size={28} color={COLORS.error} />
-          </View>
-          <View>
-            <Text style={styles.logoText}>EVENTRA</Text>
-            <Text style={styles.logoSub}>SHIELD ADMIN</Text>
-          </View>
-        </View>
-
-        <View style={styles.navGroup}>
-          <Text style={styles.navSectionLabel}>CORE CONTROL</Text>
-          <TouchableOpacity style={[styles.navItem, activeNav === "Dashboard" && styles.navItemActive]} onPress={() => setActiveNav("Dashboard")}>
-            <LayoutDashboard size={20} color={activeNav === "Dashboard" ? "#fff" : "#94a3b8"} />
-            <Text style={[styles.navItemText, activeNav === "Dashboard" && styles.navItemTextActive]}>Command Center</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("AdminAnalytics")}>
-            <BarChart3 size={20} color="#94a3b8" />
-            <Text style={styles.navItemText}>Deep Analytics</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("LiveHeatmap")}>
-            <Flame size={20} color="#94a3b8" />
-            <Text style={styles.navItemText}>Live Heatmap</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.navGroup}>
-          <Text style={styles.navSectionLabel}>MANAGEMENT</Text>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("AddEvent")}>
-            <Plus size={20} color="#94a3b8" />
-            <Text style={styles.navItemText}>Create Event</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("AdminInventory")}>
-            <ShoppingBag size={20} color="#94a3b8" />
-            <Text style={styles.navItemText}>Store & Inventory</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("SystemLogs")}>
-            <Clock size={20} color="#94a3b8" />
-            <Text style={styles.navItemText}>System Logs</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.sidebarFooter}>
-          <TouchableOpacity style={styles.userProfile}>
-            <Image source={{ uri: userInfo?.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" }} style={styles.avatar} />
-            <View>
-              <Text style={styles.userName}>{userInfo?.name || "System Admin"}</Text>
-              <Text style={styles.userRole}>Super Admin</Text>
-            </View>
-            <ChevronRight size={16} color="#94a3b8" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <AdminSidebar navigation={navigation} activeNav="Dashboard" />
 
       {/* 2. Main Canvas */}
       <View style={styles.mainCanvas}>

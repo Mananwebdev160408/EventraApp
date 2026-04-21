@@ -215,6 +215,61 @@ function AdminTabs() {
 
 import { useAuth } from "../context/AuthContext";
 
+// Linking Configuration for Web URL Sync
+const linking = {
+  prefixes: [
+    "http://localhost:19006",
+    "http://localhost:8081",
+    "https://eventra.app",
+    "eventra://",
+  ],
+  config: {
+    screens: {
+      AuthLanding: "welcome",
+      Login: "login",
+      Signup: "register",
+      StadiumOnboarding: "onboarding",
+      MainTabs: {
+        path: "",
+        screens: {
+          Discover: "discover",
+          Dashboard: "live",
+          Explore: "explore",
+          MyEvents: "tickets",
+          Profile: "account",
+        },
+      },
+      AdminTabs: {
+        path: "admin",
+        screens: {
+          Dashboard: "dashboard",
+          Schedule: "schedule",
+          Venue: "venue",
+          Store: "store",
+          Profile: "profile",
+        },
+      },
+      AdminAnalytics: "admin/analytics",
+      AdminInventory: "admin/inventory",
+      SystemLogs: "admin/logs",
+      AddEvent: "admin/add-event",
+      ManageEventDetails: "admin/manage/:id",
+      AdminSettings: "admin/settings",
+      EventDetails: "event/:id",
+      SelectSeats: "book/:eventId",
+      Ticket: "pass/:bookingId",
+      Store: "store",
+      FoodOrdering: "dining",
+      Cart: "cart",
+      Checkout: "checkout",
+      Notifications: "updates",
+      Emergency: "sos",
+      EditProfile: "account/edit",
+      ActivityHistory: "account/history",
+    },
+  },
+};
+
 export default function AppNavigator() {
   const { userToken, userInfo, isLoading } = useAuth();
 
@@ -303,7 +358,7 @@ export default function AppNavigator() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <Stack.Navigator
           screenOptions={{
             headerShown: false,
